@@ -813,7 +813,7 @@ s.init=function(x,e,k,fn){
                 e.authd=e.details.muser+':'+e.details.mpass+'@';
             }
             if(e.port==80&&e.details.port_force!=='1'){e.porty=''}else{e.porty=':'+e.port}
-            e.url=e.protocol+'://'+e.authd+e.host+e.porty+e.path;return e.url;
+            e.url=e.protocol+'://'+e.authd+'['+e.host+']'+e.porty+e.path;return e.url;
         break;
         case'url_no_path':
             e.authd='';
@@ -823,7 +823,7 @@ s.init=function(x,e,k,fn){
                 e.authd=e.details.muser+':'+e.details.mpass+'@';
             }
             if(e.port==80&&e.details.port_force!=='1'){e.porty=''}else{e.porty=':'+e.port}
-            e.url=e.protocol+'://'+e.authd+e.host+e.porty;return e.url;
+            e.url=e.protocol+'://'+e.authd+'['+e.host+']'+e.porty;return e.url;
         break;
         case'diskUsedEmit':
             //send the amount used disk space to connected users
