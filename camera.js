@@ -56,8 +56,9 @@ var Mp4Frag = require('mp4frag');
 var P2P = require('pipe2pam');
 var PamDiff = require('pam-diff');
 var httpProxy = require('http-proxy');
-var proxy = httpProxy.createProxyServer({})
-var location = {}
+var proxy = httpProxy.createProxyServer({});
+var location = {};
+var fromEmail = '"ShinobiCCTV" <no-reply@shinobi.video>';
 location.super = __dirname+'/super.json'
 location.config = __dirname+'/conf.json'
 location.languages = __dirname+'/languages'
@@ -89,6 +90,9 @@ try{
 process.send = process.send || function () {};
 if(config.mail){
     var nodemailer = require('nodemailer').createTransport(config.mail);
+}
+if(config.fromEmail){
+    fromEmail = config.fromEmail;
 }
 //config defaults
 if(config.cpuUsageMarker===undefined){config.cpuUsageMarker='%Cpu'}
@@ -996,7 +1000,7 @@ s.filterEvents=function(x,d){
 
                 })
                 d.mailOptions = {
-                    from: '"ShinobiCCTV" <no-reply@shinobi.video>', // sender address
+                    from: fromEmail, // sender address
                     to: d.mail, // list of receivers
                     subject: lang['Filter Matches']+' : '+d.name, // Subject line
                     html: lang.FilterMatchesText1+' '+d.videos.length+' '+lang.FilterMatchesText2,
@@ -2849,7 +2853,7 @@ s.camera=function(x,e,cn,tx){
                         s.group[e.ke].mon[e.id].detector_notrigger_timeout_function=function(){
                             if(config.mail&&e.details.detector_notrigger_mail=='1'){
                                 e.mailOptions = {
-                                    from: '"ShinobiCCTV" <no-reply@shinobi.video>', // sender address
+                                    from: fromEmail, // sender address
                                     to: r.mail, // list of receivers
                                     subject: lang.NoMotionEmailText1+' '+e.name+' ('+e.id+')', // Subject line
                                     html: '<i>'+lang.NoMotionEmailText2+' '+e.details.detector_notrigger_timeout+' '+lang.minutes+'.</i>',
@@ -3582,7 +3586,7 @@ s.camera=function(x,e,cn,tx){
                         var files = []
                         var sendMail = function(){
                             d.mailOptions = {
-                                from: '"ShinobiCCTV" <no-reply@shinobi.video>', // sender address
+                                from: fromEmail, // sender address
                                 to: r.mail, // list of receivers
                                 subject: lang.Event+' - '+screenshotName, // Subject line
                                 html: '<i>'+lang.EventText1+' '+s.timeObject(new Date).format()+'.</i>',
@@ -5369,7 +5373,7 @@ app.post(['/','/:screen'],function (req,res){
                                 if(!s.factorAuth[r.ke][r.uid]){
                                     s.factorAuth[r.ke][r.uid]={key:s.nid(),user:r}
                                     r.mailOptions = {
-                                        from: '"ShinobiCCTV" <no-reply@shinobi.video>',
+                                        from: fromEmail,
                                         to: r.mail,
                                         subject: r.lang['2-Factor Authentication'],
                                         html: r.lang['Enter this code to proceed']+' <b>'+s.factorAuth[r.ke][r.uid].key+'</b>. '+r.lang.FactorAuthText1,
