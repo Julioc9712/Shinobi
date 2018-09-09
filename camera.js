@@ -3260,6 +3260,10 @@ s.camera=function(x,e,cn,tx){
             }
             //set the temporary files directory
             var setStreamDir = function(){
+                //ensure parent dir exists
+                if (!fs.existsSync(s.dir.streams)){
+                    fs.mkdirSync(s.dir.streams);
+                }
                 //stream dir
                 e.sdir=s.dir.streams+e.ke+'/';
                 if (!fs.existsSync(e.sdir)){
@@ -3474,6 +3478,10 @@ s.camera=function(x,e,cn,tx){
                         }
                     });
                 }
+
+                //set dirs before watch(e.sdir)
+                setStreamDir()
+
                 if(
                     //is MacOS
                     s.platform !== 'darwin' &&
@@ -3488,7 +3496,6 @@ s.camera=function(x,e,cn,tx){
                 }
                 s.camera('snapshot',{mid:e.id,ke:e.ke,mon:e})
                 //check host to see if has password and user in it
-                setStreamDir()
                 clearTimeout(s.group[e.ke].mon[e.id].checker)
                 if(s.group[e.ke].mon[e.id].started===1){
                 e.error_count=0;
