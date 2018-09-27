@@ -1388,7 +1388,7 @@ s.video=function(x,e,k){
                 }
                 v.filename = s.formattedTime(v.time)+'.'+v.ext;
                 if(!k.videoParam)k.videoParam = 'videos'
-                var href = '/'+k.auth+'/'+k.videoParam+'/'+v.ke+'/'+v.mid+'/'+v.filename;
+                var href = k.auth+'/'+k.videoParam+'/'+v.ke+'/'+v.mid+'/'+v.filename;
                 v.actionUrl = href
                 v.links = {
                     deleteVideo : href+'/delete' + queryString,
