@@ -87,8 +87,8 @@ s.getRequest = function(url,callback){
 //                              s.systemLog("Get Snapshot Error", e);
     });
 }
-s.multiplerHeight = 0.75
-s.multiplerWidth = 0.96
+s.multiplerHeight = 0.68
+s.multiplerWidth = 0.84
 s.detectObject=function(buffer,d,tx){
   d.tmpFile=s.gid(5)+'.jpg'
   if(!fs.existsSync(s.dir.streams)){
@@ -115,8 +115,8 @@ s.detectObject=function(buffer,d,tx){
                   mats.push({
                     x:v.points[0] * s.multiplerWidth,
                     y:v.points[1] * s.multiplerHeight,
-                    width:v.points[2],
-                    height:v.points[3],
+                    width:v.points[2] * 1.34,
+                    height:v.points[3] * 1.23,
                     confidence:v.confidence,
                     tag:v.tag
                   })
