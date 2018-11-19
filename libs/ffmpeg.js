@@ -478,6 +478,12 @@ module.exports = function(s,config,onFinish){
             }
             x.stream_video_filters.push('movie='+e.details.stream_watermark_location+'[watermark],[in][watermark]overlay='+x.stream_watermark_position+'[out]');
         }
+        // stream - dimension
+        if(e.details.stream_scale_x&&e.details.stream_scale_x!==''&&e.details.stream_scale_y&&e.details.stream_scale_y!==''){
+            x.dimensions = e.details.stream_scale_x+'x'+e.details.stream_scale_y;
+        }
+        // stream - fps
+        if(e.details.stream_fps&&e.details.stream_fps!==''){x.stream_fps=' -r '+e.details.stream_fps}else{x.stream_fps=''}
         //stream - rotation
         if(e.details.rotate_stream&&e.details.rotate_stream!==""&&e.details.rotate_stream!=="no"&&e.details.stream_vcodec!=='copy'){
             x.stream_video_filters.push('transpose='+e.details.rotate_stream);
