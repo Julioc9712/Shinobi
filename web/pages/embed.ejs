@@ -21,6 +21,7 @@ if(data.url.charAt(data.url.length - 1) !== '/'){
 <script src="<%=data.url%>libs/js/hls.min.js"></script>
 <script src="<%=data.url%>libs/js/flv.min.js"></script>
 <script src="<%=data.url%>libs/js/libde265.min.js"></script>
+<script src="<%-data.url%>libs/js/flowplayer/flowplayer-3.2.13.min.js"></script>
 <% if(data.addon){
     var ar={}
     decodeURI(data.addon).split('|').forEach(function(v){
@@ -133,7 +134,13 @@ $(document).ready(function(){
     $('#<%= data.name %> canvas').attr('width',<%=ar.width%>).attr('height',<%=ar.height%>)
 })
 </script>
-<div class="shinobi_stream" id="<%= data.name %>">
+<style>
+    .shinobi_stream.rtmp,
+    .shinobi_stream.rtmp .stream-element {
+        width: 100%;
+    }
+</style>
+<div class="shinobi_stream <%= mon.details.stream_type %>" id="<%= data.name %>">
 
     <% switch(mon.details.stream_type){
         case'jpeg':
@@ -144,6 +151,9 @@ $(document).ready(function(){
         break;
         case'mjpeg':
             %><iframe class="stream-element"></iframe><%
+        break;
+        case 'rtmp':
+            %><div class="stream-element"></div><%
         break;
         default:
             %><canvas class="stream-element"></canvas><%
@@ -382,6 +392,49 @@ $(document).ready(function(){
                     case'mjpeg':
                         $('#SHINOBI_'+d.ke+'_'+d.id+' .stream-element').attr('src','<%=data.url%><%=data.auth%>/mjpeg/'+d.ke+'/'+d.id+'?full=true')
                     break;
+                    case'rtmp':
+                        if($.shinobi.mon[d.id].rtmp_player){
+                            $.shinobi.mon[d.id].rtmp_player.unload()
+                        }
+                        var fpswf = '<%=data.url%>libs/js/flowplayer/flowplayer-3.2.18.swf';
+                        var options = {
+                            debug: false,
+                            clip: {
+                                url: $.shinobi.mon[d.id].details.stream_rtmp_url,
+                                live: true,
+                                scaling: 'scale',
+                                provider: 'rtmp'
+                            },
+                            plugins: {
+                                rtmp: {
+                                    url: "flowplayer.rtmp-3.2.13.swf",
+                                },
+                                controls: {
+                                    height: 0
+                                }
+                            },
+                            canvas: {
+                                backgroundGradient: 'none'
+                            },
+                            onError: function(errorCode, errorMessage) {
+                                console.error('RTMP: flowplayer error: ' + errorCode + ' - ' + errorMessage);
+                                $.ccio.log('RTMP: flowplayer error: ' + errorCode + ' - ' + errorMessage);
+                            }
+                        };
+
+                        if ($.shinobi.mon[d.id].details.stream_rtmp_mute!=0) {
+                            options.clip.onStart = function() {
+                                if($.shinobi.mon[d.id].rtmp_player){
+                                    $.shinobi.mon[d.id].rtmp_player.mute();
+                                } else {
+                                    console.error('RTMP: flowplayer is not initialized!')
+                                    $.ccio.log('RTMP: flowplayer is not initialized!');
+                                }
+                            }
+                        }
+
+                        $.shinobi.mon[d.id].rtmp_player = flowplayer($('#SHINOBI_' + d.ke + '_' + d.id + ' .stream-element')[0], fpswf, options);
+                    break;
                 }
             }
             $.shinobi.mon['<%=data.id%>']=<%- JSON.stringify(mon) %>;
@@ -442,6 +495,11 @@ $(document).ready(function(){
             };
             $.shinobi.ws.emit('e',{f:'init',auth:'<%=data.auth%>',id:'<%=data.id%>',ke:'<%=data.ke%>'})
             $(window).resize();
+
+            // TODO: do we need to show WS toggle always?
+            if ($.shinobi.mon['<%=data.id%>'].details.stream_type != 'rtmp') {
+                $('.shinobi_ws_http_toggle').show()
+            }
         }
     },1000);
     //websocket / http toggle
@@ -459,5 +517,4 @@ $(document).ready(function(){
         monitor.id = monitor.mid
         $.shinobi.init(monitor);
     })
-    $('.shinobi_ws_http_toggle').show()
 </script>

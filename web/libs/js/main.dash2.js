@@ -765,7 +765,7 @@ switch($user.details.lang){
         }
         return k.tmp;
     }
-    $.ccio.snapshot=function(e,cb){
+    $.ccio.snapshot=function(e,cb,user){
         var image_data,url;
         e.details=JSON.parse(e.mon.details);
         if($.ccio.op().jpeg_on!==true){
@@ -793,7 +793,8 @@ switch($user.details.lang){
             var finish = function(url,image_data,width,height){
                 cb(url,image_data,width,height);
             }
-            switch(JSON.parse(e.mon.details).stream_type){
+            var d = e.details;
+            switch(d.stream_type){
                 case'hls':case'flv':case'mp4':
                     $.ccio.snapshotVideo($('[mid='+e.mon.mid+'].monitor_item video')[0],function(base64,video_data,width,height){
                         extend(video_data,width,height)
@@ -825,6 +826,21 @@ switch($user.details.lang){
                     image_data = new Image();
                     image_data.src = url;
                     finish(url,image_data,image_data.width,image_data.height);
+                break;
+                case'rtmp':
+                    if (d.snap == '1' && user) {
+                        url=$.ccio.init('location',user)+user.auth_token+'/jpeg/'+e.mon.ke+'/'+e.mon.mid+'/s.jpg?time='+(new Date()).getTime()
+                        var mon = $('[mid='+e.mon.mid+'].monitor_item .stream-element');
+                        var w = mon.width(), h = mon.height();
+
+                        image_data = new Image();
+                        image_data.onload = function() {
+                            $.ccio.resizeImage(image_data, w, h, function(img){
+                                extend(img, w, h)
+                            });
+                        }
+                        image_data.src = url;
+                    }
                 break;
             }
         }else{
@@ -859,6 +875,25 @@ switch($user.details.lang){
             var blob = bb.getBlob('application/octet-stream');
         }
         cb(base64,image_data,c.width,c.height);
+    }
+    $.ccio.resizeImage = function(img, w, h, cb) {
+        $('#temp').html('<canvas></canvas><canvas></canvas>')
+
+        var canvas = $('#temp canvas')[0];
+        var canvasCopy = $('#temp canvas')[1];
+
+        var ctx = canvas.getContext("2d");
+        var copyContext = canvasCopy.getContext("2d");
+
+        canvasCopy.width = img.width;
+        canvasCopy.height = img.height;
+        copyContext.drawImage(img, 0, 0);
+
+        canvas.width = w
+        canvas.height = h
+
+        ctx.drawImage(canvasCopy, 0, 0, canvasCopy.width, canvasCopy.height, 0, 0, canvas.width, canvas.height)
+        cb(atob(canvas.toDataURL('image/jpeg').split(',')[1]))
     }
     $.ccio.magnifyStream = function(e){
         if(!e.p){
@@ -1177,6 +1212,9 @@ switch($user.details.lang){
                         break;
                         case'jpeg':
                             tmp+='<img class="stream-element">';
+                        break;
+                        case 'rtmp':
+                            tmp+='<div class="stream-element"></div>'
                         break;
                         default://base64//h265
                             tmp+='<canvas class="stream-element"></canvas>';
@@ -2355,6 +2393,50 @@ $.ccio.globalWebsocket=function(d,user){
                           var url = $.ccio.init('location',user)+user.auth_token+'/h265/'+d.ke+'/'+d.id+'/s.hevc';
                           $.ccio.mon[d.ke+d.id+user.auth_token].h265HttpStream = player.createHttpStream(url)
                         }
+                    break;
+                    case'rtmp':
+                        if($.ccio.mon[d.ke+d.id+user.auth_token].rtmp_player){
+                            $.ccio.mon[d.ke+d.id+user.auth_token].rtmp_player.unload()
+                        }
+
+                        var fpswf = $.ccio.init('location',user) + 'libs/js/flowplayer/flowplayer-3.2.18.swf';
+                        var options = {
+                            debug: false,
+                            clip: {
+                                url: d.d.stream_rtmp_url,
+                                live: true,
+                                scaling: 'scale',
+                                provider: 'rtmp'
+                            },
+                            plugins: {
+                                rtmp: {
+                                    url: "flowplayer.rtmp-3.2.13.swf",
+                                },
+                                controls: {
+                                    height: 0
+                                }
+                            },
+                            canvas: {
+                                backgroundGradient: 'none'
+                            },
+                            onError: function(errorCode, errorMessage) {
+                                console.error('RTMP: flowplayer error: ' + errorCode + ' - ' + errorMessage);
+                                $.ccio.log('RTMP: flowplayer error: ' + errorCode + ' - ' + errorMessage);
+                            }
+                        };
+
+                        if (d.d.stream_rtmp_mute!=0 || $.ccio.op().switches.monitorMuteAudio === 1) {
+                            options.clip.onStart = function() {
+                                if($.ccio.mon[d.ke+d.id+user.auth_token].rtmp_player){
+                                    $.ccio.mon[d.ke+d.id+user.auth_token].rtmp_player.mute();
+                                } else {
+                                    console.error('RTMP: flowplayer is not initialized!')
+                                    $.ccio.log('RTMP: flowplayer is not initialized!');
+                                }
+                            }
+                        }
+
+                        $.ccio.mon[d.ke+d.id+user.auth_token].rtmp_player = flowplayer($('#monitor_live_'+d.id+user.auth_token+' .stream-element')[0], fpswf, options);
                     break;
                 }
             }
@@ -5631,7 +5713,7 @@ $('body')
                         e.fin(img)
                     }
                     img.src=url
-                })
+                }, user)
             }else{
                 var img={height:720,width:1280}
                 e.fin(img)
@@ -5710,7 +5792,7 @@ $('body')
         case'snapshot':
             $.ccio.snapshot(e,function(url){
                 $('#temp').html('<a href="'+url+'" download="'+$.ccio.init('tf')+'_'+e.ke+'_'+e.mid+'.jpg">a</a>').find('a')[0].click();
-            });
+            },user);
         break;
         case'control':
             e.a=e.e.attr('control')
