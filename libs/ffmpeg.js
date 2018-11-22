@@ -440,154 +440,159 @@ module.exports = function(s,config,onFinish){
     ffmpeg.buildMainStream = function(e,x){
         //e = monitor object
         //x = temporary values
-        x.stream_video_filters = []
+
         x.pipe = ''
         x.cust_stream = ''
-        //stream - timestamp
-        if(e.details.stream_timestamp&&e.details.stream_timestamp=="1"&&e.details.vcodec!=='copy'){
-            //font
-            if(e.details.stream_timestamp_font&&e.details.stream_timestamp_font!==''){x.stream_timestamp_font=e.details.stream_timestamp_font}else{x.stream_timestamp_font='/usr/share/fonts/truetype/freefont/FreeSans.ttf'}
-            //position x
-            if(e.details.stream_timestamp_x&&e.details.stream_timestamp_x!==''){x.stream_timestamp_x=e.details.stream_timestamp_x}else{x.stream_timestamp_x='(w-tw)/2'}
-            //position y
-            if(e.details.stream_timestamp_y&&e.details.stream_timestamp_y!==''){x.stream_timestamp_y=e.details.stream_timestamp_y}else{x.stream_timestamp_y='0'}
-            //text color
-            if(e.details.stream_timestamp_color&&e.details.stream_timestamp_color!==''){x.stream_timestamp_color=e.details.stream_timestamp_color}else{x.stream_timestamp_color='white'}
-            //box color
-            if(e.details.stream_timestamp_box_color&&e.details.stream_timestamp_box_color!==''){x.stream_timestamp_box_color=e.details.stream_timestamp_box_color}else{x.stream_timestamp_box_color='0x00000000@1'}
-            //text size
-            if(e.details.stream_timestamp_font_size&&e.details.stream_timestamp_font_size!==''){x.stream_timestamp_font_size=e.details.stream_timestamp_font_size}else{x.stream_timestamp_font_size='10'}
 
-            x.stream_video_filters.push('drawtext=fontfile='+x.stream_timestamp_font+':text=\'%{localtime}\':x='+x.stream_timestamp_x+':y='+x.stream_timestamp_y+':fontcolor='+x.stream_timestamp_color+':box=1:boxcolor='+x.stream_timestamp_box_color+':fontsize='+x.stream_timestamp_font_size);
-        }
-        //stream - watermark for -vf
-        if(e.details.stream_watermark&&e.details.stream_watermark=="1"&&e.details.stream_watermark_location&&e.details.stream_watermark_location!==''){
-            switch(e.details.stream_watermark_position){
-                case'tl'://top left
-                    x.stream_watermark_position='10:10'
-                break;
-                case'tr'://top right
-                    x.stream_watermark_position='main_w-overlay_w-10:10'
-                break;
-                case'bl'://bottom left
-                    x.stream_watermark_position='10:main_h-overlay_h-10'
-                break;
-                default://bottom right
-                    x.stream_watermark_position='(main_w-overlay_w-10)/2:(main_h-overlay_h-10)/2'
-                break;
+        // in case of rtmp we don't need ffmpeg streaming
+        if (e.details.stream_type != 'rtmp') {
+            x.stream_video_filters = []
+            //stream - timestamp
+            if(e.details.stream_timestamp&&e.details.stream_timestamp=="1"&&e.details.vcodec!=='copy'){
+                //font
+                if(e.details.stream_timestamp_font&&e.details.stream_timestamp_font!==''){x.stream_timestamp_font=e.details.stream_timestamp_font}else{x.stream_timestamp_font='/usr/share/fonts/truetype/freefont/FreeSans.ttf'}
+                //position x
+                if(e.details.stream_timestamp_x&&e.details.stream_timestamp_x!==''){x.stream_timestamp_x=e.details.stream_timestamp_x}else{x.stream_timestamp_x='(w-tw)/2'}
+                //position y
+                if(e.details.stream_timestamp_y&&e.details.stream_timestamp_y!==''){x.stream_timestamp_y=e.details.stream_timestamp_y}else{x.stream_timestamp_y='0'}
+                //text color
+                if(e.details.stream_timestamp_color&&e.details.stream_timestamp_color!==''){x.stream_timestamp_color=e.details.stream_timestamp_color}else{x.stream_timestamp_color='white'}
+                //box color
+                if(e.details.stream_timestamp_box_color&&e.details.stream_timestamp_box_color!==''){x.stream_timestamp_box_color=e.details.stream_timestamp_box_color}else{x.stream_timestamp_box_color='0x00000000@1'}
+                //text size
+                if(e.details.stream_timestamp_font_size&&e.details.stream_timestamp_font_size!==''){x.stream_timestamp_font_size=e.details.stream_timestamp_font_size}else{x.stream_timestamp_font_size='10'}
+
+                x.stream_video_filters.push('drawtext=fontfile='+x.stream_timestamp_font+':text=\'%{localtime}\':x='+x.stream_timestamp_x+':y='+x.stream_timestamp_y+':fontcolor='+x.stream_timestamp_color+':box=1:boxcolor='+x.stream_timestamp_box_color+':fontsize='+x.stream_timestamp_font_size);
             }
-            x.stream_video_filters.push('movie='+e.details.stream_watermark_location+'[watermark],[in][watermark]overlay='+x.stream_watermark_position+'[out]');
-        }
-        // stream - dimension
-        if(e.details.stream_scale_x&&e.details.stream_scale_x!==''&&e.details.stream_scale_y&&e.details.stream_scale_y!==''){
-            x.dimensions = e.details.stream_scale_x+'x'+e.details.stream_scale_y;
-        }
-        // stream - fps
-        if(e.details.stream_fps&&e.details.stream_fps!==''){x.stream_fps=' -r '+e.details.stream_fps}else{x.stream_fps=''}
-        //stream - rotation
-        if(e.details.rotate_stream&&e.details.rotate_stream!==""&&e.details.rotate_stream!=="no"&&e.details.stream_vcodec!=='copy'){
-            x.stream_video_filters.push('transpose='+e.details.rotate_stream);
-        }
-        //stream - hls vcodec
-        if(e.details.stream_vcodec&&e.details.stream_vcodec!=='no'){
-            if(e.details.stream_vcodec!==''){x.stream_vcodec=' -c:v '+e.details.stream_vcodec}else{x.stream_vcodec=' -c:v libx264'}
-        }else{
-            x.stream_vcodec='';
-        }
-        //stream - hls acodec
-        if(e.details.stream_acodec!=='no'){
-        if(e.details.stream_acodec&&e.details.stream_acodec!==''){x.stream_acodec=' -c:a '+e.details.stream_acodec}else{x.stream_acodec=''}
-        }else{
-            x.stream_acodec=' -an';
-        }
-        //stream - hls segment time
-        if(e.details.hls_time&&e.details.hls_time!==''){x.hls_time=e.details.hls_time}else{x.hls_time="2"}    //hls list size
-        if(e.details.hls_list_size&&e.details.hls_list_size!==''){x.hls_list_size=e.details.hls_list_size}else{x.hls_list_size=2}
-        //stream - custom flags
-        if(e.details.cust_stream&&e.details.cust_stream!==''){x.cust_stream=' '+e.details.cust_stream}
-        //stream - preset
-        if(e.details.stream_type !== 'h265' && e.details.preset_stream && e.details.preset_stream !== ''){x.preset_stream=' -preset '+e.details.preset_stream;}else{x.preset_stream=''}
-
-        if(e.details.stream_vcodec==='h264_vaapi'){
-            x.stream_video_filters=[]
-            x.stream_video_filters.push('format=nv12,hwupload');
+            //stream - watermark for -vf
+            if(e.details.stream_watermark&&e.details.stream_watermark=="1"&&e.details.stream_watermark_location&&e.details.stream_watermark_location!==''){
+                switch(e.details.stream_watermark_position){
+                    case'tl'://top left
+                        x.stream_watermark_position='10:10'
+                    break;
+                    case'tr'://top right
+                        x.stream_watermark_position='main_w-overlay_w-10:10'
+                    break;
+                    case'bl'://bottom left
+                        x.stream_watermark_position='10:main_h-overlay_h-10'
+                    break;
+                    default://bottom right
+                        x.stream_watermark_position='(main_w-overlay_w-10)/2:(main_h-overlay_h-10)/2'
+                    break;
+                }
+                x.stream_video_filters.push('movie='+e.details.stream_watermark_location+'[watermark],[in][watermark]overlay='+x.stream_watermark_position+'[out]');
+            }
+            // stream - dimension
             if(e.details.stream_scale_x&&e.details.stream_scale_x!==''&&e.details.stream_scale_y&&e.details.stream_scale_y!==''){
-                x.stream_video_filters.push('scale_vaapi=w='+e.details.stream_scale_x+':h='+e.details.stream_scale_y)
+                x.dimensions = e.details.stream_scale_x+'x'+e.details.stream_scale_y;
             }
-    	}
-        if(e.cudaEnabled && (e.details.stream_type === 'mjpeg' || e.details.stream_type === 'b64')){
-            x.stream_video_filters.push('hwdownload,format=nv12')
-        }
-        //stream - video filter
-        if(e.details.svf && e.details.svf !== ''){
-            x.stream_video_filters.push(e.details.svf)
-        }
-        if(x.stream_video_filters.length>0){
-            x.stream_video_filters=' -vf "'+x.stream_video_filters.join(',')+'"'
-        }else{
-            x.stream_video_filters=''
-        }
-        //stream - pipe build
-        if(e.details.input_map_choices&&e.details.input_map_choices.stream){
-            //add input feed map
-            x.pipe += s.createFFmpegMap(e,e.details.input_map_choices.stream)
-        }
-        if(x.stream_fps && (e.details.stream_vcodec !== 'copy' || e.details.stream_type === 'mjpeg' || e.details.stream_type === 'b64')){
-            x.cust_stream += x.stream_fps
-        }
-        switch(e.details.stream_type){
-            case'mp4':
-                x.cust_stream+=' -movflags +frag_keyframe+empty_moov+default_base_moof -metadata title="Poseidon Stream" -reset_timestamps 1'
-                if(e.details.stream_vcodec!=='copy'){
-                    if(x.dimensions && x.cust_stream.indexOf('-s ')===-1){x.cust_stream+=' -s '+x.dimensions}
-                    if(e.details.stream_quality && e.details.stream_quality !== '')x.cust_stream+=' -crf '+e.details.stream_quality;
-                    x.cust_stream+=x.preset_stream
-                    x.cust_stream+=x.stream_video_filters
+            // stream - fps
+            if(e.details.stream_fps&&e.details.stream_fps!==''){x.stream_fps=' -r '+e.details.stream_fps}else{x.stream_fps=''}
+            //stream - rotation
+            if(e.details.rotate_stream&&e.details.rotate_stream!==""&&e.details.rotate_stream!=="no"&&e.details.stream_vcodec!=='copy'){
+                x.stream_video_filters.push('transpose='+e.details.rotate_stream);
+            }
+            //stream - hls vcodec
+            if(e.details.stream_vcodec&&e.details.stream_vcodec!=='no'){
+                if(e.details.stream_vcodec!==''){x.stream_vcodec=' -c:v '+e.details.stream_vcodec}else{x.stream_vcodec=' -c:v libx264'}
+            }else{
+                x.stream_vcodec='';
+            }
+            //stream - hls acodec
+            if(e.details.stream_acodec!=='no'){
+            if(e.details.stream_acodec&&e.details.stream_acodec!==''){x.stream_acodec=' -c:a '+e.details.stream_acodec}else{x.stream_acodec=''}
+            }else{
+                x.stream_acodec=' -an';
+            }
+            //stream - hls segment time
+            if(e.details.hls_time&&e.details.hls_time!==''){x.hls_time=e.details.hls_time}else{x.hls_time="2"}    //hls list size
+            if(e.details.hls_list_size&&e.details.hls_list_size!==''){x.hls_list_size=e.details.hls_list_size}else{x.hls_list_size=2}
+            //stream - custom flags
+            if(e.details.cust_stream&&e.details.cust_stream!==''){x.cust_stream=' '+e.details.cust_stream}
+            //stream - preset
+            if(e.details.stream_type !== 'h265' && e.details.preset_stream && e.details.preset_stream !== ''){x.preset_stream=' -preset '+e.details.preset_stream;}else{x.preset_stream=''}
+
+            if(e.details.stream_vcodec==='h264_vaapi'){
+                x.stream_video_filters=[]
+                x.stream_video_filters.push('format=nv12,hwupload');
+                if(e.details.stream_scale_x&&e.details.stream_scale_x!==''&&e.details.stream_scale_y&&e.details.stream_scale_y!==''){
+                    x.stream_video_filters.push('scale_vaapi=w='+e.details.stream_scale_x+':h='+e.details.stream_scale_y)
                 }
-                x.pipe+=' -f mp4'+x.stream_acodec+x.stream_vcodec+x.cust_stream+' pipe:1';
-            break;
-            case'flv':
-                if(e.details.stream_vcodec!=='copy'){
-                    if(x.dimensions && x.cust_stream.indexOf('-s ')===-1){x.cust_stream+=' -s '+x.dimensions}
-                    if(e.details.stream_quality && e.details.stream_quality !== '')x.cust_stream+=' -crf '+e.details.stream_quality;
-                    x.cust_stream+=x.preset_stream
-                    x.cust_stream+=x.stream_video_filters
-                }
-                x.pipe+=' -f flv'+x.stream_acodec+x.stream_vcodec+x.cust_stream+' pipe:1';
-            break;
-            case'hls':
-                if(e.details.stream_vcodec!=='h264_vaapi'&&e.details.stream_vcodec!=='copy'){
-                    if(e.details.stream_quality && e.details.stream_quality !== '')x.cust_stream+=' -crf '+e.details.stream_quality;
-                    if(x.cust_stream.indexOf('-tune')===-1){x.cust_stream+=' -tune zerolatency'}
-                    if(x.cust_stream.indexOf('-g ')===-1){x.cust_stream+=' -g 1'}
-                    if(x.dimensions && x.cust_stream.indexOf('-s ')===-1){x.cust_stream+=' -s '+x.dimensions}
-                    x.cust_stream+=x.stream_video_filters
-                }
-                x.pipe+=x.preset_stream+x.stream_acodec+x.stream_vcodec+' -f hls'+x.cust_stream+' -hls_time '+x.hls_time+' -hls_list_size '+x.hls_list_size+' -start_number 0 -hls_allow_cache 0 -hls_flags +delete_segments+omit_endlist "'+e.sdir+'s.m3u8"';
-            break;
-            case'mjpeg':
+        	}
+            if(e.cudaEnabled && (e.details.stream_type === 'mjpeg' || e.details.stream_type === 'b64')){
+                x.stream_video_filters.push('hwdownload,format=nv12')
+            }
+            //stream - video filter
+            if(e.details.svf && e.details.svf !== ''){
+                x.stream_video_filters.push(e.details.svf)
+            }
+            if(x.stream_video_filters.length>0){
+                x.stream_video_filters=' -vf "'+x.stream_video_filters.join(',')+'"'
+            }else{
+                x.stream_video_filters=''
+            }
+            //stream - pipe build
+            if(e.details.input_map_choices&&e.details.input_map_choices.stream){
+                //add input feed map
+                x.pipe += s.createFFmpegMap(e,e.details.input_map_choices.stream)
+            }
+            if(x.stream_fps && (e.details.stream_vcodec !== 'copy' || e.details.stream_type === 'mjpeg' || e.details.stream_type === 'b64')){
+                x.cust_stream += x.stream_fps
+            }
+            switch(e.details.stream_type){
+                case'mp4':
+                    x.cust_stream+=' -movflags +frag_keyframe+empty_moov+default_base_moof -metadata title="Poseidon Stream" -reset_timestamps 1'
+                    if(e.details.stream_vcodec!=='copy'){
+                        if(x.dimensions && x.cust_stream.indexOf('-s ')===-1){x.cust_stream+=' -s '+x.dimensions}
+                        if(e.details.stream_quality && e.details.stream_quality !== '')x.cust_stream+=' -crf '+e.details.stream_quality;
+                        x.cust_stream+=x.preset_stream
+                        x.cust_stream+=x.stream_video_filters
+                    }
+                    x.pipe+=' -f mp4'+x.stream_acodec+x.stream_vcodec+x.cust_stream+' pipe:1';
+                break;
+                case'flv':
+                    if(e.details.stream_vcodec!=='copy'){
+                        if(x.dimensions && x.cust_stream.indexOf('-s ')===-1){x.cust_stream+=' -s '+x.dimensions}
+                        if(e.details.stream_quality && e.details.stream_quality !== '')x.cust_stream+=' -crf '+e.details.stream_quality;
+                        x.cust_stream+=x.preset_stream
+                        x.cust_stream+=x.stream_video_filters
+                    }
+                    x.pipe+=' -f flv'+x.stream_acodec+x.stream_vcodec+x.cust_stream+' pipe:1';
+                break;
+                case'hls':
+                    if(e.details.stream_vcodec!=='h264_vaapi'&&e.details.stream_vcodec!=='copy'){
+                        if(e.details.stream_quality && e.details.stream_quality !== '')x.cust_stream+=' -crf '+e.details.stream_quality;
+                        if(x.cust_stream.indexOf('-tune')===-1){x.cust_stream+=' -tune zerolatency'}
+                        if(x.cust_stream.indexOf('-g ')===-1){x.cust_stream+=' -g 1'}
+                        if(x.dimensions && x.cust_stream.indexOf('-s ')===-1){x.cust_stream+=' -s '+x.dimensions}
+                        x.cust_stream+=x.stream_video_filters
+                    }
+                    x.pipe+=x.preset_stream+x.stream_acodec+x.stream_vcodec+' -f hls'+x.cust_stream+' -hls_time '+x.hls_time+' -hls_list_size '+x.hls_list_size+' -start_number 0 -hls_allow_cache 0 -hls_flags +delete_segments+omit_endlist "'+e.sdir+'s.m3u8"';
+                break;
+                case'mjpeg':
+                        if(e.details.stream_quality && e.details.stream_quality !== '')x.cust_stream+=' -q:v '+e.details.stream_quality;
+                        if(x.dimensions && x.cust_stream.indexOf('-s ')===-1){x.cust_stream+=' -s '+x.dimensions}
+                        x.pipe+=' -an -c:v mjpeg -f mpjpeg -boundary_tag shinobi'+x.cust_stream+x.stream_video_filters+' pipe:1';
+                break;
+                case'h265':
+                    x.cust_stream+=' -movflags +frag_keyframe+empty_moov+default_base_moof -metadata title="Shinobi H.265 Stream" -reset_timestamps 1'
+                    if(e.details.stream_vcodec!=='copy'){
+                        if(x.dimensions && x.cust_stream.indexOf('-s ')===-1){x.cust_stream+=' -s '+x.dimensions}
+                        if(e.details.stream_quality && e.details.stream_quality !== '')x.cust_stream+=' -crf '+e.details.stream_quality;
+                        x.cust_stream+=x.preset_stream
+                        x.cust_stream+=x.stream_video_filters
+                    }
+                    x.pipe+=' -f hevc'+x.stream_acodec+x.stream_vcodec+x.cust_stream+' pipe:1';
+                break;
+                case'b64':case'':case undefined:case null://base64
                     if(e.details.stream_quality && e.details.stream_quality !== '')x.cust_stream+=' -q:v '+e.details.stream_quality;
                     if(x.dimensions && x.cust_stream.indexOf('-s ')===-1){x.cust_stream+=' -s '+x.dimensions}
-                    x.pipe+=' -an -c:v mjpeg -f mpjpeg -boundary_tag shinobi'+x.cust_stream+x.stream_video_filters+' pipe:1';
-            break;
-            case'h265':
-                x.cust_stream+=' -movflags +frag_keyframe+empty_moov+default_base_moof -metadata title="Shinobi H.265 Stream" -reset_timestamps 1'
-                if(e.details.stream_vcodec!=='copy'){
-                    if(x.dimensions && x.cust_stream.indexOf('-s ')===-1){x.cust_stream+=' -s '+x.dimensions}
-                    if(e.details.stream_quality && e.details.stream_quality !== '')x.cust_stream+=' -crf '+e.details.stream_quality;
-                    x.cust_stream+=x.preset_stream
-                    x.cust_stream+=x.stream_video_filters
-                }
-                x.pipe+=' -f hevc'+x.stream_acodec+x.stream_vcodec+x.cust_stream+' pipe:1';
-            break;
-            case'b64':case'':case undefined:case null://base64
-                if(e.details.stream_quality && e.details.stream_quality !== '')x.cust_stream+=' -q:v '+e.details.stream_quality;
-                if(x.dimensions && x.cust_stream.indexOf('-s ')===-1){x.cust_stream+=' -s '+x.dimensions}
-                x.pipe+=' -an -c:v mjpeg -f image2pipe'+x.cust_stream+x.stream_video_filters+' pipe:1';
-            break;
-            default:
-                x.pipe=''
-            break;
+                    x.pipe+=' -an -c:v mjpeg -f image2pipe'+x.cust_stream+x.stream_video_filters+' pipe:1';
+                break;
+                default:
+                    x.pipe=''
+                break;
+            }
         }
         if(e.details.stream_channels){
             e.details.stream_channels.forEach(function(v,n){

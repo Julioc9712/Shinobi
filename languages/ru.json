@@ -1,6 +1,6 @@
 {
   "\"No Motion\" Detector": "\"Нет Движения\" Детектор",
-  "# of Allow MJPEG Clients": "# of Allow MJPEG Clients <small>0 for infinite</small>",
+  "# of Allow MJPEG Clients": "К-ство разрешенных MJPEG подключений <small>0 - без ограничения</small>",
   "180 Degrees": "180 градусов",
   "2-Factor Authentication": "2-Факторной Аутентификации",
   "90 Clockwise": "90 по часовой стрелке",
@@ -73,6 +73,8 @@
   "Confirm": "Подтвердить",
   "Connected": "Подключен",
   "Connection Type": "Тип Подключения",
+  "RTMP Stream URL": "URL-адрес RTMP потока",
+  "Mute Sound": "Отключить звук",
   "Control": "Контроль",
   "Control Error": "Ошибка Контроля",
   "ControlErrorText1": "Контроль не включен",

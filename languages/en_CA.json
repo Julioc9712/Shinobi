@@ -352,6 +352,8 @@
    "Notes": "Notes",
    "Input Type": "Input Type",
    "Connection Type": "Connection Type",
+   "RTMP Stream URL": "RTMP Stream URL",
+   "Mute Sound": "Mute Sound",
    "RTSP Transport": "RTSP Transport",
    "Host": "Host",
    "Force Port": "Force Port",

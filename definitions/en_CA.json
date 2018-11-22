@@ -276,6 +276,10 @@
                      {
                         "name": "kVid",
                         "info": "Using Kevin Godell's custom JavaScript MP4 segmenting engine."
+                     },
+                     {
+                        "name": "RTMP",
+                        "info": "Direct RTMP stream from Input connection."
                      }
                   ]
                },
@@ -294,6 +298,31 @@
                   "default": "10",
                   "example": "",
                   "possible": ""
+               },
+               {
+                  "name": "detail=stream_rtmp_url",
+                  "field": "RTMP Stream URL",
+                  "description": "The full RTMP Stream URL.",
+                  "default": "",
+                  "example": "",
+                  "possible": ""
+               },
+               {
+                  "name": "detail=stream_rtmp_mute",
+                  "field": "Mute Sound",
+                  "description": "Mute sound by default.",
+                  "default": "Yes",
+                  "example": "",
+                  "possible": [
+                     {
+                        "name": "No",
+                        "info": "Sound won't be mutted."
+                     },
+                     {
+                        "name": "Yes",
+                        "info": "Yes is the default."
+                     }
+                  ]
                },
                {
                   "name": "detail=signal_check_log",
