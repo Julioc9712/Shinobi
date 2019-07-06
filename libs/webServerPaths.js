@@ -12,6 +12,8 @@ var onvif = require('node-onvif');
 var proxy = httpProxy.createProxyServer({})
 var ejs = require('ejs');
 var CircularJSON = require('circular-json');
+const validator = require('express-validator');
+
 module.exports = function(s,config,lang,app,io){
     if(config.productType==='Pro'){
         var LdapAuth = require('ldapauth-fork');
@@ -952,128 +954,130 @@ module.exports = function(s,config,lang,app,io){
          }
     })
     /**
-    * API : Get Videos
+     * API : Get Videos
      */
     app.get([
-        config.webPaths.apiPrefix+':auth/videos/:ke',
-        config.webPaths.apiPrefix+':auth/videos/:ke/:id',
-        config.webPaths.apiPrefix+':auth/cloudVideos/:ke',
-        config.webPaths.apiPrefix+':auth/cloudVideos/:ke/:id'
-    ], function (req,res){
+        config.webPaths.apiPrefix + ':auth/videos/:ke',
+        config.webPaths.apiPrefix + ':auth/videos/:ke/:id',
+        config.webPaths.apiPrefix + ':auth/cloudVideos/:ke',
+        config.webPaths.apiPrefix + ':auth/cloudVideos/:ke/:id'
+    ], [
+        validator.query('start').optional().isISO8601().withMessage('Invalid start date').toDate(),
+        validator.query('end').optional().isISO8601().withMessage('Invalid end date').toDate(),
+        validator.query('startOperator').optional().isIn(['>', '>=','<','<=']).withMessage('Invalid date start operator'),
+        validator.query('endOperator').optional().isIn(['>', '>=','<','<=']).withMessage('Invalid date end operator'),
+        validator.query('archived').optional().toBoolean(),
+        validator.query('limit').optional().matches(/^\d+(,\d+)?$/).withMessage('Invalid limit parameter')
+            .customSanitizer((value) => {
+                const values = value.split(',').map((number) => parseInt(number, 10));
+                let offset = 0;
+                let limit = Math.min(Math.max(values[0] || 0, 0), 1000) || 100;
+                if (values.length > 1) {
+                    offset = Math.max(values[0] || 0, 0);
+                    limit = Math.min(Math.max(values[1] || 0, 0), 1000) || 100;
+                }
+                return [offset, limit];
+            }),
+    ], async function (req, res) {
+        const errors = validator.validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(422).json({ errors: errors.array() });
+        }
+
         res.setHeader('Content-Type', 'application/json');
-        s.auth(req.params,function(user){
-            var hasRestrictions = user.details.sub && user.details.allmonitors !== '1'
-            if(
-                user.permissions.watch_videos==="0" ||
-                hasRestrictions && (!user.details.video_view || user.details.video_view.indexOf(req.params.id)===-1)
-            ){
-                res.end(s.prettyPrint([]))
+
+        s.auth(req.params, async function (user) {
+            const hasRestrictions = user.details.sub && user.details.allmonitors !== '1';
+            if (
+                user.permissions.watch_videos === "0" ||
+                hasRestrictions && (!user.details.video_view ||
+                user.details.video_view.indexOf(req.params.id) === -1)
+            ) {
+                res.end(s.prettyPrint([]));
                 return
             }
-            var origURL = req.originalUrl.split('/')
-            var videoParam = origURL[origURL.indexOf(req.params.auth) + 1]
-            var videoSet = 'Videos'
-            switch(videoParam){
-                case'cloudVideos':
-                    videoSet = 'Cloud Videos'
-                break;
+            const origURL = req.originalUrl.split('/');
+            const videoFrom = origURL[origURL.indexOf(req.params.auth) + 1];
+
+            let table = 'Videos';
+            if (videoFrom === 'cloudVideos') {
+                table = 'Cloud Videos';
             }
-            req.sql='SELECT * FROM `'+videoSet+'` WHERE ke=?';req.ar=[req.params.ke];
-            req.count_sql='SELECT COUNT(*) FROM `'+videoSet+'` WHERE ke=?';req.count_ar=[req.params.ke];
-            if(req.query.archived=='1'){
-                req.sql+=' AND details LIKE \'%"archived":"1"\''
-                req.count_sql+=' AND details LIKE \'%"archived":"1"\''
+
+            let query = s.databaseEngine.from(table);
+
+            query.where('ke', req.params.ke);
+
+            if (req.query.archived) {
+                query.where('details', 'like', '%"archived":"1"%');
             }
-            if(!req.params.id){
-                if(user.details.sub&&user.details.monitors&&user.details.allmonitors!=='1'){
-                    try{user.details.monitors=JSON.parse(user.details.monitors);}catch(er){}
-                    req.or=[];
-                    user.details.monitors.forEach(function(v,n){
-                        req.or.push('mid=?');req.ar.push(v)
-                    })
-                    req.sql+=' AND ('+req.or.join(' OR ')+')'
-                    req.count_sql+=' AND ('+req.or.join(' OR ')+')'
-                }
-            }else{
-                if(!user.details.sub||user.details.allmonitors!=='0'||user.details.monitors.indexOf(req.params.id)>-1){
-                    req.sql+=' and mid=?';req.ar.push(req.params.id)
-                    req.count_sql+=' and mid=?';req.count_ar.push(req.params.id)
-                }else{
-                    res.end('[]');
-                    return;
-                }
-            }
-            if(req.query.start||req.query.end){
-                if(req.query.start && req.query.start !== ''){
-                    req.query.start = s.stringToSqlTime(req.query.start)
-                }
-                if(req.query.end && req.query.end !== ''){
-                    req.query.end = s.stringToSqlTime(req.query.end)
-                }
-                if(!req.query.startOperator||req.query.startOperator==''){
-                    req.query.startOperator='>='
-                }
-                if(!req.query.endOperator||req.query.endOperator==''){
-                    req.query.endOperator='<='
-                }
-                var endIsStartTo
-                var theEndParameter = '`end`'
-                if(req.query.endIsStartTo){
-                    endIsStartTo = true
-                    theEndParameter = '`time`'
-                }
-                switch(true){
-                    case(req.query.start&&req.query.start!==''&&req.query.end&&req.query.end!==''):
-                        req.sql+=' AND `time` '+req.query.startOperator+' ? AND '+theEndParameter+' '+req.query.endOperator+' ?';
-                        req.count_sql+=' AND `time` '+req.query.startOperator+' ? AND '+theEndParameter+' '+req.query.endOperator+' ?';
-                        req.ar.push(req.query.start)
-                        req.ar.push(req.query.end)
-                        req.count_ar.push(req.query.start)
-                        req.count_ar.push(req.query.end)
-                    break;
-                    case(req.query.start&&req.query.start!==''):
-                        req.sql+=' AND `time` '+req.query.startOperator+' ?';
-                        req.count_sql+=' AND `time` '+req.query.startOperator+' ?';
-                        req.ar.push(req.query.start)
-                        req.count_ar.push(req.query.start)
-                    break;
-                    case(req.query.end&&req.query.end!==''):
-                        req.sql+=' AND '+theEndParameter+' '+req.query.endOperator+' ?';
-                        req.count_sql+=' AND '+theEndParameter+' '+req.query.endOperator+' ?';
-                        req.ar.push(req.query.end)
-                        req.count_ar.push(req.query.end)
-                    break;
-                }
-            }
-            req.sql+=' ORDER BY `time` DESC';
-            if(!req.query.limit||req.query.limit==''){
-                req.query.limit='100'
-            }
-            if(req.query.limit!=='0'){
-                req.sql+=' LIMIT '+req.query.limit
-            }
-            s.sqlQuery(req.sql,req.ar,function(err,r){
-                if(!r){
-                    res.end(s.prettyPrint({total:0,limit:req.query.limit,skip:0,videos:[]}));
-                    return
-                }
-                s.sqlQuery(req.count_sql,req.count_ar,function(err,count){
-                    s.buildVideoLinks(r,{
-                        auth : req.params.auth,
-                        videoParam : videoParam,
-                        hideRemote : config.hideCloudSaveUrls
-                    })
-                    if(req.query.limit.indexOf(',')>-1){
-                        req.skip=parseInt(req.query.limit.split(',')[0])
-                        req.query.limit=parseInt(req.query.limit.split(',')[1])
-                    }else{
-                        req.skip=0
-                        req.query.limit=parseInt(req.query.limit)
+
+            if (!req.params.id) {
+                if (user.details.sub && user.details.monitors && user.details.allmonitors !== '1') {
+                    try {
+                        user.details.monitors = JSON.parse(user.details.monitors);
+                    } catch (er) {
                     }
-                    res.end(s.prettyPrint({isUTC:config.useUTC,total:count[0]['COUNT(*)'],limit:req.query.limit,skip:req.skip,videos:r,endIsStartTo:endIsStartTo}));
-                })
-            })
-        },res,req);
+                    if (user.details.monitors.length) {
+                        query.whereIn('mid', user.details.monitors);
+                    }
+                }
+            } else {
+                if (!user.details.sub || user.details.allmonitors !== '0' || user.details.monitors.indexOf(req.params.id) > -1) {
+                    query.where('mid', req.params.id);
+                } else {
+                    return res.end('[]');
+                }
+            }
+            let endIsStartTo = undefined;
+            if (req.query.start || req.query.end) {
+                let theEndParameter = 'end';
+                if (req.query.endIsStartTo) {
+                    endIsStartTo = true;
+                    theEndParameter = 'time';
+                }
+                if (req.query.start) {
+                    query.where('time', req.query.startOperator || '>=', req.query.start);
+                }
+                if (req.query.end) {
+                    query.where(theEndParameter, req.query.endOperator || '<=', req.query.end);
+                }
+            }
+
+            const countQuery = query.clone().count({count: 'mid'});
+
+            query.orderBy('time', 'desc');
+
+            const limit = req.query.limit[1] || 100;
+            const offset = req.query.limit[0] || 0;
+            query
+                .limit(limit)
+                .offset(offset);
+
+            let response = {
+                isUTC: config.useUTC,
+                total: 0,
+                limit: limit,
+                skip: offset,
+                videos: [],
+                endIsStartTo: endIsStartTo,
+            };
+
+            const [countResult] = await countQuery;
+            response.total = countResult.count;
+
+            if (response.total) {
+                response.videos = await query;
+
+                s.buildVideoLinks(response.videos, {
+                    auth: req.params.auth,
+                    videoParam: videoFrom,
+                    hideRemote: config.hideCloudSaveUrls
+                });
+            }
+
+            res.json(response);
+        }, res, req);
     });
     /**
     * API : Get Events
