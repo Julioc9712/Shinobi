@@ -30,10 +30,13 @@
     ]
   },
   "homepage": "https://gitlab.com/Shinobi-Systems/Shinobi#readme",
+  "engines": {
+    "node": ">=8.0"
+  },
   "dependencies": {
     "async": "^3.1.0",
     "aws-sdk": "^2.279.1",
-    "backblaze-b2": "^1.0.4",
+    "backblaze-b2": "~1.0.4",
     "body-parser": "^1.18.3",
     "circular-json": "0.3.1",
     "connection-tester": "^0.1.1",
