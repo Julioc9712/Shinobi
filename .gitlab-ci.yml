@@ -1,0 +1,13 @@
+
+image: node:8-alpine
+
+stages:
+  - prepare
+
+node_modules:
+  stage: prepare
+  artifacts:
+    paths:
+      - node_modules
+  script:
+    - yarn install
