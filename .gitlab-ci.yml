@@ -3,6 +3,7 @@ image: node:8-alpine
 
 stages:
   - prepare
+  - test
 
 node_modules:
   stage: prepare
@@ -11,3 +12,9 @@ node_modules:
       - node_modules
   script:
     - yarn install
+
+lint:
+  stage: test
+  allow_failure: true
+  script:
+    - yarn lint
