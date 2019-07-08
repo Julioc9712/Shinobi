@@ -14,7 +14,7 @@ var loadLib = function(lib){
     return require(__dirname+'/libs/'+lib+'.js')
 }
 //process handlers
-var s = loadLib('process')(process,__dirname)
+var s = loadLib('process').init(process,__dirname)
 //load extender functions
 loadLib('extenders')(s)
 //configuration loader
