@@ -983,8 +983,6 @@ module.exports = function(s,config,lang,app,io){
             }),
         checkValidatorErrors,
     ], async function (req, res) {
-        res.setHeader('Content-Type', 'application/json');
-
         const user = req.session;
 
         const hasRestrictions = user.details.sub && user.details.allmonitors !== '1';
@@ -993,8 +991,7 @@ module.exports = function(s,config,lang,app,io){
             hasRestrictions && (!user.details.video_view ||
             user.details.video_view.indexOf(req.params.id) === -1)
         ) {
-            res.end(s.prettyPrint([]));
-            return
+            return res.json([]);
         }
         const origURL = req.originalUrl.split('/');
         const videoFrom = origURL[origURL.indexOf(req.params.auth) + 1];
@@ -1026,7 +1023,7 @@ module.exports = function(s,config,lang,app,io){
             if (!user.details.sub || user.details.allmonitors !== '0' || user.details.monitors.indexOf(req.params.id) > -1) {
                 query.where('mid', req.params.id);
             } else {
-                return res.end('[]');
+                return res.json([]);
             }
         }
         let endIsStartTo = undefined;
