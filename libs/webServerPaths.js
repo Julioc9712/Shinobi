@@ -14,6 +14,7 @@ var ejs = require('ejs');
 var CircularJSON = require('circular-json');
 const validator = require('express-validator');
 const {validateRequestAuth} = require('./api/auth');
+const checkValidatorErrors = require('./api/checkValidatorErrors');
 
 module.exports = function(s,config,lang,app,io){
     if(config.productType==='Pro'){
@@ -980,12 +981,8 @@ module.exports = function(s,config,lang,app,io){
                 }
                 return [offset, limit];
             }),
+        checkValidatorErrors,
     ], async function (req, res) {
-        const errors = validator.validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(422).json({ errors: errors.array() });
-        }
-
         res.setHeader('Content-Type', 'application/json');
 
         const user = req.session;
