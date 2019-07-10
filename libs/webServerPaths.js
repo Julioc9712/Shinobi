@@ -13,6 +13,7 @@ var proxy = httpProxy.createProxyServer({})
 var ejs = require('ejs');
 var CircularJSON = require('circular-json');
 const validator = require('express-validator');
+const {validateRequestAuth} = require('./api/auth');
 
 module.exports = function(s,config,lang,app,io){
     if(config.productType==='Pro'){
@@ -962,6 +963,7 @@ module.exports = function(s,config,lang,app,io){
         config.webPaths.apiPrefix + ':auth/cloudVideos/:ke',
         config.webPaths.apiPrefix + ':auth/cloudVideos/:ke/:id'
     ], [
+        validateRequestAuth,
         validator.query('start').optional().isISO8601().withMessage('Invalid start date').toDate(),
         validator.query('end').optional().isISO8601().withMessage('Invalid end date').toDate(),
         validator.query('startOperator').optional().isIn(['>', '>=','<','<=']).withMessage('Invalid date start operator'),
@@ -986,98 +988,98 @@ module.exports = function(s,config,lang,app,io){
 
         res.setHeader('Content-Type', 'application/json');
 
-        s.auth(req.params, async function (user) {
-            const hasRestrictions = user.details.sub && user.details.allmonitors !== '1';
-            if (
-                user.permissions.watch_videos === "0" ||
-                hasRestrictions && (!user.details.video_view ||
-                user.details.video_view.indexOf(req.params.id) === -1)
-            ) {
-                res.end(s.prettyPrint([]));
-                return
-            }
-            const origURL = req.originalUrl.split('/');
-            const videoFrom = origURL[origURL.indexOf(req.params.auth) + 1];
+        const user = req.session;
 
-            let table = 'Videos';
-            if (videoFrom === 'cloudVideos') {
-                table = 'Cloud Videos';
-            }
+        const hasRestrictions = user.details.sub && user.details.allmonitors !== '1';
+        if (
+            user.permissions.watch_videos === "0" ||
+            hasRestrictions && (!user.details.video_view ||
+            user.details.video_view.indexOf(req.params.id) === -1)
+        ) {
+            res.end(s.prettyPrint([]));
+            return
+        }
+        const origURL = req.originalUrl.split('/');
+        const videoFrom = origURL[origURL.indexOf(req.params.auth) + 1];
 
-            let query = s.databaseEngine.from(table);
+        let table = 'Videos';
+        if (videoFrom === 'cloudVideos') {
+            table = 'Cloud Videos';
+        }
 
-            query.where('ke', req.params.ke);
+        let query = s.databaseEngine.from(table);
 
-            if (req.query.archived) {
-                query.where('details', 'like', '%"archived":"1"%');
-            }
+        query.where('ke', req.params.ke);
 
-            if (!req.params.id) {
-                if (user.details.sub && user.details.monitors && user.details.allmonitors !== '1') {
-                    try {
-                        user.details.monitors = JSON.parse(user.details.monitors);
-                    } catch (er) {
-                    }
-                    if (user.details.monitors.length) {
-                        query.whereIn('mid', user.details.monitors);
-                    }
+        if (req.query.archived) {
+            query.where('details', 'like', '%"archived":"1"%');
+        }
+
+        if (!req.params.id) {
+            if (user.details.sub && user.details.monitors && user.details.allmonitors !== '1') {
+                try {
+                    user.details.monitors = JSON.parse(user.details.monitors);
+                } catch (er) {
                 }
+                if (user.details.monitors.length) {
+                    query.whereIn('mid', user.details.monitors);
+                }
+            }
+        } else {
+            if (!user.details.sub || user.details.allmonitors !== '0' || user.details.monitors.indexOf(req.params.id) > -1) {
+                query.where('mid', req.params.id);
             } else {
-                if (!user.details.sub || user.details.allmonitors !== '0' || user.details.monitors.indexOf(req.params.id) > -1) {
-                    query.where('mid', req.params.id);
-                } else {
-                    return res.end('[]');
-                }
+                return res.end('[]');
             }
-            let endIsStartTo = undefined;
-            if (req.query.start || req.query.end) {
-                let theEndParameter = 'end';
-                if (req.query.endIsStartTo) {
-                    endIsStartTo = true;
-                    theEndParameter = 'time';
-                }
-                if (req.query.start) {
-                    query.where('time', req.query.startOperator || '>=', req.query.start);
-                }
-                if (req.query.end) {
-                    query.where(theEndParameter, req.query.endOperator || '<=', req.query.end);
-                }
+        }
+        let endIsStartTo = undefined;
+        if (req.query.start || req.query.end) {
+            let theEndParameter = 'end';
+            if (req.query.endIsStartTo) {
+                endIsStartTo = true;
+                theEndParameter = 'time';
             }
-
-            const countQuery = query.clone().count({count: 'mid'});
-
-            query.orderBy('time', 'desc');
-
-            const limit = req.query.limit[1] || 100;
-            const offset = req.query.limit[0] || 0;
-            query
-                .limit(limit)
-                .offset(offset);
-
-            let response = {
-                isUTC: config.useUTC,
-                total: 0,
-                limit: limit,
-                skip: offset,
-                videos: [],
-                endIsStartTo: endIsStartTo,
-            };
-
-            const [countResult] = await countQuery;
-            response.total = countResult.count;
-
-            if (response.total) {
-                response.videos = await query;
-
-                s.buildVideoLinks(response.videos, {
-                    auth: req.params.auth,
-                    videoParam: videoFrom,
-                    hideRemote: config.hideCloudSaveUrls
-                });
+            if (req.query.start) {
+                query.where('time', req.query.startOperator || '>=', req.query.start);
             }
+            if (req.query.end) {
+                query.where(theEndParameter, req.query.endOperator || '<=', req.query.end);
+            }
+        }
 
-            res.json(response);
-        }, res, req);
+        const countQuery = query.clone().count({count: 'mid'});
+
+        query.orderBy('time', 'desc');
+
+        const limit = req.query.limit[1] || 100;
+        const offset = req.query.limit[0] || 0;
+        query
+            .limit(limit)
+            .offset(offset);
+
+        let response = {
+            isUTC: config.useUTC,
+            total: 0,
+            limit: limit,
+            skip: offset,
+            videos: [],
+            endIsStartTo: endIsStartTo,
+        };
+
+        const [countResult] = await countQuery;
+        response.total = countResult.count;
+
+        if (response.total) {
+            response.videos = await query;
+
+            s.buildVideoLinks(response.videos, {
+                auth: req.params.auth,
+                videoParam: videoFrom,
+                hideRemote: config.hideCloudSaveUrls
+            });
+        }
+
+        res.json(response);
     });
     /**
     * API : Get Events
