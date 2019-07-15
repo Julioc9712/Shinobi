@@ -969,7 +969,7 @@ module.exports = function(s,config,lang,app,io){
         validator.query('end').optional().isISO8601().withMessage('Invalid end date').toDate(),
         validator.query('startOperator').optional().isIn(['>', '>=','<','<=']).withMessage('Invalid date start operator'),
         validator.query('endOperator').optional().isIn(['>', '>=','<','<=']).withMessage('Invalid date end operator'),
-        validator.query('archived').optional().toBoolean(),
+        //validator.query('archived').optional().toBoolean(),
         validator.query('limit').optional().matches(/^\d+(,\d+)?$/).withMessage('Invalid limit parameter')
             .customSanitizer((value) => {
                 const values = value.split(',').map((number) => parseInt(number, 10));
@@ -1005,9 +1005,9 @@ module.exports = function(s,config,lang,app,io){
 
         query.where('ke', req.params.ke);
 
-        if (req.query.archived) {
-            query.where('details', 'like', '%"archived":"1"%');
-        }
+        // if (req.query.archived) {
+        //     query.where('details', 'like', '%"archived":"1"%');
+        // }
 
         if (!req.params.id) {
             if (user.details.sub && user.details.monitors && user.details.allmonitors !== '1') {
