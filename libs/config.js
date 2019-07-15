@@ -1,4 +1,7 @@
-module.exports = function(s){
+const { getS } = require('./process');
+
+const s = getS();
+
     s.location = {
         super : s.mainDirectory+'/super.json',
         config : s.mainDirectory+'/conf.json',
@@ -58,5 +61,5 @@ module.exports = function(s){
         console.error('!! You can do this in the Super User panel or from terminal.   !!')
         console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     }
-    return config
-}
+
+module.exports = config;

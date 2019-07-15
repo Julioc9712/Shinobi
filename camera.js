@@ -18,7 +18,7 @@ var s = loadLib('process').init(process,__dirname)
 //load extender functions
 loadLib('extenders')(s)
 //configuration loader
-var config = loadLib('config')(s)
+var config = loadLib('config')
 //basic functions
 loadLib('basic')(s,config)
 //working directories : videos, streams, fileBin..
