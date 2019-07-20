@@ -112,6 +112,7 @@ const validateRequestAuth = async (req, res, next) => {
     const session = await getUserPermissions(req.params.auth, req.params.ke);
 
     if (!session) {
+        const s = getS();
         const lang = s.getLanguageFile();
         return res.json({
             ok: false,
