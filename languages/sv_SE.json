@@ -938,5 +938,17 @@
     "vp8_cuvid": "VP8 NVENC (NVIDIA HW Accel)",
     "vp8_qsv": "VP8 (Quick Sync Video)",
     "vp9_cuvid": "VP9 NVENC (NVIDIA HW Accel)",
+    "January" : "Januari",
+    "February" : "Februari",
+    "March" : "Mars", 
+    "April" : "April",
+    "May": "Maj", 
+    "June" : "Juni",
+    "July" : "Juli",
+    "August" : "Augusti",
+    "September" : "September",
+    "October" : "Oktober",
+    "November" : "November",
+    "December" : "December",
     "years": "år"
 }
