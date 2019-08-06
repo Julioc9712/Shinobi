@@ -76,7 +76,7 @@ module.exports = function(s,config,lang){
                 ]
              },
              "Connection": {
-                "name": lang.Connection,
+                "name": "Connection",
                 "color": "orange",
                 "id": "monSectionConnection",
                 "isSection": true,
@@ -130,7 +130,7 @@ module.exports = function(s,config,lang){
                                "info": "Websocket WebM-based P2P stream."
                             },
                             {
-                               "name": "Local",
+                               "name": lang.Local,
                                "value": "local",
                                "info": "Reading Capture Cards, Webcams, or Integrated Cameras."
                             },
@@ -170,11 +170,11 @@ module.exports = function(s,config,lang){
                        "fieldType": "select",
                        "possible": [
                            {
-                              "name": "No",
+                              "name": lang.No,
                               "value": "0"
                            },
                            {
-                              "name": "Yes",
+                              "name": lang.Yes,
                               "value": "1"
                            }
                        ]
@@ -317,11 +317,11 @@ module.exports = function(s,config,lang){
                        "fieldType": "select",
                        "possible": [
                            {
-                              "name": "No",
+                              "name": lang.No,
                               "value": "0"
                            },
                            {
-                              "name": "Yes",
+                              "name": lang.Yes,
                               "value": "1"
                            }
                        ]
@@ -357,11 +357,11 @@ module.exports = function(s,config,lang){
                        "fieldType": "select",
                        "possible": [
                            {
-                              "name": "No",
+                              "name": lang.No,
                               "value": "0"
                            },
                            {
-                              "name": "Yes",
+                              "name": lang.Yes,
                               "value": "1"
                            }
                        ]
@@ -376,11 +376,11 @@ module.exports = function(s,config,lang){
                        "fieldType": "select",
                        "possible": [
                            {
-                              "name": "No",
+                              "name": lang.No,
                               "value": "0"
                            },
                            {
-                              "name": "Yes",
+                              "name": lang.Yes,
                               "value": "1"
                            }
                        ]
@@ -461,11 +461,11 @@ module.exports = function(s,config,lang){
                       "fieldType": "select",
                       "possible": [
                           {
-                             "name": "No",
+                             "name": lang.No,
                              "value": "0"
                           },
                           {
-                             "name": "Yes",
+                             "name": lang.Yes,
                              "value": "1"
                           }
                       ]
@@ -506,11 +506,11 @@ module.exports = function(s,config,lang){
                      "fieldType": "select",
                      "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                      ]
@@ -614,11 +614,11 @@ module.exports = function(s,config,lang){
                          "form-group-class": "h_gpud_input h_gpud_1",
                          "possible": [
                             {
-                               "name": "No",
+                               "name": lang.No,
                                "value": "0",
                             },
                             {
-                               "name": "Yes",
+                               "name": lang.Yes,
                                "value": "1",
                             }
                          ]
@@ -905,11 +905,11 @@ module.exports = function(s,config,lang){
                       "form-group-class": "h_st_input h_st_mjpeg h_st_b64 h_st_hls h_st_gif h_st_flv h_st_mp4 h_st_h265 h_hls_v_input h_hls_v_libx264 h_hls_v_libx265 h_hls_v_h264_nvenc h_hls_v_hevc_nvenc h_hls_v_no",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0",
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1",
                          }
                       ]
@@ -1008,11 +1008,11 @@ module.exports = function(s,config,lang){
                       "example": "",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0",
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1",
                          }
                       ]
@@ -1055,11 +1055,11 @@ module.exports = function(s,config,lang){
                        "fieldType": "select",
                        "possible": [
                            {
-                              "name": "No",
+                              "name": lang.No,
                               "value": "0"
                            },
                            {
-                              "name": "Yes",
+                              "name": lang.Yes,
                               "value": "1"
                            }
                        ]
@@ -1144,11 +1144,11 @@ module.exports = function(s,config,lang){
                        "selector": "h_wat",
                        "possible": [
                            {
-                              "name": "No",
+                              "name": lang.No,
                               "value": "0"
                            },
                            {
-                              "name": "Yes",
+                              "name": lang.Yes,
                               "value": "1"
                            }
                        ]
@@ -1200,7 +1200,7 @@ module.exports = function(s,config,lang){
                 "emptyDiv": true
             },
              "JPEG API": {
-                "name": lang['JPEG API'],
+                "name": "JPEG API",
                 "headerTitle": `${lang['JPEG API']} <small>${lang.Snapshot} (cgi-bin)</small>`,
                 "id": "monSectionJPEGAPI",
                 "color": "forestgreen",
@@ -1217,11 +1217,11 @@ module.exports = function(s,config,lang){
                        "selector": "h_sn",
                        "possible": [
                            {
-                              "name": "No",
+                              "name": lang.No,
                               "value": "0"
                            },
                            {
-                              "name": "Yes",
+                              "name": lang.Yes,
                               "value": "1"
                            }
                        ]
@@ -1594,11 +1594,11 @@ module.exports = function(s,config,lang){
                        "fieldType": "select",
                        "possible": [
                            {
-                              "name": "No",
+                              "name": lang.No,
                               "value": "0"
                            },
                            {
-                              "name": "Yes",
+                              "name": lang.Yes,
                               "value": "1"
                            }
                        ]
@@ -1684,11 +1684,11 @@ module.exports = function(s,config,lang){
                        "selector": "h_wat",
                        "possible": [
                            {
-                              "name": "No",
+                              "name": lang.No,
                               "value": "0"
                            },
                            {
-                              "name": "Yes",
+                              "name": lang.Yes,
                               "value": "1"
                            }
                        ]
@@ -1750,11 +1750,11 @@ module.exports = function(s,config,lang){
                        "selector": "h_rec_ti",
                        "possible": [
                            {
-                              "name": "No",
+                              "name": lang.No,
                               "value": "0"
                            },
                            {
-                              "name": "Yes",
+                              "name": lang.Yes,
                               "value": "1"
                            }
                        ]
@@ -1769,11 +1769,11 @@ module.exports = function(s,config,lang){
                       "fieldType": "select",
                       "possible": [
                           {
-                             "name": "No",
+                             "name": lang.No,
                              "value": "0"
                           },
                           {
-                             "name": "Yes",
+                             "name": lang.Yes,
                              "value": "1"
                           }
                       ]
@@ -1864,11 +1864,11 @@ module.exports = function(s,config,lang){
                        "selector": "h_wat_timelapse",
                        "possible": [
                            {
-                              "name": "No",
+                              "name": lang.No,
                               "value": "0"
                            },
                            {
-                              "name": "Yes",
+                              "name": lang.Yes,
                               "value": "1"
                            }
                        ]
@@ -1999,7 +1999,7 @@ module.exports = function(s,config,lang){
                 ]
              },
              "Detector": {
-                "name": lang['Global Detector Settings'],
+                "name": "Global Detector Settings",
                 "headerTitle": `${lang['Global Detector Settings']} <small>${lang['Primary Engine']} : <b class="h_det_pam_input h_det_pam_1">Pixel Array</b><span class="h_det_pam_input h_det_pam_0"><b class="shinobi-detector_name"></b> <b class="shinobi-detector-invert">${lang['Not Connected']}</b><b class="shinobi-detector" style="display:none">${lang['Connected']}</b></span></small></h4>`,
                 "color": "orange",
                 isAdvanced: true,
@@ -2020,11 +2020,11 @@ module.exports = function(s,config,lang){
                       "selector": "h_det",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -2067,11 +2067,11 @@ module.exports = function(s,config,lang){
                       "fieldType": "select",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -2097,11 +2097,11 @@ module.exports = function(s,config,lang){
                       "fieldType": "select",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -2173,11 +2173,11 @@ module.exports = function(s,config,lang){
                       "fieldType": "select",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -2228,11 +2228,11 @@ module.exports = function(s,config,lang){
                       "form-group-class-pre-layer": "h_rec_mtd_input h_rec_mtd_hot h_rec_mtd_sip",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -2249,11 +2249,11 @@ module.exports = function(s,config,lang){
                       "fieldType": "select",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -2270,11 +2270,11 @@ module.exports = function(s,config,lang){
                       "fieldType": "select",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -2315,11 +2315,11 @@ module.exports = function(s,config,lang){
                       "form-group-class-pre-layer": "h_det_input h_det_1",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -2370,11 +2370,11 @@ module.exports = function(s,config,lang){
                       "form-group-class-pre-layer": "h_det_input h_det_1",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -2410,11 +2410,11 @@ module.exports = function(s,config,lang){
                       "form-group-class-pre-layer": "h_det_input h_det_1",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -2440,11 +2440,11 @@ module.exports = function(s,config,lang){
                       "form-group-class-pre-layer": "h_det_input h_det_1",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -2460,11 +2460,11 @@ module.exports = function(s,config,lang){
                       "form-group-class-pre-layer": "h_det_input h_det_1",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -2490,11 +2490,11 @@ module.exports = function(s,config,lang){
                       "form-group-class-pre-layer": "h_det_input h_det_1",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -2510,11 +2510,11 @@ module.exports = function(s,config,lang){
                       "form-group-class-pre-layer": "h_det_input h_det_1",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -2560,11 +2560,11 @@ module.exports = function(s,config,lang){
                               "fieldType": "select",
                               "possible": [
                                  {
-                                    "name": "No",
+                                    "name": lang.No,
                                     "value": "0"
                                  },
                                  {
-                                    "name": "Yes",
+                                    "name": lang.Yes,
                                     "value": "1"
                                  }
                               ]
@@ -2579,11 +2579,11 @@ module.exports = function(s,config,lang){
                               "form-group-class": "h_det_pam_input h_det_pam_1",
                               "possible": [
                                  {
-                                    "name": "No",
+                                    "name": lang.No,
                                     "value": "0"
                                  },
                                  {
-                                    "name": "Yes",
+                                    "name": lang.Yes,
                                     "value": "1"
                                  }
                               ]
@@ -2629,11 +2629,11 @@ module.exports = function(s,config,lang){
                               "fieldType": "select",
                               "possible": [
                                  {
-                                    "name": "No",
+                                    "name": lang.No,
                                     "value": "0"
                                  },
                                  {
-                                    "name": "Yes",
+                                    "name": lang.Yes,
                                     "value": "1"
                                  }
                               ]
@@ -2647,11 +2647,11 @@ module.exports = function(s,config,lang){
                               "fieldType": "select",
                               "possible": [
                                  {
-                                    "name": "No",
+                                    "name": lang.No,
                                     "value": "0"
                                  },
                                  {
-                                    "name": "Yes",
+                                    "name": lang.Yes,
                                     "value": "1"
                                  }
                               ]
@@ -2685,11 +2685,11 @@ module.exports = function(s,config,lang){
                              "fieldType": "select",
                              "possible": [
                                 {
-                                   "name": "No",
+                                   "name": lang.No,
                                    "value": "0"
                                 },
                                 {
-                                   "name": "Yes",
+                                   "name": lang.Yes,
                                    "value": "1"
                                 }
                              ]
@@ -2703,11 +2703,11 @@ module.exports = function(s,config,lang){
                             "fieldType": "select",
                             "possible": [
                                {
-                                  "name": "No",
+                                  "name": lang.No,
                                   "value": "0"
                                },
                                {
-                                  "name": "Yes",
+                                  "name": lang.Yes,
                                   "value": "1"
                                }
                             ]
@@ -2741,11 +2741,11 @@ module.exports = function(s,config,lang){
                              "fieldType": "select",
                              "possible": [
                                 {
-                                   "name": "No",
+                                   "name": lang.No,
                                    "value": "0"
                                 },
                                 {
-                                   "name": "Yes",
+                                   "name": lang.Yes,
                                    "value": "1"
                                 }
                              ]
@@ -2787,11 +2787,11 @@ module.exports = function(s,config,lang){
                              "fieldType": "select",
                              "possible": [
                                 {
-                                   "name": "No",
+                                   "name": lang.No,
                                    "value": "0"
                                 },
                                 {
-                                   "name": "Yes",
+                                   "name": lang.Yes,
                                    "value": "1"
                                 }
                              ]
@@ -2805,11 +2805,11 @@ module.exports = function(s,config,lang){
                             "fieldType": "select",
                             "possible": [
                                {
-                                  "name": "No",
+                                  "name": lang.No,
                                   "value": "0"
                                },
                                {
-                                  "name": "Yes",
+                                  "name": lang.Yes,
                                   "value": "1"
                                }
                             ]
@@ -2823,11 +2823,11 @@ module.exports = function(s,config,lang){
                             "fieldType": "select",
                             "possible": [
                                {
-                                  "name": "No",
+                                  "name": lang.No,
                                   "value": "0"
                                },
                                {
-                                  "name": "Yes",
+                                  "name": lang.Yes,
                                   "value": "1"
                                }
                             ]
@@ -2842,11 +2842,11 @@ module.exports = function(s,config,lang){
                             "fieldType": "select",
                             "possible": [
                                {
-                                  "name": "No",
+                                  "name": lang.No,
                                   "value": "0"
                                },
                                {
-                                  "name": "Yes",
+                                  "name": lang.Yes,
                                   "value": "1"
                                }
                             ]
@@ -2914,11 +2914,11 @@ module.exports = function(s,config,lang){
                             "fieldType": "select",
                             "possible": [
                                {
-                                  "name": "No",
+                                  "name": lang.No,
                                   "value": "0"
                                },
                                {
-                                  "name": "Yes",
+                                  "name": lang.Yes,
                                   "value": "1"
                                }
                             ]
@@ -3093,7 +3093,7 @@ module.exports = function(s,config,lang){
                 ]
              },
              "Control": {
-                "name": lang.Control,
+                "name": "Control",
                 "color": "blue",
                 id: "monSectionControl",
                 isSection: true,
@@ -3108,11 +3108,11 @@ module.exports = function(s,config,lang){
                        "fieldType": "select",
                        "possible": [
                           {
-                             "name": "No",
+                             "name": lang.No,
                              "value": "0"
                           },
                           {
-                             "name": "Yes",
+                             "name": lang.Yes,
                              "value": "1"
                           }
                        ]
@@ -3163,11 +3163,11 @@ module.exports = function(s,config,lang){
                        "form-group-class": "h_control_call_input h_control_call_GET h_control_call_PUT h_control_call_POST",
                        "possible": [
                           {
-                             "name": "No",
+                             "name": lang.No,
                              "value": "0"
                           },
                           {
-                             "name": "Yes",
+                             "name": lang.Yes,
                              "value": "1"
                           }
                        ]
@@ -3183,11 +3183,11 @@ module.exports = function(s,config,lang){
                        "form-group-class": "h_control_call_input h_control_call_GET h_control_call_ONVIF h_control_call_PUT h_control_call_POST",
                        "possible": [
                           {
-                             "name": "No",
+                             "name": lang.No,
                              "value": "0"
                           },
                           {
-                             "name": "Yes",
+                             "name": lang.Yes,
                              "value": "1"
                           }
                        ]
@@ -3346,7 +3346,7 @@ module.exports = function(s,config,lang){
              },
              "Grouping": {
                 id: "monSectionGrouping",
-               "name": lang['Grouping'],
+               "name": "Grouping",
                "headerTitle": lang['Grouping'] + ' <small>Add groups in <b>Settings</b></small>',
                "color": "purple",
                 isSection: true,
@@ -3365,7 +3365,7 @@ module.exports = function(s,config,lang){
              },
              "Copy Settings": {
                 id: "monSectionCopying",
-               "name": lang['Copy Settings'],
+               "name": "Copy Settings",
                "color": "orange",
                 isSection: true,
                "info": [
@@ -3379,11 +3379,11 @@ module.exports = function(s,config,lang){
                       "fieldType": "select",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -3398,11 +3398,11 @@ module.exports = function(s,config,lang){
                       "form-group-class": "h_copy_settings_input h_copy_settings_1",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -3417,11 +3417,11 @@ module.exports = function(s,config,lang){
                       "form-group-class": "h_copy_settings_input h_copy_settings_1",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -3436,11 +3436,11 @@ module.exports = function(s,config,lang){
                       "form-group-class": "h_copy_settings_input h_copy_settings_1",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -3455,11 +3455,11 @@ module.exports = function(s,config,lang){
                       "form-group-class": "h_copy_settings_input h_copy_settings_1",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -3474,11 +3474,11 @@ module.exports = function(s,config,lang){
                       "form-group-class": "h_copy_settings_input h_copy_settings_1",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -3493,11 +3493,11 @@ module.exports = function(s,config,lang){
                       "form-group-class": "h_copy_settings_input h_copy_settings_1",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -3512,11 +3512,11 @@ module.exports = function(s,config,lang){
                       "form-group-class": "h_copy_settings_input h_copy_settings_1",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -3531,11 +3531,11 @@ module.exports = function(s,config,lang){
                       "form-group-class": "h_copy_settings_input h_copy_settings_1",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -3550,11 +3550,11 @@ module.exports = function(s,config,lang){
                       "form-group-class": "h_copy_settings_input h_copy_settings_1",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -3569,11 +3569,11 @@ module.exports = function(s,config,lang){
                       "form-group-class": "h_copy_settings_input h_copy_settings_1",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0"
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1"
                          }
                       ]
@@ -3601,7 +3601,7 @@ module.exports = function(s,config,lang){
                ],
              },
              "Logging": {
-                "name": lang.Logging,
+                "name": "Logging",
                 "color": "green",
                 id: "monSectionLogging",
                 isAdvanced: true,
@@ -3646,19 +3646,19 @@ module.exports = function(s,config,lang){
                       "fieldType": "select",
                       "possible": [
                          {
-                            "name": "No",
+                            "name": lang.No,
                             "value": "0",
                             "info": "No is the default."
                          },
                          {
-                            "name": "Yes",
+                            "name": lang.Yes,
                             "value": "1",
                             "info": "Do this if you are having recurring issues only."
                          }
                       ]
                   },
                   {
-                     "name": lang['Log Stream'],
+                     "name": "Log Stream",
                      "color": "green",
                       isFormGroupGroup: true,
                      "info": [
@@ -3721,11 +3721,11 @@ module.exports = function(s,config,lang){
                        "fieldType": "select",
                        "possible": [
                           {
-                             "name": "No",
+                             "name": lang.No,
                              "value": "0"
                           },
                           {
-                             "name": "Yes",
+                             "name": lang.Yes,
                              "value": "1"
                           }
                        ]
@@ -3739,11 +3739,11 @@ module.exports = function(s,config,lang){
                        "fieldType": "select",
                        "possible": [
                           {
-                             "name": "No",
+                             "name": lang.No,
                              "value": "0"
                           },
                           {
-                             "name": "Yes",
+                             "name": lang.Yes,
                              "value": "1"
                           }
                        ]
@@ -3758,11 +3758,11 @@ module.exports = function(s,config,lang){
                        "fieldType": "select",
                        "possible": [
                           {
-                             "name": "No",
+                             "name": lang.No,
                              "value": "0"
                           },
                           {
-                             "name": "Yes",
+                             "name": lang.Yes,
                              "value": "1"
                           }
                        ],
@@ -3771,7 +3771,7 @@ module.exports = function(s,config,lang){
                 ]
              },
              "Profile": {
-                "name": "Profile",
+                "name": lang.Profile,
                 "color": "grey",
                 "info": [
                    {
@@ -3916,11 +3916,11 @@ module.exports = function(s,config,lang){
                      "fieldType": "select",
                      "possible": [
                         {
-                           "name": "No",
+                           "name": lang.No,
                            "value": "0"
                         },
                         {
-                           "name": "Yes",
+                           "name": lang.Yes,
                            "value": "1"
                         }
                      ]
@@ -4000,11 +4000,11 @@ module.exports = function(s,config,lang){
                        "fieldType": "select",
                        "possible": [
                            {
-                              "name": "No",
+                              "name": lang.No,
                               "value": "0"
                            },
                            {
-                              "name": "Yes",
+                              "name": lang.Yes,
                               "value": "1"
                            }
                        ]
@@ -4047,11 +4047,11 @@ module.exports = function(s,config,lang){
                        "fieldType": "select",
                        "possible": [
                            {
-                              "name": "No",
+                              "name": lang.No,
                               "value": "0"
                            },
                            {
-                              "name": "Yes",
+                              "name": lang.Yes,
                               "value": "1"
                            }
                        ]
@@ -4126,11 +4126,11 @@ module.exports = function(s,config,lang){
                       "fieldType": "select",
                       "possible": [
                           {
-                             "name": "No",
+                             "name": lang.No,
                              "value": "0"
                           },
                           {
-                             "name": "Yes",
+                             "name": lang.Yes,
                              "value": "1"
                           }
                       ]
@@ -4153,11 +4153,11 @@ module.exports = function(s,config,lang){
                       "fieldType": "select",
                       "possible": [
                           {
-                             "name": "No",
+                             "name": lang.No,
                              "value": "0"
                           },
                           {
-                             "name": "Yes",
+                             "name": lang.Yes,
                              "value": "1"
                           }
                       ]
@@ -4171,11 +4171,11 @@ module.exports = function(s,config,lang){
                       "fieldType": "select",
                       "possible": [
                           {
-                             "name": "No",
+                             "name": lang.No,
                              "value": "0"
                           },
                           {
-                             "name": "Yes",
+                             "name": lang.Yes,
                              "value": "1"
                           }
                       ]
@@ -4189,11 +4189,11 @@ module.exports = function(s,config,lang){
                       "fieldType": "select",
                       "possible": [
                           {
-                             "name": "No",
+                             "name": lang.No,
                              "value": "0"
                           },
                           {
-                             "name": "Yes",
+                             "name": lang.Yes,
                              "value": "1"
                           }
                       ]
