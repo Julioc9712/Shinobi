@@ -201,7 +201,7 @@ $.aM.drawList = function(){
     $.each($.aM.sections,function(sectionName,sectionId){
         var el = $('#' + sectionId + ':visible')
         if(el.length > 0){
-            html += '<li><a class="scrollTo" href="#' + sectionId + '" scrollToParent="#add_monitor .modal-body">' + sectionName + '</a></li>'
+            html += '<li><a class="scrollTo" href="#' + sectionId + '" scrollToParent="#add_monitor .modal-body">' + lang[sectionName] + '</a></li>'
         }
     })
     list.html(html)
