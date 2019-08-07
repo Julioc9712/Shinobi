@@ -3000,7 +3000,7 @@ module.exports = function(s,config,lang){
                                     "value": "hevc_vaapi"
                                  },
                                  {
-                                    "name": "copy",
+                                    "name": lang.copy,
                                     "value": "copy"
                                  }
                               ]
@@ -3034,7 +3034,7 @@ module.exports = function(s,config,lang){
                                     "value": "libmp3lame"
                                  },
                                  {
-                                    "name": "copy",
+                                    "name": lang.copy,
                                     "value": "copy"
                                  }
                               ]
@@ -3050,7 +3050,7 @@ module.exports = function(s,config,lang){
                           },
                           {
                              "name": "detail=detector_buffer_hls_time",
-                             "field": "HLS Segment Length",
+                             "field": lang['HLS Segment Length'],
                              "description": "How long each video segment should be, in seconds. Each segment will be drawn by the client through an m3u8 file. Shorter segments take less space.",
                              "default": "2",
                              "example": "",
@@ -3058,7 +3058,7 @@ module.exports = function(s,config,lang){
                           },
                           {
                              "name": "detail=detector_buffer_hls_list_size",
-                             "field": "HLS List Size",
+                             "field": lang['HLS List Size'],
                              "description": "The number of segments maximum before deleting old segments automatically.",
                              "default": "10",
                              "example": "",
@@ -3066,7 +3066,7 @@ module.exports = function(s,config,lang){
                           },
                           {
                              "name": "detail=detector_buffer_start_number",
-                             "field": "HLS Start Number",
+                             "field": lang['HLS Start Number'],
                              "description": "",
                              "default": "0",
                              "example": "",
@@ -3075,7 +3075,7 @@ module.exports = function(s,config,lang){
                           },
                           {
                              "name": "detail=detector_buffer_live_start_index",
-                             "field": 'HLS Live Start Index',
+                             "field": lang['HLS Live Start Index'],
                              "description": "",
                              "default": "-3",
                              "example": "",
@@ -3616,22 +3616,22 @@ module.exports = function(s,config,lang){
                       "fieldType": "select",
                       "possible": [
                            {
-                              "name": "Silent",
+                              "name": lang.Silent,
                               "value": "quiet",
                               "info": "None. This will silence all logging."
                            },
                            {
-                              "name": "Fatal",
+                              "name": lang.Fatal,
                               "value": "fatal",
                               "info": "Display only fatal errors."
                            },
                            {
-                              "name": "on Error",
+                              "name": lang['on Error'],
                               "value": "error",
                               "info": "Display all important errors. Note : this doesn't always show important information."
                            },
                            {
-                              "name": "All Warnings",
+                              "name": lang['All Warnings'],
                               "value": "warning",
                               "info": "Display all warnings. Use this if you can't find out what's wrong with your camera."
                            }
