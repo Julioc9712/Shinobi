@@ -2724,7 +2724,7 @@ module.exports = function(s,config,lang){
                    },
                    {
                        hidden: true,
-                      "name": lang['Audio Detector'],
+                      "name": "Audio Detector",
                       "color": "orange",
                       id: "monSectionAudioDetector",
                       isSection: true,
@@ -2769,7 +2769,7 @@ module.exports = function(s,config,lang){
                       ]
                   },
                    {
-                      "name": lang['Object Detection'],
+                      "name": "Object Detection",
                       "color": "orange",
                       id: "monSectionDetectorObject",
                       headerTitle: `${lang['Object Detection']} <small><b class="shinobi-detector_name"></b> <b class="shinobi-detector-invert">${lang['Not Connected']}</b><b class="shinobi-detector" style="display:none">${lang['Connected']}</b></small>`,
@@ -2966,7 +2966,7 @@ module.exports = function(s,config,lang){
                   },
                    {
                        hidden: true,
-                      "name": lang['Traditional Recording'],
+                      "name": "Traditional Recording",
                       "color": "orange",
                       id: "monSectionDetectorTraditionalRecording",
                       isSection: true,
