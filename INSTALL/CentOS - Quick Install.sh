@@ -1,12 +1,5 @@
 #!/bin/bash
 
-#Check if this script is called by the Shinobi installer
-if [ "$1" = 1 ]; then
-	sectionLocked=1
-else 
-	sectionLocked=0
-fi
-
 echo "========================================================="
 echo "==   Shinobi : The Open Source CCTV and NVR Solution   =="
 echo "========================================================="
@@ -34,14 +27,15 @@ yum install nano $vm dos2unix net-tools curl wget git make zip -y
 echo "Updating system"
 sudo yum update -y
 
-if [ "$sectionLocked" = 0 ]; then
+#Skip if running from the Ninja installer
+if [ "$1" != 1 ]; then
 	#Clone git repo and change directory
 	sudo git clone https://gitlab.com/Shinobi-Systems/Shinobi.git Shinobi
 	cd Shinobi
 
 	echo "========================================================="
 	echo "Do you want to use the Master or Development branch of Shinobi?"
-	read -p "[M]aster or [D]ev" gitbranch
+	read -p "[M]aster or [D]ev " gitbranch
 	
 	#Changes input to uppercase
 	gitbranch=${gitbranch^}
@@ -67,7 +61,7 @@ if ! [ -x "$(command -v npm)" ]; then
 fi
 
 echo "========================================================="
-read -p "Do you want to install FFMPEG?" ffmpeginstall
+read -p "Do you want to install FFMPEG? Y/N " ffmpeginstall
 
 #Changes input to uppercase
 ffmpeginstall=${ffmpeginstall^}
@@ -87,7 +81,7 @@ echo "MariaDB (MySQL) is better for medium to large installations"
 echo "while SQLite is better for small installations"
 echo 
 echo "Press [ENTER] for default [MariaDB]"
-read -p "[M]ariaDB, [S]QLite3 or [N]othing" sqliteormariadb
+read -p "[M]ariaDB, [S]QLite3 or [N]othing " sqliteormariadb
 
 #Changes input to uppercase
 sqliteormariadb=${sqliteormariadb^}
@@ -119,7 +113,7 @@ elif [ "$sqliteormariadb" = "M" ] || [ "$sqliteormariadb" = "" ]; then
     sudo mysql_secure_installation
 	
 	echo "========================================================="
-    read -p "Install default database? Y/N" mysqlDefaultData
+    read -p "Install default database? Y/N " mysqlDefaultData
 	
 	#Changes input to uppercase
 	mysqlDefaultData=${mysqlDefaultData^}
@@ -155,7 +149,7 @@ dos2unix INSTALL/shinobi
 ln -s INSTALL/shinobi /usr/bin/shinobi
 
 echo "========================================================="
-read -p "Automatically create firewall rules? Y/N" createfirewallrules
+read -p "Automatically create firewall rules? Y/N " createfirewallrules
 
 #Changes input to uppercase
 createfirewallrules=${createfirewallrules^}
@@ -174,7 +168,7 @@ if [ ! -e "./super.json" ]; then
     echo "========================================================="
     echo "Enable superuser access?"
     echo "This may be useful for account and password managment"
-    read -p "in commercial deployments. Y/N" createSuperJson
+    read -p "in commercial deployments. Y/N " createSuperJson
 	
 	#Changes input to uppercase
 	createSuperJson=${createSuperJson^}
@@ -185,7 +179,7 @@ if [ ! -e "./super.json" ]; then
 fi
 	
 echo "========================================================="
-read -p "Start Shinobi on boot? Y/N" startupShinobi
+read -p "Start Shinobi on boot? Y/N " startupShinobi
 
 	#Changes input to uppercase
 	startupShinobi=${startupShinobi^}
@@ -197,7 +191,7 @@ if [ "$startupShinobi" = "Y" ]; then
 fi
 
 echo "========================================================="
-read -p "Start Shinobi now? Y/N" startShinobi
+read -p "Start Shinobi now? Y/N " startShinobi
 
 	#Changes input to uppercase
 	startShinobi=${startShinobi^}
@@ -213,12 +207,12 @@ echo "||=============== Installation Complete ===============||"
 echo "========================================================="
 echo "|| Login with the Superuser and create a new user!!    ||"
 echo "========================================================="
-echo "|| Open http://$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p'):8080/super in your web browser.||"
+echo "|| Open http://$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p'):8080/super in your browser. ||"
 echo "========================================================="
 if [ "$createSuperJson" = "y" ] || [ "$createSuperJson" = "Y" ]; then
     echo "|| Default Superuser : admin@shinobi.video             ||"
     echo "|| Default Password : admin                            ||"
-	echo "|| You can edit these settings in \"super.json\"       ||"
+	echo "|| You can edit these settings in \"super.json\"         ||"
 	echo "|| located in the Shinobi directory.                   ||"        
     echo "========================================================="
 fi
