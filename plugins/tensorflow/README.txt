@@ -1,5 +1,4 @@
 
-
 TENSORFLOW
   Shinobi plugin for Tensorflow object detection models
 
@@ -80,3 +79,5 @@ TODO
 
   CONFIG
     support for running in host mode
+  OTHER
+    make better README.md
