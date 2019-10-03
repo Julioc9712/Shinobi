@@ -179,9 +179,9 @@ module.exports = function(s,config,lang){
                                                 switch(monitor.protocol){
                                                     case'rtsp':
                                                         if(
-                                                            details.rtsp_transport
-                                                            && details.rtsp_transport !== ''
-                                                            && details.rtsp_transport !== 'no'
+                                                            monitor.details.rtsp_transport
+                                                            && monitor.details.rtsp_transport !== ''
+                                                            && monitor.details.rtsp_transport !== 'no'
                                                         ){
                                                             inputOptions.push('-rtsp_transport ' + monitor.details.rtsp_transport)
                                                         }
