@@ -35,7 +35,7 @@ module.exports = function (s, config, lang, io) {
     }
 
     // Combine objects
-    Object.assign(config, standardOptions);
+    config = Object.assign(config, standardOptions);
 
     // Get page URL
     config.baseURL = s.checkCorrectPathEnding(config.baseURL)
