@@ -7,7 +7,7 @@ var request = require('request');
 var SAT = require('sat')
 var V = SAT.Vector;
 var P = SAT.Polygon;
-var B = SAT.box;
+var B = SAT.Box;
 // Matrix In Region Libs />
 module.exports = function(s,config,lang){
     const countObjects = async (event) => {
@@ -189,6 +189,23 @@ module.exports = function(s,config,lang){
                                 })
                             }
                         break;
+			case'name':
+			    if (currentConfig.use_detector_filters_object === '1'){
+                                var regions = s.group[d.ke].activeMonitors[d.id].parsedObjects.cords
+                                var testRegion = [];
+                                regions.forEach(function(region,position){
+				    if(region.name === condition.p3){
+					testRegion.push(region);
+					var isMatrixInRegion = isAtleastOneMatrixInRegion(testRegion,d.details.matrices);
+					if(isMatrixInRegion) {
+					    conditionChain[place].ok = true;
+					} else {
+					    conditionChain[place].ok = false;
+					};
+				    };
+                                });
+			    }
+			break;
                         case'time':
                             var timeNow = new Date()
                             var timeCondition = new Date()
