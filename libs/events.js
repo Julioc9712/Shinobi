@@ -192,16 +192,35 @@ module.exports = function(s,config,lang){
 			case'name':
 			    if (currentConfig.use_detector_filters_object === '1'){
                                 var regions = s.group[d.ke].activeMonitors[d.id].parsedObjects.cords
-                                var testRegion = [];
                                 regions.forEach(function(region,position){
-				    if(region.name === condition.p3){
-					testRegion.push(region);
-					var isMatrixInRegion = isAtleastOneMatrixInRegion(testRegion,d.details.matrices);
-					if(isMatrixInRegion) {
-					    conditionChain[place].ok = true;
-					} else {
-					    conditionChain[place].ok = false;
-					};
+	                            switch(condition.p2){
+                                        case'indexOf':
+                                            if(region.name.indexOf(condition.p3) > -1){
+					        var isMatrixInRegion = isAtleastOneMatrixInRegion([region],d.details.matrices);
+                                            }
+                                        break;
+                                        case'!indexOf':
+                                            if(region.name.indexOf(condition.p3) === -1){
+					        var isMatrixInRegion = isAtleastOneMatrixInRegion([region],d.details.matrices);
+                                            }
+                                        break;
+                                        case'===':
+                                            if(region.name === condition.p3){
+					        var isMatrixInRegion = isAtleastOneMatrixInRegion([region],d.details.matrices);
+                                            }
+                                        break;
+                                        case'!==':
+                                            if(region.name !== condition.p3){
+					        var isMatrixInRegion = isAtleastOneMatrixInRegion([region],d.details.matrices);
+                                            }
+                                        break;
+                                        default:
+                                            //s.systemLog(lang['Numeric criteria unsupported for Region tests, Ignoring Conditional'])
+                                            s.systemLog('Numeric criteria unsupported for Region tests, Ignoring Conditional')
+                                        break;
+                                    }
+		                    if(isMatrixInRegion) {
+		                        conditionChain[place].ok = true; // default is false
 				    };
                                 });
 			    }
