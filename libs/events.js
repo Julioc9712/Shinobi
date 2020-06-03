@@ -190,7 +190,7 @@ module.exports = function(s,config,lang){
                             }
                         break;
 			case'name':
-			    if (currentConfig.use_detector_filters_object === '1'){
+			    if (d.detail.natrices){
                                 var regions = s.group[d.ke].activeMonitors[d.id].parsedObjects.cords
                                 regions.forEach(function(region,position){
 	                            switch(condition.p2){
