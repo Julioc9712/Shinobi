@@ -11,7 +11,6 @@
 <link rel="stylesheet" href="<%-window.libURL%>libs/css/daterangepicker.css">
 <link rel="stylesheet" href="<%-window.libURL%>libs/css/circles.css">
 <link rel="stylesheet" href="<%-window.libURL%>libs/css/bootstrap.min.css">
-<link rel="stylesheet" href="<%-window.libURL%>libs/css/font-awesome.min.css">
 <link rel="stylesheet" href="<%-window.libURL%>libs/css/fullcalendar.min.css">
 <link rel="stylesheet" href="<%-window.libURL%>libs/css/gridstack.min.css">
 <link rel="stylesheet" href="<%-window.libURL%>libs/css/gridstack-extra.min.css">
@@ -33,7 +32,8 @@
     <link rel="stylesheet" href="<%-window.libURL%>libs/css/<%-lib%>">
 <% }) %>
 <style id="theme">
-<% if(details.theme&&details.theme!==''){ %><%- include(__dirname+'/web/libs/themes/'+details.theme+'/style.css'); %><% } %>
+    <% details.theme = details.theme || 'Ice' %>
+<%- include(__dirname + `/web/libs/themes/${details.theme}/style.css`); %>
 </style>
 <style id="custom_css">
 <%= details.css %>
