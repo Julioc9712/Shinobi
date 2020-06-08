@@ -421,6 +421,25 @@ module.exports = function(s,config,lang){
                        ]
                     },
                     {
+                       "name": "detail=detector_ptz_follow",
+                       "field": lang['PTZ Follow'],
+                       "description": "Follow the largest detected Detected Object with PTZ? Requires an Object Detector running.",
+                       "default": "0",
+                       "example": "",
+                       "form-group-class": "h_onvif_input h_onvif_1",
+                       "fieldType": "select",
+                       "possible": [
+                           {
+                              "name": lang.No,
+                              "value": "0"
+                           },
+                           {
+                              "name": lang.Yes,
+                              "value": "1"
+                           }
+                       ]
+                    },
+                    {
                         hidden: true,
                        "name": "detail=onvif_port",
                        "field": lang['ONVIF Port'],
@@ -428,6 +447,11 @@ module.exports = function(s,config,lang){
                        "default": "8000",
                        "example": "",
                        "form-group-class": "h_onvif_input h_onvif_1",
+                    },
+                    {
+                       "fieldType": "btn",
+                       "class": `btn-success probe_config`,
+                       "btnContent": `<i class="fa fa-search"></i> &nbsp; ${lang.FFprobe}`,
                     },
                 ]
             },
