@@ -80,6 +80,7 @@ $(document).ready(function(e){
                           <option value="y">${lang['Y Point']}</option>
                           <option value="height">${lang['Height']}</option>
                           <option value="width">${lang['Width']}</option>
+			  <option value="aspect">${lang['Aspect Ratio']}</option>
                        </optgroup>
                    </select>
                </label>

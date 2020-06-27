@@ -349,6 +349,42 @@ module.exports = function(s,config,lang){
                                     }
                                 }
                             break;
+                            case'aspect':
+                                if (testMatrices){
+                                    testMatrices.forEach(function(matrix,position){
+                                        if (matrix){
+                                             var aspectRatio = matrix.height / matrix.width
+                                             switch(condition.p2){
+                                                 case'indexOf':
+                                                 case'!indexOf':
+                                                     s.userLog({mid:'$USER',ke:d.ke},{type:lang["Detector Filters"],msg:lang['Text criteria unsupported for Aspect Ratio tests, Ignoring Conditional']})
+                                                 break;
+                                                 case'===':
+                                                     if(aspectRatio === condition.p3){
+                                                         conditionChain[place].ok = true;
+                                                     } else {
+                                                         if (position !== undefined) delete(testMatrices[position])
+                                                     }
+                                                 break;
+                                                 case'!==':
+                                                     if(aspectRatio !== condition.p3){
+                                                         conditionChain[place].ok = true;
+                                                     } else {
+                                                         if (position !== undefined) delete(testMatrices[position])
+                                                     }
+                                                 break;
+                                                 default:
+                                                     if(eval(aspectRatio+' '+condition.p2+' "'+condition.p3.replace(/"/g,'\\"')+'"')){
+                                                         conditionChain[place].ok = true;
+                                                     } else {
+                                                         if (position !== undefined) delete(testMatrices[position])
+                                                     }
+                                                 break;
+                                             }
+                                        }
+                                    })
+                                }
+                            break;
                             case'time':
                                 var timeNow = new Date()
                                 var timeCondition = new Date()
