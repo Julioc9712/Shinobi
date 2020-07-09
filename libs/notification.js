@@ -307,7 +307,13 @@ module.exports = function(s,config,lang){
                     }
                     var sendMail = function(){
                         Object.keys(d.details).forEach(function(v,n){
-                            mailOptions.html+='<div><b>'+v+'</b> : '+d.details[v]+'</div>'
+                            if(v==='matrices'){
+                                var matricesdetailString = JSON.stringify(d.details[v])
+                                mailOptions.html+='<div><b>'+v+'</b> : '+matricesdetailString+'</div>'
+                            }
+                            else{
+                                mailOptions.html+='<div><b>'+v+'</b> : '+d.details[v]+'</div>'
+                            }
                         })
                         s.nodemailer.sendMail(mailOptions, (error, info) => {
                             if (error) {
