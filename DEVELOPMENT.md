@@ -113,4 +113,5 @@ and "cron" processes directy. To monitor output, we recommend you use a terminal
 byobu, tmux, or screen. In one terminal window, run ```node cron.js``` and in another run
 ```node camera.js```. Shinobi should now be running on port 8080 on your local machine (you can
 change the port in conf.json) and accessable at http://localhost:8080 in your browser. Any source
-code changes you make will require restarting either the camera or cron process [or both].
+code changes you make will require restarting either the camera or cron process [or both]. You can also use `npx nodemon camera.js` and `npx nodemon cron.js` to watch the files and automatically restart Node.js when changes are made to the files
+
