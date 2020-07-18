@@ -1,14 +1,32 @@
 module.exports = function(s){
     s.location = {
-        super : s.mainDirectory+'/super.json',
-        config : s.mainDirectory+'/conf.json',
+        super :  s.mainDirectory+'/super.json',
+        config : ['/etc/Shinobi/conf.json', s.mainDirectory+'/conf.json' ],
         languages : s.mainDirectory+'/languages'
     }
-    try{
-        var config = require(s.location.config)
-    }catch(err){
-        var config = {}
+
+    for (const config_location of s.location.config) {
+        try {
+            var config = require(config_location)
+            // if we find a config file, break out of the loop
+            if (config !== undefined){
+                console.info("Loaded config file from: " + config_location)
+                break;
+            } 
+        }
+        catch(err){
+            // if the location does not exist, move on to the next config file location
+            console.info("No config file found at " + config_location)
+            continue;
+        }
+        finally {
+            if (config == undefined) {
+                console.warn("No config files found anywhere. Resorting to defaults.")
+                config = {};
+            } 
+        }
     }
+    
     if(!config.productType){
         config.productType = 'CE'
     }
@@ -57,11 +75,11 @@ module.exports = function(s){
             '3123asdasdf1dtj1hjk23sdfaasd12asdasddfdbtnkkfgvesra3asdsd3123afdsfqw345'
         ];
     if(config.cron.key === 'change_this_to_something_very_random__just_anything_other_than_this'){
-        console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-        console.error('!! Change your cron key in your conf.json.                     !!')
-        console.error(`!! If you're running Shinobi remotely you should do this now.  !!`)
-        console.error('!! You can do this in the Super User panel or from terminal.   !!')
-        console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        console.warn('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        console.warn('!! Change your cron key in your conf.json.                     !!')
+        console.warn(`!! If you're running Shinobi remotely you should do this now.  !!`)
+        console.warn('!! You can do this in the Super User panel or from terminal.   !!')
+        console.warn('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     }
     return config
 }
