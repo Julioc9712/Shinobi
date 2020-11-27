@@ -327,6 +327,8 @@
    "SFTP": "SFTP",
    "Could not create Bucket.": "Could not create Bucket.",
    "Amazon S3": "Amazon S3",
+   "MinIO": "MinIO",
+   "MinIO Upload Error": "MinIO Upload Error",
    "Wasabi Hot Cloud Storage": "Wasabi Hot Cloud Storage",
    "Database": "Database",
    "Database Not Found": "Database Not Found",
