@@ -1415,7 +1415,7 @@ module.exports = function(s,config,lang,app,io){
                 if(r&&r[0]){
                     r = r[0]
                     var type = JSON.parse(r.details).type;
-                    if(type && ['googd', 'minio'].includes(type) && s.cloudDiskUseOnGetVideoDataExtensions[type]){
+                    if(type && s.cloudDiskUseOnGetVideoDataExtensions[type]){
                         s.cloudDiskUseOnGetVideoDataExtensions[type](r).then((dataPipe) => {
                             dataPipe.pipe(res)
                         }).catch((err) => {
