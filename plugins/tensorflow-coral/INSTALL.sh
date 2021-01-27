@@ -1,7 +1,7 @@
 #!/bin/bash
 DIR=`dirname $0`
 echo "Getting coral object detection models..."
-
+mkdir -p models
 wget "https://cdn.shinobi.video/binaries/tensorflow/coral/models-2021-01-26/ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite"
 mv ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite models/
 wget "https://cdn.shinobi.video/binaries/tensorflow/coral/models-2021-01-26/plugins_tensorflow-coral_models_coco_labels.txt"
