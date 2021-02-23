@@ -98,7 +98,7 @@ $(document).ready(function(e){
         })
         eventsToCheck = newSetOfEventsWithoutChecked
     }
-    var prepareVideosAndEventsForTable = function(monitorId,videos,events, shouldAddPrevNextButtons){
+    var prepareVideosAndEventsForTable = function(monitorId,videos,events){
         var chartData = []
         var minDate = new Date();
         var maxDate;
@@ -145,33 +145,9 @@ $(document).ready(function(e){
                 })
             }
         })
-        if (shouldAddPrevNextButtons && videos.length > 0)
-        {
-            if (videos.length > (parseInt(powerVideoVideoLimitElement.val()) || 100) - 10)
-            {
-                var tmpStart = new Date(minDate);
-                tmpStart.setSeconds(tmpStart.getSeconds() - 1800);
-
-                chartData.push({
-                    group: loadedTableGroupIds[monitorId],
-                    content: `<button type="button" class="btn btn-success" id="btnPrevious" onclick="{ $.powerVideoViewer.pageNumber += 1;  $.powerVideoViewer.reloadVideos(); }" >${lang['Prev']}</button>`,
-                    start: tmpStart,
-                    end: tmpStart
-                })
-            }
-            if ($.powerVideoViewer.pageNumber > 0)
-            { 
-                var tmpEnd = new Date(maxDate);
-                tmpEnd.setSeconds(tmpEnd.getSeconds() + 1800);
-                chartData.push({
-                    group: loadedTableGroupIds[monitorId],
-                    content: `<button type="button" class="btn btn-success" style="float:right;margin-right:20px;" id="btnNext" onclick="{ $.powerVideoViewer.pageNumber -= 1;  $.powerVideoViewer.reloadVideos(); }" >${lang['Next']}</button>`,
-                    start: maxDate,
-                    end: tmpEnd
-                })
-
-            }
-        }
+        if (videos.length > (parseInt(powerVideoVideoLimitElement.val()) || 100) - 10)
+            $("#btnPrevious").removeClass("hidden");
+       
         return chartData
     }
     var getMiniEventsChartConfig = function(video){
@@ -234,14 +210,12 @@ $(document).ready(function(e){
     }
     var getAllChartDataForLoadedVideos = function(){
         var chartData = []
-        var addPrevNext = true;
         Object.keys(powerVideoLoadedVideos).forEach(function(monitorId,n){
             var videos = powerVideoLoadedVideos[monitorId]
             var events = powerVideoLoadedEvents[monitorId]
-            var parsedVideos = prepareVideosAndEventsForTable(monitorId,videos,events, addPrevNext)
+            var parsedVideos = prepareVideosAndEventsForTable(monitorId,videos,events)
             powerVideoLoadedChartData[monitorId] = parsedVideos
             chartData = chartData.concat(parsedVideos)
-            addPrevNext = false;
         })
         return chartData
     }
@@ -284,7 +258,15 @@ $(document).ready(function(e){
                 loadedTableGroupIds[monitorId + '_events'] = groupId - 1
             })
             groupsDataSet.add(groups)
+            
+            $("#btnPrevious").addClass("hidden");
+            if ($.powerVideoViewer.pageNumber > 0)
+                $("#btnNext").removeClass("hidden");
+            else
+                $("#btnNext").addClass("hidden");
+
             var chartData = getAllChartDataForLoadedVideos()
+            
             if(chartData.length > 0){
                 var items = new vis.DataSet(chartData)
                 var options = {
@@ -294,17 +276,6 @@ $(document).ready(function(e){
                 }
                 // Create a Timeline
                 var timeline = new vis.Timeline(container, items, groupsDataSet, options)
-
-                $.powerVideoViewer.timelineStripsElement.find("#btnPrevious").closest(".vis-item").css ("min-width", "120px");  
-                $.powerVideoViewer.timelineStripsElement.find("#btnPrevious").closest(".vis-item-content").css ("background", "rgb(0,0,0,0)");
-                $.powerVideoViewer.timelineStripsElement.find("#btnPrevious").closest(".vis-item").css("background", "rgb(0,0,0,0)");
-                $.powerVideoViewer.timelineStripsElement.find("#btnPrevious").closest(".vis-item").css("border", "0");
-                $.powerVideoViewer.timelineStripsElement.find("#btnPrevious").closest(".vis-item").css("margin-top", "25px");
-				$.powerVideoViewer.timelineStripsElement.find("#btnNext").closest(".vis-item").css ("min-width", "120px");
-                $.powerVideoViewer.timelineStripsElement.find("#btnNext").closest(".vis-item-content").css ("background", "rgb(0,0,0,0)");
-				$.powerVideoViewer.timelineStripsElement.find("#btnNext").closest(".vis-item").css ("background", "rgb(0,0,0,0)");             
-                $.powerVideoViewer.timelineStripsElement.find("#btnNext").closest(".vis-item").css("border", "0");
-                $.powerVideoViewer.timelineStripsElement.find("#btnNext").closest(".vis-item").css("margin-top", "25px");
 
                 powerVideoTimelineStripsContainer.find('.loading').remove()
                 var timeChanging = false

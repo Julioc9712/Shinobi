@@ -75,6 +75,10 @@
                   </div>
               </div>
           </div>
+          <div class="row" style="margin-top:10px;">
+            <button type="button" class="btn btn-success hidden" style="margin-left:20px" id="btnPrevious" onclick="{ $.powerVideoViewer.pageNumber += 1;  $.powerVideoViewer.reloadVideos(); }"><%- lang.Prev %></button>
+            <button type="button" class="btn btn-success hidden" style="float:right;margin-right:20px;" id="btnNext" onclick="{ $.powerVideoViewer.pageNumber -= 1;  $.powerVideoViewer.reloadVideos(); }"><%- lang.Next %></button>
+          </div>
           <div class="row">
               <div class="col-md-12" style="margin-top:10px;">
                   <div id="powerVideoTimelineStrips">
