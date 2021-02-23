@@ -62,6 +62,9 @@
     <div class="demo-layout demo-blog mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header">
       <header id="main_header" class="demo-header mdl-layout__header">
         <div class="mdl-layout__header-row">
+          <div aria-expanded="false" role="button" tabindex="0" class="mdl-layout__drawer-button">
+            <i class="fa fa-align-right">&nbsp;</i>
+          </div>
         <ul class="nav navbar-nav">
             <li title="<%-lang['Toggle Sidebar']%>" class_toggle="hide-side" data-target=".mdl-js-layout"><a>&nbsp;<i class="fa fa-align-right"></i>&nbsp;</a></li>
             <li title="<%-lang['Add Monitor']%>" mid="" ke="" class="hidden-xs permission_monitor_create"><a monitor="edit">&nbsp;<i class="fa fa-plus"></i>&nbsp;</a></li>
@@ -118,6 +121,15 @@
                 <li role="presentation" class="dropdown">
                   <a href="javascript:;" class="dropdown-toggle info-number" data-toggle="dropdown" aria-expanded="true">&nbsp;<i class="fa fa-hdd-o"></i>&nbsp;</a>
                   <ul id="diskUsedList" class="dropdown-menu list-unstyled msg_list scrollable" role="menu">
+                        <li class="display-table hidden-sm hidden-m hidden-lg hidden-xl">
+                          <div class="cpu_load display-table-cell">
+                              <span class="pull-right percent"></span>
+                              <label><span class="os_cpuCount"></span> <%-lang.CPU%><span class="os_cpuCount_trailer"></span> <%-lang.on%> <span class="os_platform" style="text-transform:capitalize"></span></label>
+                            <div class="progress">
+                              <div class="progress-bar progress-bar-warning" role="progressbar" style="width:0%"></div>
+                            </div>
+                          </div>
+                        </li>
                       <% addStorage.forEach(function(storage){ %>
                           <li class="log-item" storage="<%- storage.name %>">
                               <span>

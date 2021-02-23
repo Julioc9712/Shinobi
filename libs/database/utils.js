@@ -382,9 +382,9 @@ module.exports = function(s,config){
                     endOperator: endTimeOperator,
                     archived: archived,
                     type: 'count',
-                    endIsStartTo: endIsStartTo
-                },(response) => {
-                    const count = response.count
+                    endIsStartTo: endIsStartTo,
+                    limit : 20000
+                },(response1) => {
                     var skipOver = 0
                     if(limitString.indexOf(',') > -1){
                         skipOver = parseInt(limitString.split(',')[0])
@@ -393,7 +393,7 @@ module.exports = function(s,config){
                         limitString = parseInt(limitString)
                     }
                     callback({
-                        total: response['count(*)'],
+                        total: response1.total,
                         limit: response.limit,
                         skip: skipOver,
                         [rowName]: r,

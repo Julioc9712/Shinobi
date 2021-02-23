@@ -549,7 +549,7 @@ $(document).ready(function(e){
                         break;
                         case'video_grid':
                             $.vidview.e.addClass('dark')
-                            var tmp = '<di class="video_grid row">';
+                            var tmp = '<div class="video_grid row">';
                             $.each(d.videos,function(n,v){
                                 var href = $.ccio.init('videoUrlBuild',v)
                                 v.mon = $.ccio.mon[v.ke+v.mid+user.auth_token]
@@ -644,7 +644,7 @@ $(document).ready(function(e){
                             tmp+='</table>';
                             e.b.html(tmp)
                             e.b.css({
-                                overflow: 'auto',
+                                //overflow: 'auto',
                                 height: '100%',
                             }).scrollTop(0);
                             if(showThumbnail){

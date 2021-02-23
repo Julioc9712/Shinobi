@@ -516,6 +516,9 @@ module.exports = function(s,config,lang,io){
                                 switch(d.fff){
                                     case'videos&events':
                                         const videoSet = d.videoSet
+                                        if(!d.videoPage){
+                                            d.videoPage = 0;
+                                        }
                                         if(!d.eventLimit){
                                             d.eventLimit = 500
                                         }else{
@@ -591,6 +594,8 @@ module.exports = function(s,config,lang,io){
                                         if(!d.videoEndDate&&d.endDate){
                                             d.videoEndDate = stringToSqlTime(d.endDate)
                                         }
+                                        d.videoLimit = d.videoLimit || 100;
+                                        d.videoLimit = (d.videoPage * parseInt(d.videoLimit)) + "," + d.videoLimit;
                                          var getVideos = function(callback){
                                             var videoWhereQuery = [
                                                 ['ke','=',cn.ke],
@@ -624,7 +629,7 @@ module.exports = function(s,config,lang,io){
                                                 table: videoSet === 'cloud' ? `Cloud Videos` : "Videos",
                                                 where: videoWhereQuery,
                                                 orderBy: ['time','desc'],
-                                                limit: d.videoLimit || '100'
+                                                limit: d.videoLimit 
                                             },(err,r) => {
                                                 if(err){
                                                     console.error(err)

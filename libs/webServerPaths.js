@@ -1071,7 +1071,7 @@ module.exports = function(s,config,lang,app,io){
             s.sqlQueryBetweenTimesWithPermissions({
                 table: videoSet,
                 user: user,
-                noCount: true,
+                noCount: false,
                 groupKey: req.params.ke,
                 monitorId: req.params.id,
                 startTime: req.query.start,

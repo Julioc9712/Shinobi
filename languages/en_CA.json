@@ -1149,5 +1149,8 @@
    "There are no monitors that you can view with this account.":"There are no monitors that you can view with this account.",
    "Delete Monitors and Files": "Delete Monitors and Files",
    "Select atleast one monitor to delete": "Select atleast one monitor to delete.",
-   "Use Built-In":"Use Built-In"
+   "Use Built-In":"Use Built-In",
+   "ConfigureGoogleDrive" : "If you would like to enable Google Drive upload for this monitor, you will need to ensure it is correctly configured.  See this <a href='https://hub.shinobi.video/articles/view/oEIDEGXLlzmSsCk' target='_blank'>article</a> for more information",
+   "Prev": "Prev",
+   "Next": "Next"
 }

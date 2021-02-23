@@ -39,10 +39,7 @@ $(document).ready(function(e){
     },function(start, end, label){
         // $.pwrvid.drawTimeline()
         powerVideoDateRangeElement.focus()
-        getSelectedMonitors().each(function(n,activeElement){
-            var monitorId = $(activeElement).attr('data-monitor')
-            requestTableData(monitorId)
-        })
+        reloadSelectedMonitors();
     });
     // fix utc/localtime translation (use timelapseJpeg as guide, it works as expected) />
     var loadVideosToTimeLineMemory = function(monitorId,videos,events){
@@ -66,6 +63,7 @@ $(document).ready(function(e){
             videoSet: powerVideoSet.val() || '',
             videoLimit: parseInt(powerVideoVideoLimitElement.val()) || 0,
             eventLimit: parseInt(powerVideoEventLimitElement.val()) || 500,
+			videoPage: $.powerVideoViewer.pageNumber,
             startDate: dateData.startDate.clone().utc().format('YYYY-MM-DDTHH:mm:ss'),
             endDate: dateData.endDate.clone().utc().format('YYYY-MM-DDTHH:mm:ss'),
             ke: user.ke,
@@ -100,10 +98,15 @@ $(document).ready(function(e){
         })
         eventsToCheck = newSetOfEventsWithoutChecked
     }
-    var prepareVideosAndEventsForTable = function(monitorId,videos,events){
+    var prepareVideosAndEventsForTable = function(monitorId,videos,events, shouldAddPrevNextButtons){
         var chartData = []
+        var minDate = new Date();
+        var maxDate;
         eventsLabeledByTime[monitorId] = {}
         $.each(videos,function(n,video){
+            minDate = new Date(video.time);
+            if (!maxDate)
+                maxDate = new Date(video.end);
             eventsLabeledByTime[monitorId][video.time] = {}
             if(videos[n - 1])video.videoAfter = videos[n - 1]
             if(videos[n + 1])video.videoBefore = videos[n + 1]
@@ -121,23 +124,54 @@ $(document).ready(function(e){
                 videoInfo: video
             })
         })
+
         $.each(events,function(n,event){
-            var eventReason = event.details && event.details.reason ? event.details.reason.toUpperCase() : "UNKNOWN"
-            var eventSlotTag = eventReason
-            if(eventReason === 'OBJECT' && event.details.matrices && event.details.matrices[0]){
-                eventSlotTag = []
-                event.details.matrices.forEach(function(matrix){
-                    eventSlotTag.push(matrix.tag)
+            if (new Date(event.time) > minDate && new Date(event.time) < maxDate)
+            {
+                var eventReason = event.details && event.details.reason ? event.details.reason.toUpperCase() : "UNKNOWN"
+                var eventSlotTag = eventReason
+                if(eventReason === 'OBJECT' && event.details.matrices && event.details.matrices[0]){
+                    eventSlotTag = []
+                    event.details.matrices.forEach(function(matrix){
+                        eventSlotTag.push(matrix.tag)
+                    })
+                    eventSlotTag = eventSlotTag.join(', ')
+                }
+                chartData.push({
+                    group: loadedTableGroupIds[monitorId + '_events'],
+                    content: `<div timeline-event="${event.time}">${eventSlotTag}</div>`,
+                    start: event.time,
+                    eventInfo: event
                 })
-                eventSlotTag = eventSlotTag.join(', ')
             }
-            chartData.push({
-                group: loadedTableGroupIds[monitorId + '_events'],
-                content: `<div timeline-event="${event.time}">${eventSlotTag}</div>`,
-                start: event.time,
-                eventInfo: event
-            })
         })
+        if (shouldAddPrevNextButtons && videos.length > 0)
+        {
+            if (videos.length > (parseInt(powerVideoVideoLimitElement.val()) || 100) - 10)
+            {
+                var tmpStart = new Date(minDate);
+                tmpStart.setSeconds(tmpStart.getSeconds() - 1800);
+
+                chartData.push({
+                    group: loadedTableGroupIds[monitorId],
+                    content: `<button type="button" class="btn btn-success" id="btnPrevious" onclick="{ $.powerVideoViewer.pageNumber += 1;  $.powerVideoViewer.reloadVideos(); }" >${lang['Prev']}</button>`,
+                    start: tmpStart,
+                    end: tmpStart
+                })
+            }
+            if ($.powerVideoViewer.pageNumber > 0)
+            { 
+                var tmpEnd = new Date(maxDate);
+                tmpEnd.setSeconds(tmpEnd.getSeconds() + 1800);
+                chartData.push({
+                    group: loadedTableGroupIds[monitorId],
+                    content: `<button type="button" class="btn btn-success" style="float:right;margin-right:20px;" id="btnNext" onclick="{ $.powerVideoViewer.pageNumber -= 1;  $.powerVideoViewer.reloadVideos(); }" >${lang['Next']}</button>`,
+                    start: maxDate,
+                    end: tmpEnd
+                })
+
+            }
+        }
         return chartData
     }
     var getMiniEventsChartConfig = function(video){
@@ -200,12 +234,14 @@ $(document).ready(function(e){
     }
     var getAllChartDataForLoadedVideos = function(){
         var chartData = []
+        var addPrevNext = true;
         Object.keys(powerVideoLoadedVideos).forEach(function(monitorId,n){
             var videos = powerVideoLoadedVideos[monitorId]
             var events = powerVideoLoadedEvents[monitorId]
-            var parsedVideos = prepareVideosAndEventsForTable(monitorId,videos,events)
+            var parsedVideos = prepareVideosAndEventsForTable(monitorId,videos,events, addPrevNext)
             powerVideoLoadedChartData[monitorId] = parsedVideos
             chartData = chartData.concat(parsedVideos)
+            addPrevNext = false;
         })
         return chartData
     }
@@ -258,6 +294,18 @@ $(document).ready(function(e){
                 }
                 // Create a Timeline
                 var timeline = new vis.Timeline(container, items, groupsDataSet, options)
+
+                $.powerVideoViewer.timelineStripsElement.find("#btnPrevious").closest(".vis-item").css ("min-width", "120px");  
+                $.powerVideoViewer.timelineStripsElement.find("#btnPrevious").closest(".vis-item-content").css ("background", "rgb(0,0,0,0)");
+                $.powerVideoViewer.timelineStripsElement.find("#btnPrevious").closest(".vis-item").css("background", "rgb(0,0,0,0)");
+                $.powerVideoViewer.timelineStripsElement.find("#btnPrevious").closest(".vis-item").css("border", "0");
+                $.powerVideoViewer.timelineStripsElement.find("#btnPrevious").closest(".vis-item").css("margin-top", "25px");
+				$.powerVideoViewer.timelineStripsElement.find("#btnNext").closest(".vis-item").css ("min-width", "120px");
+                $.powerVideoViewer.timelineStripsElement.find("#btnNext").closest(".vis-item-content").css ("background", "rgb(0,0,0,0)");
+				$.powerVideoViewer.timelineStripsElement.find("#btnNext").closest(".vis-item").css ("background", "rgb(0,0,0,0)");             
+                $.powerVideoViewer.timelineStripsElement.find("#btnNext").closest(".vis-item").css("border", "0");
+                $.powerVideoViewer.timelineStripsElement.find("#btnNext").closest(".vis-item").css("margin-top", "25px");
+
                 powerVideoTimelineStripsContainer.find('.loading').remove()
                 var timeChanging = false
                 timeline.on('rangechange', function(properties){
@@ -600,6 +648,13 @@ $(document).ready(function(e){
             loadVideoIntoMonitorSlot(video.videoBefore,0)
         })
     }
+    var reloadSelectedMonitors = function(){
+        getSelectedMonitors().each(function(n,activeElement){
+            var monitorId = $(activeElement).attr('data-monitor')
+            requestTableData(monitorId)
+        })
+    }
+
     $user.ws.on('f',function (d){
         switch(d.f){
             case'videos&events':
@@ -669,6 +724,8 @@ $(document).ready(function(e){
         loadedEvents: powerVideoLoadedEvents,
         loadedChartData: powerVideoLoadedChartData,
         loadedTableGroupIds: loadedTableGroupIds,
-        extenders: extenders
+        extenders: extenders,
+        reloadVideos: reloadSelectedMonitors,
+        pageNumber : 0
     }
 })
