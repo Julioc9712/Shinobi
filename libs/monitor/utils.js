@@ -73,7 +73,7 @@ module.exports = (s,config,lang) => {
             }else{
                 if(proc && proc.kill){
                     if(s.isWin){
-                        spawn("taskkill", ["/pid", proc.pid, '/t'])
+                        spawn("taskkill", ["/pid", proc.pid, '/t', '/f'])
                     }else{
                         proc.kill('SIGTERM')
                     }
@@ -83,7 +83,7 @@ module.exports = (s,config,lang) => {
                         }catch(err){
                             s.debugLog(err)
                         }
-                    },1000)
+                    },2000)
                 }
             }
         }
@@ -124,7 +124,7 @@ module.exports = (s,config,lang) => {
             var snapProcessTimeout = setTimeout(function(){
                 var pid = snapProcess.pid
                 if(s.isWin){
-                    spawn("taskkill", ["/pid", pid, '/t'])
+                    spawn("taskkill", ["/pid", pid, '/t', '/f'])
                 }else{
                     process.kill(-pid, 'SIGTERM')
                 }

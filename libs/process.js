@@ -34,6 +34,10 @@ module.exports = function(process,__dirname){
         mainDirectory : process.cwd()
     }
     s.packageJson = packageJson
+
+    if (s.isWin === true) 
+        s.mainDirectory = s.mainDirectory.split("\\").join("/");
+
     if(packageJson.mainDirectory){
         s.mainDirectory = require('path').resolve('.')
     }
