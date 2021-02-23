@@ -47,24 +47,13 @@ module.exports = (s,config,lang) => {
         options = options ? options : {}
         return new Promise((resolve,reject) => {
             const response = {ok: false}
-            if(options.forceCheck === true || config.insertOrphans === true){
-                if(!options.checkMax){
-                    options.checkMax = config.orphanedVideoCheckMax || 2
-                }
-                let finished = false
-                let orphanedFilesCount = 0;
-                let videosFound = 0;
-                const videosDirectory = s.getVideoDirectory(monitor)
-                const tempDirectory = s.getStreamsDirectory(monitor)
-                // const findCmd = [videosDirectory].concat(options.flags || ['-maxdepth','1'])
-                fs.writeFileSync(
-                    tempDirectory + 'orphanCheck.sh',
-                    `find "${videosDirectory}" -maxdepth 1 -type f -exec stat -c "%n" {} + | sort -r | head -n ${options.checkMax}`
-                );
-                let listing = spawn('sh',[tempDirectory + 'orphanCheck.sh'])
-                // const onData = options.onData ? options.onData : () => {}
-                const onError = options.onError ? options.onError : s.systemLog
-                const onExit = () => {
+            let finished = false
+            let orphanedFilesCount = 0;
+            let videosFound = 0;
+            let listing = null;
+            const onExit = () => {
+                if (listing)
+                {
                     try{
                         listing.kill('SIGTERM')
                         fs.unlink(tempDirectory + 'orphanCheck.sh',() => {})
@@ -73,45 +62,73 @@ module.exports = (s,config,lang) => {
                     }
                     delete(listing)
                 }
-                const onFinish = () => {
-                    if(!finished){
-                        finished = true
-                        response.ok = true
-                        response.orphanedFilesCount = orphanedFilesCount
-                        resolve(response)
-                        onExit()
-                    }
+            }
+            const onFinish = () => {
+                if(!finished){
+                    finished = true
+                    response.ok = true
+                    response.orphanedFilesCount = orphanedFilesCount
+                    resolve(response)
+                    onExit()
                 }
-                const processLine = async (filePath) => {
-                    let filename = filePath.split('/')
-                    filename = `${filename[filename.length - 1]}`.trim()
-                    if(filename && filename.indexOf('-') > -1 && filename.indexOf('.') > -1){
-                        const { status } = await checkIfVideoIsOrphaned(monitor,videosDirectory,filename)
-                        if(status === 2){
-                            ++orphanedFilesCount
+            }
+
+            if (s.isWin)
+            {
+                orphanedVideoCheck(monitor, options.checkMax, function(count){
+                    orphanedFilesCount = count;
+                    onFinish();
+                });                
+            }
+            else
+            {
+
+                if(options.forceCheck === true || config.insertOrphans === true){
+                    if(!options.checkMax){
+                        options.checkMax = config.orphanedVideoCheckMax || 2
+                    }
+                    const videosDirectory = s.getVideoDirectory(monitor)
+                    const tempDirectory = s.getStreamsDirectory(monitor)
+                    // const findCmd = [videosDirectory].concat(options.flags || ['-maxdepth','1'])
+                    fs.writeFileSync(
+                        tempDirectory + 'orphanCheck.sh',
+                        `find "${videosDirectory}" -maxdepth 1 -type f -exec stat -c "%n" {} + | sort -r | head -n ${options.checkMax}`
+                    );
+                    let listing = spawn('sh',[tempDirectory + 'orphanCheck.sh'])
+                    // const onData = options.onData ? options.onData : () => {}
+                    const onError = options.onError ? options.onError : s.systemLog
+                   
+                    const processLine = async (filePath) => {
+                        let filename = filePath.split('/')
+                        filename = `${filename[filename.length - 1]}`.trim()
+                        if(filename && filename.indexOf('-') > -1 && filename.indexOf('.') > -1){
+                            const { status } = await checkIfVideoIsOrphaned(monitor,videosDirectory,filename)
+                            if(status === 2){
+                                ++orphanedFilesCount
+                            }
+                            ++videosFound
+                            if(videosFound === options.checkMax){
+                                onFinish()
+                            }
                         }
-                        ++videosFound
-                        if(videosFound === options.checkMax){
+                    }
+                    listing.stdout.on('data', async (d) => {
+                        const filePathLines = d.toString().split('\n')
+                        var i;
+                        for (i = 0; i < filePathLines.length; i++) {
+                            await processLine(filePathLines[i])
+                        }
+                    })
+                    listing.stderr.on('data', d=>onError(d.toString()))
+                    listing.on('close', (code) => {
+                        // s.debugLog(`findOrphanedVideos ${monitor.ke} : ${monitor.mid} process exited with code ${code}`);
+                        setTimeout(() => {
                             onFinish()
-                        }
-                    }
+                        },1000)
+                    });
+                }else{
+                    resolve(response)
                 }
-                listing.stdout.on('data', async (d) => {
-                    const filePathLines = d.toString().split('\n')
-                    var i;
-                    for (i = 0; i < filePathLines.length; i++) {
-                        await processLine(filePathLines[i])
-                    }
-                })
-                listing.stderr.on('data', d=>onError(d.toString()))
-                listing.on('close', (code) => {
-                    // s.debugLog(`findOrphanedVideos ${monitor.ke} : ${monitor.mid} process exited with code ${code}`);
-                    setTimeout(() => {
-                        onFinish()
-                    },1000)
-                });
-            }else{
-                resolve(response)
             }
         })
     }
