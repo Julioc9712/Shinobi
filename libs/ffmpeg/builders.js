@@ -163,6 +163,7 @@ module.exports = (s,config,lang) => {
         ){
             inputFlags.push(`-rtsp_transport ${input.rtsp_transport}`)
         }
+        inputFlags.push(`-dn`)
         //hardware acceleration
         if(hardwareAccelerationEnabled){
             if(input.hwaccel){
@@ -347,6 +348,7 @@ module.exports = (s,config,lang) => {
         if(inputTypeIsH264 && protocolIsRtsp && rtspTransportIsManual){
             inputFlags.push(`-rtsp_transport ${e.details.rtsp_transport}`)
         }
+        inputFlags.push(`-dn`)
         //hardware acceleration
         if(hardwareAccelerationEnabled && !isStreamer){
             if(e.details.hwaccel){
