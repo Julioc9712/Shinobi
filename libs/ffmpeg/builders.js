@@ -140,6 +140,9 @@ module.exports = (s,config,lang) => {
         if(useWallclockTimestamp && inputTypeIsH264){
             inputFlags.push(`-use_wallclock_as_timestamps 1`)
         }
+        if(inputTypeIsH264){
+            inputFlags.push(`-copyts`)
+        }
         if(monitorCaptureRate){
             inputFlags.push(`-r ${monitorCaptureRate}`)
         }
@@ -322,6 +325,9 @@ module.exports = (s,config,lang) => {
         if(e.details.cust_input)inputFlags.push(e.details.cust_input)
         if(useWallclockTimestamp && inputTypeIsH264 && !arrayContains('-use_wallclock_as_timestamps',inputFlags)){
             inputFlags.push('-use_wallclock_as_timestamps 1')
+        }
+        if(hasInputMaps(e) && inputTypeIsH264){
+            inputFlags.push(`-copyts`)
         }
         if(monitorCaptureRate){
             inputFlags.push(`-r ${monitorCaptureRate}`)
