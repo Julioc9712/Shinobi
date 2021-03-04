@@ -129,6 +129,7 @@ module.exports = (s,config,lang) => {
         //`e` is the monitor object
         //`x` is an object used to contain temporary values.
         const inputFlags = []
+        const useWallclockTimestamp = config.wallClockTimestampAsDefault && e.details.wall_clock_timestamp_ignore !== '1'
         const inputTypeIsH264 = input.type === 'h264'
         const inputTypeCanLoop = input.type === 'mp4' || input.type === 'local'
         const hardwareAccelerationEnabled = input.accelerator==='1'
@@ -136,6 +137,9 @@ module.exports = (s,config,lang) => {
         const monitorCaptureRate = !isNaN(parseFloat(input.sfps)) && input.sfps !== '0' ? parseFloat(input.sfps) : null
         const casualDecodingRequired = input.type === 'mp4' || input.type === 'mjpeg'
         if(input.cust_input)inputFlags.push(input.cust_input)
+        if(useWallclockTimestamp && inputTypeIsH264){
+            inputFlags.push(`-use_wallclock_as_timestamps 1`)
+        }
         if(monitorCaptureRate){
             inputFlags.push(`-r ${monitorCaptureRate}`)
         }
