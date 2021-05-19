@@ -1016,9 +1016,7 @@ module.exports = function(s,config,lang,io){
                     }
                 }else if(!cn.embedded){
                     if(s.group[cn.ke].users[cn.auth]){
-                        if(s.group[cn.ke].users[cn.auth].login_type === 'Dashboard'){
-                            s.tx({f:'user_status_change',ke:cn.ke,uid:cn.uid,status:0})
-                        }
+                        s.tx({f:'user_status_change',ke:cn.ke,uid:cn.uid,status:0})
                         s.userLog({ke:cn.ke,mid:'$USER'},{type:lang['Websocket Disconnected'],msg:{mail:s.group[cn.ke].users[cn.auth].mail,id:cn.uid,ip:cn.ip}})
                         delete(s.group[cn.ke].users[cn.auth]);
                     }

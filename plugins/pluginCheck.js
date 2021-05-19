@@ -1,7 +1,7 @@
 const fs = require('fs');
 const haltMessage = `This script has stopped and started too quickly. It has been suspended to prevent performance issues.`
 const lastStartTimeLocation = `${process.cwd()}/lastStartTime.txt`
-const timeStarted = (new Date()).getTime()
+const timeStarted = `${(new Date()).getTime()}`
 const setStartTime = () => {
     fs.writeFileSync(lastStartTimeLocation,timeStarted,'utf8')
 }

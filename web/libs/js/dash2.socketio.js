@@ -138,7 +138,7 @@ $.ccio.globalWebsocket=function(d,user){
             $('.os_platform').html(d.os.platform)
             $('.os_cpuCount').html(d.os.cpuCount)
             $('.os_totalmem').attr('title',`Total : ${(d.os.totalmem/1048576).toFixed(2)}`)
-            if(d.os.cpuCount>1){
+            if(d.os.cpuCount > 1){
                 $('.os_cpuCount_trailer').html('s')
             }
         break;
@@ -468,19 +468,15 @@ $.ccio.globalWebsocket=function(d,user){
                                           },3000)
                                         }, false);
                                     }else{
-                                        $.ccio.mon[d.ke+d.id+user.auth_token].hlsGarbageCollector=function(){
-                                            if($.ccio.mon[d.ke+d.id+user.auth_token].hls){$.ccio.mon[d.ke+d.id+user.auth_token].hls.destroy();URL.revokeObjectURL(video.src)}
-                                            $.ccio.mon[d.ke+d.id+user.auth_token].hls = new Hls();
-                                            $.ccio.mon[d.ke+d.id+user.auth_token].hls.loadSource(d.url);
-                                            $.ccio.mon[d.ke+d.id+user.auth_token].hls.attachMedia(video);
-                                            $.ccio.mon[d.ke+d.id+user.auth_token].hls.on(Hls.Events.MANIFEST_PARSED,function() {
-                                                if (video.paused) {
-                                                    video.play();
-                                                }
-                                            });
-                                        }
-                                        $.ccio.mon[d.ke+d.id+user.auth_token].hlsGarbageCollector()
-                                        $.ccio.mon[d.ke+d.id+user.auth_token].hlsGarbageCollectorTimer=setInterval($.ccio.mon[d.ke+d.id+user.auth_token].hlsGarbageCollector,1000*60*20)
+                                        if($.ccio.mon[d.ke+d.id+user.auth_token].hls){$.ccio.mon[d.ke+d.id+user.auth_token].hls.destroy();URL.revokeObjectURL(video.src)}
+                                        $.ccio.mon[d.ke+d.id+user.auth_token].hls = new Hls();
+                                        $.ccio.mon[d.ke+d.id+user.auth_token].hls.loadSource(d.url);
+                                        $.ccio.mon[d.ke+d.id+user.auth_token].hls.attachMedia(video);
+                                        $.ccio.mon[d.ke+d.id+user.auth_token].hls.on(Hls.Events.MANIFEST_PARSED,function() {
+                                            if (video.paused) {
+                                                video.play();
+                                            }
+                                        });
                                     }
                                 }
                             })
@@ -765,7 +761,7 @@ $user.ws.on('f',function (d){
             $.ccio.pm('user-row',d.users);
         break;
         case'user_status_change':
-            if(d.status===1){
+            if(d.status === 1){
                 $.ccio.tm('user-row',d.user,null)
             }else{
                 $('.user-row[uid="'+d.uid+'"][ke="'+d.ke+'"]').remove()

@@ -572,6 +572,11 @@ $.ccio.tm=function(x,d,z,user){
                     placeholder:'Example : /dev/dri/video0',
                     type:'text',
                 },
+                {
+                    name:'cust_input',
+                    label:lang['Input Flags'],
+                    type:'text',
+                },
             ];
             tmp+='<div class="form-group-group forestgreen input-map" section id="monSectionMap'+tempID+'">'
             tmp+='  <h4>'+lang["Input"]+' <b>'+lang["Map"]+' : <span class="place">'+d.channel+'</span></b>'

@@ -9,14 +9,49 @@ module.exports = function(jsonData,pamDiffResponder){
     const triggerTimer = {}
     var pamDiff
     var p2p
-    var writeToStderr = function(text){
-      try{
-        stdioWriters[2].write(Buffer.from(`${text}`, 'utf8' ))
-          // stdioWriters[2].write(Buffer.from(`${new Error('writeToStderr').stack}`, 'utf8' ))
-      }catch(err){
-        fs.appendFileSync('/home/Shinobi/test.log',text + '\n','utf8')
-      }
+    var regionJson
+    try{
+        regionJson = JSON.parse(jsonData.rawMonitorConfig.details.cords)
+    }catch(err){
+        regionJson = jsonData.rawMonitorConfig.details.cords
     }
+    var width,
+        height,
+        globalSensitivity,
+        globalColorThreshold,
+        fullFrame = false
+    if(jsonData.rawMonitorConfig.details.detector_scale_x===''||jsonData.rawMonitorConfig.details.detector_scale_y===''){
+        width = jsonData.rawMonitorConfig.details.detector_scale_x;
+        height = jsonData.rawMonitorConfig.details.detector_scale_y;
+    }
+    else{
+        width = jsonData.rawMonitorConfig.width
+        height = jsonData.rawMonitorConfig.height
+    }
+    if(jsonData.rawMonitorConfig.details.detector_sensitivity===''){
+        globalSensitivity = 10
+    }else{
+        globalSensitivity = parseInt(jsonData.rawMonitorConfig.details.detector_sensitivity)
+    }
+    if(jsonData.rawMonitorConfig.details.detector_color_threshold===''){
+        globalColorThreshold = 9
+    }else{
+        globalColorThreshold = parseInt(jsonData.rawMonitorConfig.details.detector_color_threshold)
+    }
+
+    globalThreshold = parseInt(jsonData.rawMonitorConfig.details.detector_threshold) || 0
+    var regionConfidenceMinimums = {}
+    Object.values(regionJson).forEach(function(region){
+        // writeToStderr(JSON.stringify(region,null,3))
+        regionConfidenceMinimums[region.name] = region.sensitivity;
+    })
+    var writeToStderr = function(text){
+        fs.appendFileSync('/home/Shinobi/test.log',text + '\n','utf8')
+
+    }
+    // writeToStderr(JSON.stringify({
+    //     regionConfidenceMinimums: regionConfidenceMinimums
+    // },null,3))
     if(typeof pamDiffResponder === 'function'){
       var sendDetectedData = function(detectorObject){
         pamDiffResponder(detectorObject)
@@ -26,40 +61,32 @@ module.exports = function(jsonData,pamDiffResponder){
         pamDiffResponder.write(Buffer.from(JSON.stringify(detectorObject)))
       }
     }
-    createPamDiffEngine = function(){
-        var width,
-            height,
-            globalSensitivity,
-            globalColorThreshold,
-            fullFrame = false
-        if(jsonData.rawMonitorConfig.details.detector_scale_x===''||jsonData.rawMonitorConfig.details.detector_scale_y===''){
-            width = jsonData.rawMonitorConfig.details.detector_scale_x;
-            height = jsonData.rawMonitorConfig.details.detector_scale_y;
+    function checkMinimumChange(confidence,minimumChangeRequired){
+        const amountChanged = confidence
+        const minimumChange = !isNaN(minimumChangeRequired) ? parseInt(minimumChangeRequired) : 10
+        if(!isNaN(amountChanged)){
+            if(amountChanged < minimumChange){
+                return false
+            }
         }
-        else{
-            width = jsonData.rawMonitorConfig.width
-            height = jsonData.rawMonitorConfig.height
-        }
-        if(jsonData.rawMonitorConfig.details.detector_sensitivity===''){
-            globalSensitivity = 10
-        }else{
-            globalSensitivity = parseInt(jsonData.rawMonitorConfig.details.detector_sensitivity)
-        }
-        if(jsonData.rawMonitorConfig.details.detector_color_threshold===''){
-            globalColorThreshold = 9
-        }else{
-            globalColorThreshold = parseInt(jsonData.rawMonitorConfig.details.detector_color_threshold)
-        }
-
-        globalThreshold = parseInt(jsonData.rawMonitorConfig.details.detector_threshold) || 0
-        const regionsAreMasks = jsonData.rawMonitorConfig.details.detector_frame !== '1' && jsonData.rawMonitorConfig.details.inverse_trigger === '1';
-        var regionJson
+        return true
+    }
+    function getRegionsWithMinimumChange(data){
         try{
-            regionJson = JSON.parse(jsonData.rawMonitorConfig.details.cords)
+            var acceptedTriggers = []
+            data.trigger.forEach((trigger) => {
+                if(checkMinimumChange(trigger.percent,regionConfidenceMinimums[trigger.name] || globalSensitivity)){
+                    acceptedTriggers.push(trigger)
+                }
+            })
+            return acceptedTriggers
         }catch(err){
-            regionJson = jsonData.rawMonitorConfig.details.cords
+            // writeToStderr(err.stack)
         }
+    }
+    createPamDiffEngine = function(){
 
+        const regionsAreMasks = jsonData.rawMonitorConfig.details.detector_frame !== '1' && jsonData.rawMonitorConfig.details.inverse_trigger === '1';
         if(Object.keys(regionJson).length === 0 || jsonData.rawMonitorConfig.details.detector_frame === '1'){
             fullFrame = {
                 name:'FULL_FRAME',
@@ -88,9 +115,6 @@ module.exports = function(jsonData,pamDiffResponder){
             response: "bounds"
 
         }
-        if(jsonData.rawMonitorConfig.details.detector_show_matrix==='1'){
-            pamDiffOptions.response = 'bounds'
-        }
         pamDiff = new PamDiff(pamDiffOptions)
         p2p = new P2P()
         var regionArray = Object.values(regionJson)
@@ -111,7 +135,6 @@ module.exports = function(jsonData,pamDiffResponder){
                         imgHeight:jsonData.rawMonitorConfig.details.detector_scale_y,
                         imgWidth:jsonData.rawMonitorConfig.details.detector_scale_x
                     },
-                    plates:[],
                 }
                 if(trigger.merged){
                     if(trigger.matrices)detectorObject.details.matrices = trigger.matrices
@@ -150,19 +173,20 @@ module.exports = function(jsonData,pamDiffResponder){
                 pamDiff.on('diff', (data) => {
                     var filteredCount = 0
                     var filteredCountSuccess = 0
-                    data.trigger.forEach(function(trigger){
+                    var acceptedTriggers = getRegionsWithMinimumChange(data)
+                    acceptedTriggers.forEach(function(trigger){
                         filterTheNoise(noiseFilterArray,regions,trigger,function(err){
                             ++filteredCount
                             if(!err)++filteredCountSuccess
                             if(filteredCount === data.trigger.length && filteredCountSuccess > 0){
-                                buildTriggerEvent(mergePamTriggers(data))
+                                buildTriggerEvent(mergePamTriggers({trigger: acceptedTriggers}))
                             }
                         })
                     })
                 })
             }else{
                 pamDiff.on('diff', (data) => {
-                    buildTriggerEvent(mergePamTriggers(data))
+                    buildTriggerEvent(mergePamTriggers({trigger: getRegionsWithMinimumChange(data)}))
                 })
             }
         }else{
@@ -201,7 +225,7 @@ module.exports = function(jsonData,pamDiffResponder){
                     if(!noiseFilterArray[name])noiseFilterArray[name]=[];
                 })
                 pamDiff.on('diff', (data) => {
-                    data.trigger.forEach(function(trigger){
+                    getRegionsWithMinimumChange(data).forEach(function(trigger){
                         filterTheNoise(noiseFilterArray,regions,trigger,function(){
                             createMatrixFromPamTrigger(trigger)
                             buildTriggerEvent(trigger)
@@ -210,7 +234,7 @@ module.exports = function(jsonData,pamDiffResponder){
                 })
             }else{
                 pamDiff.on('diff', (data) => {
-                    data.trigger.forEach(function(trigger){
+                    getRegionsWithMinimumChange(data).forEach(function(trigger){
                         createMatrixFromPamTrigger(trigger)
                         buildTriggerEvent(trigger)
                     })
