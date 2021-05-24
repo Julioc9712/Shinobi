@@ -196,9 +196,9 @@ echo "\nCongratulations, Shinobi is now installed!\n"
 
 echo 'To start Shinobi at boot, add a crontab entry for the user "_shinobi" with something like this:\n'
 
-echo '$ doas crontab -u _shinobi -e
+echo '$ doas crontab -u _shinobi -e'
 
-@reboot /bin/sh -c "cd /home/_shinobi/Shinobi && pm2 start camera.js cron.js"
+echo '@reboot /bin/sh -c "cd /home/_shinobi/Shinobi && pm2 start camera.js cron.js"'
 
 echo "\nYou can access Shinobi at http://$(ifconfig | grep 'inet ' | awk '!/127.0.0.1/ {print $2}'):8080"
 
