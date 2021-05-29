@@ -172,6 +172,31 @@
                   ]
                },
                {
+                  "name": "telegram",
+                  "field": "Telegram Alert on Trigger",
+                  "description": "Recieve a Telegram Notification with a video during an event to the recipient. Telegram Bot and recipient can be changed in your Account Settings.",
+                  "default": "No",
+                  "example": "1",
+                  "possible": [
+                     {
+                        "name": "Default",
+                        "value": "",
+                        "info": "Use values set in Global Detector Settings.",
+                        "selected": true
+                     },
+                     {
+                        "name": "No",
+                        "value": "0",
+                        "info": "No Alert."
+                     },
+                     {
+                        "name": "Yes",
+                        "value": "1",
+                        "info": "Get a Message to Telegram."
+                     }
+                  ]
+               },
+               {
                   "name": "command",
                   "field": "Detector Command",
                   "description": "You may use this to trigger a script on command.",
