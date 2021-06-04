@@ -85,7 +85,8 @@ s.detectObject = function(buffer,d,tx,frameLocation,callback){
                     imgHeight:width,
                     imgWidth:height,
                     time: resp.time
-                }
+                },
+                frame: buffer
             })
         }
         callback()

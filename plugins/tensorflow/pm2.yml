@@ -1,0 +1,4 @@
+apps:
+  - script   : '/home/Shinobi/plugins/tensorflow/shinobi-tensorflow.js'
+    name     : 'shinobi-tensorflow'
+    kill_timeout  : 5000

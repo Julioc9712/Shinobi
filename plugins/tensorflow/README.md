@@ -82,3 +82,47 @@ Add the `plugins` array if you don't already have it. Add the following *object 
       }
   ],
 ```
+
+# Docker Installation
+> Install Shinobi Plugin with Docker
+
+> Image is based on `node:12.22.1-buster-slim`.
+
+1. Enter plugin directory. Default Shinobi installation location is `/home/Shinobi`.
+
+```
+cd /home/Shinobi/plugins/tensorflow
+```
+
+2. Build Image.
+
+```
+docker build --tag shinobi-tensorflow-image:1.0 .
+```
+
+3. Launch the plugin.
+
+- `-e ADD_CONFIG='{"key":"123mypluginkey","tfjsBuild":"gpu","host":"172.16.100.238","port":"8080"}'` Adds any configuration parameters to the plugin's conf.json file.
+- `-p '8082:8082/tcp'` is an optional flag if you decide to run the plugin in host mode.
+
+```
+docker run -d --gpus all --name='shinobi-tensorflow' -e ADD_CONFIG='{"key":"123mypluginkey","tfjsBuild":"gpu","host":"172.16.100.238","port":"8080"}' shinobi-tensorflow-image:1.0
+```
+
+** Logs **
+
+```
+docker logs /shinobi-tensorflow
+```
+
+** Stop and Remove **
+
+```
+docker stop /shinobi-tensorflow && docker rm /shinobi-tensorflow
+```
+
+### Options (Environment Variables)
+
+| Option           | Description                                                                                                                                                                                               | Default    |
+|------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| ADD_CONFIG      | The plugin's name.                                                                                                                                                                                        | Tensorflow |

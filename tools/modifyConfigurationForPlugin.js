@@ -67,7 +67,7 @@ fs.stat(pluginLocation,function(err){
             var config = JSON.parse(fs.readFileSync(configLocation))
         }catch(err){
             try{
-                var config = fs.readFileSync(`${pluginLocation}conf.sample.json`,'utf8')
+                var config = JSON.parse(fs.readFileSync(`${pluginLocation}conf.sample.json`,'utf8'))
                 fs.writeFileSync(`${pluginLocation}conf.json`,JSON.stringify(config,null,3),'utf8')
             }catch(err){
                 var config = {}

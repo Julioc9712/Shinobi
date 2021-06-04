@@ -1,13 +1,17 @@
 const fs = require('fs')
 const spawn = require('child_process').spawn
 const isWindows = process.platform === "win32";
+const {
+  parentPort, workerData
+} = require('worker_threads');
 var writeToStderr = function(text){
   // fs.appendFileSync(rawMonitorConfig.sdir + 'errors.log',text + '\n','utf8')
-  process.stderr.write(Buffer.from(`${text}`, 'utf8' ))
+  // process.stderr.write(Buffer.from(`${text}`, 'utf8' ))
+  parentPort.postMessage(text)
 }
-if(!process.argv[2] || !process.argv[3]){
-    return writeToStderr('Missing FFMPEG Command String or no command operator')
-}
+// if(!process.argv[2] || !process.argv[3]){
+//     return writeToStderr('Missing FFMPEG Command String or no command operator')
+// }
 process.send = process.send || function () {};
 process.on('uncaughtException', function (err) {
     writeToStderr('Uncaught Exception occured!');
@@ -29,9 +33,10 @@ process.on('SIGTERM', exitAction);
 process.on('SIGINT', exitAction);
 process.on('exit', exitAction);
 
-var jsonData = JSON.parse(fs.readFileSync(process.argv[3],'utf8'))
-// fs.unlink(process.argv[3],()=>{})
-const ffmpegAbsolutePath = process.argv[2].trim()
+// var jsonData = JSON.parse(fs.readFileSync(process.argv[3],'utf8'))
+// const ffmpegAbsolutePath = process.argv[2].trim()
+const jsonData = workerData.jsonData
+const ffmpegAbsolutePath = workerData.ffmpegAbsolutePath
 const ffmpegCommandString = jsonData.cmd
 const temporaryImageFile = jsonData.temporaryImageFile
 const iconImageFile = jsonData.iconImageFile

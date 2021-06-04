@@ -1,6 +1,5 @@
 
 var fs = require('fs');
-var request  = require('request');
 var moment = require('moment');
 var crypto = require('crypto');
 var exec = require('child_process').exec;
@@ -9,6 +8,9 @@ module.exports = function(s,config,lang,io){
     const {
         scanForOrphanedVideos
     } = require('./video/utils.js')(s,config,lang)
+    const {
+        checkSubscription
+    } = require('./basic/utils.js')(process.cwd())
     return new Promise((resolve, reject) => {
         var checkedAdminUsers = {}
         console.log('FFmpeg version : '+s.ffmpegVersion)
@@ -391,41 +393,6 @@ module.exports = function(s,config,lang,io){
             })
         }
         config.userHasSubscribed = false
-        var checkSubscription = function(callback){
-            var subscriptionFailed = function(){
-                console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-                console.error('This Install of Shinobi is NOT Activated')
-                console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-                console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-                s.systemLog('This Install of Shinobi is NOT Activated')
-                console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-                console.log('https://licenses.shinobi.video/subscribe')
-            }
-            if(config.subscriptionId && config.subscriptionId !== 'sub_XXXXXXXXXXXX'){
-                var url = 'https://licenses.shinobi.video/subscribe/check?subscriptionId=' + config.subscriptionId
-                request(url,{
-                    method: 'GET',
-                    timeout: 30000
-                }, function(err,resp,body){
-                    var json = s.parseJSON(body)
-                    if(err)console.log(err,json)
-                    var hasSubcribed = json && !!json.ok
-                    config.userHasSubscribed = hasSubcribed
-                    callback(hasSubcribed)
-                    if(config.userHasSubscribed){
-                        s.systemLog('This Install of Shinobi is Activated')
-                        if(!json.expired){
-                            s.systemLog(`This License expires on ${json.timeExpires}`)
-                        }
-                    }else{
-                        subscriptionFailed()
-                    }
-                })
-            }else{
-                subscriptionFailed()
-                callback(false)
-            }
-        }
         //check disk space every 20 minutes
         if(config.autoDropCache===true){
             setInterval(function(){
@@ -444,7 +411,8 @@ module.exports = function(s,config,lang,io){
             s.preQueries()
             setTimeout(() => {
                 //check for subscription
-                checkSubscription(function(){
+                checkSubscription(config.subscriptionId,function(hasSubcribed){
+                    config.userHasSubscribed = hasSubcribed
                     //check terminal commander
                     checkForTerminalCommands(function(){
                         //load administrators (groups)

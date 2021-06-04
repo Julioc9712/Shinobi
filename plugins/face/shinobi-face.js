@@ -207,6 +207,7 @@ var addAwaitStatements = async function(){
                                             imgWidth: imgWidth,
                                             ms: endTime - startTime
                                         },
+                                        frame: frameBuffer
                                     })
                                 }
                             }

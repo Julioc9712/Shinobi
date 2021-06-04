@@ -11,6 +11,9 @@ module.exports = function(s,config,lang,app){
         updateSystem,
         getSystemInfo,
      } = require('./system/utils.js')(config)
+     const {
+         checkSubscription
+     } = require('./basic/utils.js')(process.cwd())
     /**
     * API : Superuser : Get Logs
     */
@@ -135,6 +138,38 @@ module.exports = function(s,config,lang,app){
                 s.tx({f:'save_configuration'},'$')
             }
             s.closeJsonResponse(res,endData)
+        },res,req)
+    })
+    /**
+    * API : Superuser : Activate Key
+    */
+    app.post(config.webPaths.superApiPrefix+':auth/system/activate', function (req,res){
+        s.superAuth(req.params,async (resp) => {
+            var endData = {
+                ok : true
+            }
+            const currentConfig = JSON.parse(fs.readFileSync(s.location.config))
+            const subscriptionId = s.getPostData(req,'subscriptionId')
+            if(!subscriptionId){
+                endData.ok = false
+                endData.msg = lang.postDataBroken
+            }else{
+                s.systemLog('conf.json Modified',{
+                    by: resp.$user.mail,
+                    ip: resp.ip,
+                    old: currentConfig
+                })
+                const configError = await modifyConfiguration(Object.assign({
+                    subscriptionId: subscriptionId,
+                },currentConfig))
+                if(configError)s.systemLog(configError)
+                s.tx({f:'save_configuration'},'$')
+            }
+            checkSubscription(subscriptionId,function(hasSubcribed){
+                endData.ok = hasSubcribed
+                config.userHasSubscribed = hasSubcribed
+                s.closeJsonResponse(res,endData)
+            })
         },res,req)
     })
     /**

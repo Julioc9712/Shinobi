@@ -10,6 +10,9 @@ const connectionTester = require('connection-tester')
 const SoundDetection = require('shinobi-sound-detection')
 const async = require("async");
 const URL = require('url')
+const {
+  Worker
+} = require('worker_threads');
 const { copyObject, createQueue, queryStringToObject, createQueryStringFromObject } = require('./common.js')
 module.exports = function(s,config,lang){
     const {
@@ -72,6 +75,7 @@ module.exports = function(s,config,lang){
     }
     s.sendMonitorStatus = function(e){
         s.group[e.ke].activeMonitors[e.id].monitorStatus = `${e.status}`
+        s.group[e.ke].activeMonitors[e.id].monitorStatusCode = `${e.code}`
         s.tx(Object.assign(e,{f:'monitor_status'}),'GRP_'+e.ke)
     }
     s.getMonitorCpuUsage = function(e,callback){
@@ -181,40 +185,31 @@ module.exports = function(s,config,lang){
                         var temporaryImageFile = streamDir + s.gid(5) + '.jpg'
                         var iconImageFile = streamDir + 'icon.jpg'
                         var ffmpegCmd = splitForFFPMEG(`-loglevel warning -re -probesize 100000 -analyzeduration 100000 ${inputOptions.join(' ')} -i "${url}" ${outputOptions.join(' ')} -f image2 -an -vf "fps=1" -vframes 1 "${temporaryImageFile}"`)
-                        fs.writeFileSync(s.getStreamsDirectory(monitor) + 'snapCmd.txt',JSON.stringify({
-                          cmd: ffmpegCmd,
-                          temporaryImageFile: temporaryImageFile,
-                          iconImageFile: iconImageFile,
-                          useIcon: options.useIcon,
-                          rawMonitorConfig: s.group[monitor.ke].rawMonitorConfigurations[monitor.mid],
-                        },null,3),'utf8')
-                        var cameraCommandParams = [
-                          s.mainDirectory + '/libs/cameraThread/snapshot.js',
-                          config.ffmpegDir,
-                          s.group[monitor.ke].activeMonitors[monitor.id].sdir + 'snapCmd.txt'
-                        ]
-                        var snapProcess = spawn('node',cameraCommandParams,{detached: true})
-                        snapProcess.stderr.on('data',function(data){
-                            s.debugLog(data.toString())
+                        const snapProcess = new Worker(__dirname + '/cameraThread/snapshot.js', {
+                            workerData: {
+                                jsonData: {
+                                  cmd: ffmpegCmd,
+                                  temporaryImageFile: temporaryImageFile,
+                                  iconImageFile: iconImageFile,
+                                  useIcon: options.useIcon,
+                                  rawMonitorConfig: s.group[monitor.ke].rawMonitorConfigurations[monitor.mid],
+                              },
+                              ffmpegAbsolutePath: config.ffmpegDir,
+                            }
+                        });
+                        snapProcess.on('message', function(data){
+                            s.debugLog(data)
                         })
-                        snapProcess.on('close',function(data){
+                        snapProcess.on('error', (data) => {
+                            console.log(data)
+                            snapProcess.terminate()
+                        })
+                        snapProcess.on('exit', (code) => {
                             clearTimeout(snapProcessTimeout)
                             sendTempImage()
                         })
                         var snapProcessTimeout = setTimeout(function(){
-                            var pid = snapProcess.pid
-                            if(s.isWin){
-                                spawn("taskkill", ["/pid", pid, '/t'])
-                            }else{
-                                process.kill(-pid, 'SIGTERM')
-                            }
-                            setTimeout(function(){
-                                if(s.isWin === false){
-                                    treekill(pid)
-                                }else{
-                                    snapProcess.kill()
-                                }
-                            },dynamicTimeout)
+                            snapProcess.terminate()
                         },dynamicTimeout)
                     }catch(err){
                         console.log(err)
@@ -290,67 +285,77 @@ module.exports = function(s,config,lang){
         })
     }
     s.mergeDetectorBufferChunks = function(monitor,callback){
-        var pathDir = s.dir.streams+monitor.ke+'/'+monitor.id+'/'
-        var mergedFile = s.formattedTime()+'.mp4'
-        var mergedFilepath = pathDir+mergedFile
-        fs.readdir(pathDir,function(err,streamDirItems){
-            var items = []
-            var copiedItems = []
-            var videoLength = s.group[monitor.ke].rawMonitorConfigurations[monitor.id].details.detector_send_video_length
-            if(!videoLength || videoLength === '')videoLength = '10'
-            if(videoLength.length === 1)videoLength = '0' + videoLength
-            var createMerged = function(copiedItems){
-                var allts = pathDir+items.join('_')
-                s.fileStats(allts,function(err,stats){
-                    if(err){
-                        //not exist
-                        var cat = 'cat '+copiedItems.join(' ')+' > '+allts
-                        exec(cat,function(){
-                            var merger = spawn(config.ffmpegDir,splitForFFPMEG(('-re -i '+allts+' -acodec copy -vcodec copy -t 00:00:' + videoLength + ' '+pathDir+mergedFile)))
-                            merger.stderr.on('data',function(data){
-                                s.userLog(monitor,{type:"Buffer Merge",msg:data.toString()})
-                            })
-                            merger.on('close',function(){
-                                s.file('delete',allts)
-                                copiedItems.forEach(function(copiedItem){
-                                    s.file('delete',copiedItem)
+        return new Promise((resolve,reject) => {
+            var pathDir = s.dir.streams+monitor.ke+'/'+monitor.id+'/'
+            var mergedFile = s.formattedTime()+'.mp4'
+            var mergedFilepath = pathDir+mergedFile
+            fs.readdir(pathDir,function(err,streamDirItems){
+                var items = []
+                var copiedItems = []
+                var videoLength = s.group[monitor.ke].rawMonitorConfigurations[monitor.id].details.detector_send_video_length
+                if(!videoLength || videoLength === '')videoLength = '10'
+                if(videoLength.length === 1)videoLength = '0' + videoLength
+                var createMerged = function(copiedItems){
+                    var allts = pathDir+items.join('_')
+                    s.fileStats(allts,function(err,stats){
+                        if(err){
+                            //not exist
+                            var cat = 'cat '+copiedItems.join(' ')+' > '+allts
+                            exec(cat,function(){
+                                var merger = spawn(config.ffmpegDir,splitForFFPMEG(('-re -i '+allts+' -acodec copy -vcodec copy -t 00:00:' + videoLength + ' '+pathDir+mergedFile)))
+                                merger.stderr.on('data',function(data){
+                                    s.userLog(monitor,{type:"Buffer Merge",msg:data.toString()})
                                 })
-                                setTimeout(function(){
-                                    s.file('delete',mergedFilepath)
-                                },1000 * 60 * 3)
-                                delete(merger)
-                                callback(mergedFilepath,mergedFile)
+                                merger.on('close',function(){
+                                    s.file('delete',allts)
+                                    copiedItems.forEach(function(copiedItem){
+                                        s.file('delete',copiedItem)
+                                    })
+                                    setTimeout(function(){
+                                        s.file('delete',mergedFilepath)
+                                    },1000 * 60 * 3)
+                                    delete(merger)
+                                    if(callback)callback(mergedFilepath,mergedFile)
+                                    resolve({
+                                        filePath: mergedFilepath,
+                                        filename: mergedFile,
+                                    })
+                                })
                             })
-                        })
-                    }else{
-                        //file exist
-                        callback(mergedFilepath,mergedFile)
-                    }
-                })
-            }
-            streamDirItems.forEach(function(filename){
-                if(filename.indexOf('detectorStream') > -1 && filename.indexOf('.m3u8') === -1){
-                    items.push(filename)
-                }
-            })
-            items.sort()
-            // items = items.slice(items.length - 5,items.length)
-            items.forEach(function(filename){
-                try{
-                    var tempFilename = filename.split('.')
-                    tempFilename[0] = tempFilename[0] + 'm'
-                    tempFilename = tempFilename.join('.')
-                    var tempWriteStream = fs.createWriteStream(pathDir+tempFilename)
-                    tempWriteStream.on('finish', function(){
-                        copiedItems.push(pathDir+tempFilename)
-                        if(copiedItems.length === items.length){
-                            createMerged(copiedItems.sort())
+                        }else{
+                            //file exist
+                            if(callback)callback(mergedFilepath,mergedFile)
+                            resolve({
+                                filePath: mergedFilepath,
+                                filename: mergedFile,
+                            })
                         }
                     })
-                    fs.createReadStream(pathDir+filename).pipe(tempWriteStream)
-                }catch(err){
-
                 }
+                streamDirItems.forEach(function(filename){
+                    if(filename.indexOf('detectorStream') > -1 && filename.indexOf('.m3u8') === -1){
+                        items.push(filename)
+                    }
+                })
+                items.sort()
+                // items = items.slice(items.length - 5,items.length)
+                items.forEach(function(filename){
+                    try{
+                        var tempFilename = filename.split('.')
+                        tempFilename[0] = tempFilename[0] + 'm'
+                        tempFilename = tempFilename.join('.')
+                        var tempWriteStream = fs.createWriteStream(pathDir+tempFilename)
+                        tempWriteStream.on('finish', function(){
+                            copiedItems.push(pathDir+tempFilename)
+                            if(copiedItems.length === items.length){
+                                createMerged(copiedItems.sort())
+                            }
+                        })
+                        fs.createReadStream(pathDir+filename).pipe(tempWriteStream)
+                    }catch(err){
+
+                    }
+                })
             })
         })
     }
@@ -729,7 +734,7 @@ module.exports = function(s,config,lang){
         s.group[e.ke].activeMonitors[e.id].spawn_exit = function(){
             if(s.group[e.ke].activeMonitors[e.id].isStarted === true){
                 if(e.details.loglevel!=='quiet'){
-                    s.userLog(e,{type:lang['Process Unexpected Exit'],msg:{msg:lang['Process Crashed for Monitor'],cmd:s.group[e.ke].activeMonitors[e.id].ffmpeg}});
+                    s.userLog(e,{type:lang['Process Unexpected Exit'],msg:{msg:lang.unexpectedExitText,cmd:s.group[e.ke].activeMonitors[e.id].ffmpeg}});
                 }
                 fatalError(e,'Process Unexpected Exit');
                 scanForOrphanedVideos(e,{

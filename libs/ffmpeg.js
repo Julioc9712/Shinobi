@@ -25,48 +25,53 @@ module.exports = async (s,config,lang,onFinish) => {
     if(config.ffmpegBinary)config.ffmpegDir = config.ffmpegBinary
 
     s.ffmpeg = function(e){
-        const ffmpegCommand = [`-progress pipe:5`];
-        ([
-            buildMainInput(e),
-            buildMainStream(e),
-            buildJpegApiOutput(e),
-            buildMainRecording(e),
-            buildAudioDetector(e),
-            buildMainDetector(e),
-            buildEventRecordingOutput(e),
-            buildTimelapseOutput(e),
-        ]).forEach(function(commandStringPart){
-            ffmpegCommand.push(commandStringPart)
-        })
-        s.onFfmpegCameraStringCreationExtensions.forEach(function(extender){
-            extender(e,ffmpegCommand)
-        })
-        const stdioPipes = createPipeArray(e)
-        const ffmpegCommandString = ffmpegCommand.join(' ')
-        //hold ffmpeg command for log stream
-        s.group[e.ke].activeMonitors[e.mid].ffmpeg = sanitizedFfmpegCommand(e,ffmpegCommandString)
-        //clean the string of spatial impurities and split for spawn()
-        const ffmpegCommandParsed = splitForFFPMEG(ffmpegCommandString)
         try{
-            fs.unlinkSync(e.sdir + 'cmd.txt')
-        }catch(err){
+            const ffmpegCommand = [`-progress pipe:5`];
+            ([
+                buildMainInput(e),
+                buildMainStream(e),
+                buildJpegApiOutput(e),
+                buildMainRecording(e),
+                buildAudioDetector(e),
+                buildMainDetector(e),
+                buildEventRecordingOutput(e),
+                buildTimelapseOutput(e),
+            ]).forEach(function(commandStringPart){
+                ffmpegCommand.push(commandStringPart)
+            })
+            s.onFfmpegCameraStringCreationExtensions.forEach(function(extender){
+                extender(e,ffmpegCommand)
+            })
+            const stdioPipes = createPipeArray(e)
+            const ffmpegCommandString = ffmpegCommand.join(' ')
+            //hold ffmpeg command for log stream
+            s.group[e.ke].activeMonitors[e.mid].ffmpeg = sanitizedFfmpegCommand(e,ffmpegCommandString)
+            //clean the string of spatial impurities and split for spawn()
+            const ffmpegCommandParsed = splitForFFPMEG(ffmpegCommandString)
+            try{
+                fs.unlinkSync(e.sdir + 'cmd.txt')
+            }catch(err){
 
-        }
-        fs.writeFileSync(e.sdir + 'cmd.txt',JSON.stringify({
-            cmd: ffmpegCommandParsed,
-            pipes: stdioPipes.length,
-            rawMonitorConfig: s.group[e.ke].rawMonitorConfigurations[e.id],
-            globalInfo: {
-                config: config,
-                isAtleatOneDetectorPluginConnected: s.isAtleatOneDetectorPluginConnected
             }
-        },null,3),'utf8')
-        var cameraCommandParams = [
-          './libs/cameraThread/singleCamera.js',
-          config.ffmpegDir,
-          e.sdir + 'cmd.txt'
-        ]
-        return spawn('node',cameraCommandParams,{detached: true,stdio: stdioPipes})
+            fs.writeFileSync(e.sdir + 'cmd.txt',JSON.stringify({
+                cmd: ffmpegCommandParsed,
+                pipes: stdioPipes.length,
+                rawMonitorConfig: s.group[e.ke].rawMonitorConfigurations[e.id],
+                globalInfo: {
+                    config: config,
+                    isAtleatOneDetectorPluginConnected: s.isAtleatOneDetectorPluginConnected
+                }
+            },null,3),'utf8')
+            var cameraCommandParams = [
+              __dirname + '/cameraThread/singleCamera.js',
+              config.ffmpegDir,
+              e.sdir + 'cmd.txt'
+            ]
+            return spawn('node',cameraCommandParams,{detached: true,stdio: stdioPipes})
+        }catch(err){
+            s.systemLog(err)
+            return null
+        }
     }
     if(!config.ffmpegDir){
         if(s.isWin){

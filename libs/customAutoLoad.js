@@ -5,8 +5,9 @@ const unzipper = require('unzipper')
 const fetch = require("node-fetch")
 const spawn = require('child_process').spawn
 module.exports = async (s,config,lang,app,io) => {
+    s.debugLog(`+++++++++++CustomAutoLoad Modules++++++++++++`)
     const runningInstallProcesses = {}
-    const modulesBasePath = s.mainDirectory + '/libs/customAutoLoad/'
+    const modulesBasePath = __dirname + '/customAutoLoad/'
     const extractNameFromPackage = (filePath) => {
         const filePathParts = filePath.split('/')
         const packageName = filePathParts[filePathParts.length - 1].split('.')[0]
@@ -16,6 +17,8 @@ module.exports = async (s,config,lang,app,io) => {
         return modulesBasePath + name + '/'
     }
     const getModule = (moduleName) => {
+        s.debugLog(`+++++++++++++++++++++++`)
+        s.debugLog(`Loading : ${moduleName}`)
         const modulePath = modulesBasePath + moduleName
         const stats = fs.lstatSync(modulePath)
         const isDirectory = stats.isDirectory()

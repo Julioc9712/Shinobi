@@ -13,16 +13,16 @@ module.exports = function(s,config,lang,app,io){
             return s.dir.videos+e.ke+'/'+e.id+'_timelapse/';
         }
     }
-    s.createTimelapseFrameAndInsert = function(e,location,filename){
+    s.createTimelapseFrameAndInsert = function(e,location,filename,eventTime,frameDetails){
         //e = monitor object
         //location = file location
         var filePath = location + filename
         var fileStats = fs.statSync(filePath)
-        var details = {}
+        var details = Object.assign({},frameDetails || {})
         if(e.details && e.details.dir && e.details.dir !== ''){
             details.dir = e.details.dir
         }
-        var timeNow = new Date()
+        var timeNow = eventTime || new Date()
         var queryInfo = {
             ke: e.ke,
             mid: e.id,
@@ -344,7 +344,7 @@ module.exports = function(s,config,lang,app,io){
                         }else{
                             s.closeJsonResponse(res,{ok: false, msg: lang[`Nothing exists`]})
                         }
-                    })    
+                    })
                 }
             }
             if(timelapseFramesCache[cacheKey]){

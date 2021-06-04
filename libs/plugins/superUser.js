@@ -288,8 +288,9 @@ module.exports = async (s,config,lang,app,io,currentUse) => {
     const initializeAllModules = async () => {
         fs.readdir(modulesBasePath,function(err,folderContents){
             if(!err && folderContents.length > 0){
-                getModules(true).forEach((shinobiModule) => {
-                    if(!shinobiModule || shinobiModule.properties.disabled){
+                var moduleList = getModules(true)
+                moduleList.forEach((shinobiModule) => {
+                    if(!shinobiModule || shinobiModule.properties.disabled || shinobiModule.properties.disabled === undefined){
                         return;
                     }
                     loadModule(shinobiModule)

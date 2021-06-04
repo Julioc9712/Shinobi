@@ -1,5 +1,8 @@
 var fs = require("fs")
 module.exports = function(s,config,lang){
+    const {
+        getEventBasedRecordingUponCompletion,
+    } = require('../events/utils.js')(s,config,lang)
     //telegram bot
     if(config.telegramBot === true){
         const TelegramBot = require('node-telegram-bot-api');
@@ -58,31 +61,47 @@ module.exports = function(s,config,lang){
                         s.group[d.ke].activeMonitors[d.id].detector_telegrambot = null
                     },detector_telegrambot_timeout)
                     if(monitorConfig.details.detector_telegrambot_send_video === '1'){
-                        // change to function that captures on going video capture, waits, grabs new video file, slices portion (max for transmission) and prepares for delivery
-                        s.mergeDetectorBufferChunks(d,function(mergedFilepath,filename){
+                        let videoPath = null
+                        let videoName = null
+                        const eventBasedRecording = await getEventBasedRecordingUponCompletion({
+                            ke: d.ke,
+                            mid: d.mid
+                        })
+                        if(eventBasedRecording.filePath){
+                            videoPath = eventBasedRecording.filePath
+                            videoName = eventBasedRecording.filename
+                        }else{
+                            const siftedVideoFileFromRam = await s.mergeDetectorBufferChunks(d)
+                            videoPath = siftedVideoFileFromRam.filePath
+                            videoName = siftedVideoFileFromRam.filename
+                        }
+                        if(videoPath){
                             sendMessage({
-                                title: filename,
+                                title: videoName,
                             },[
                                 {
                                     type: 'video',
-                                    attachment: mergedFilepath,
-                                    name: filename
+                                    attachment: videoPath,
+                                    name: videoName
                                 }
                             ],d.ke)
-                        })
+                        }
                     }
-                    const {screenShot, isStaticFile} = await s.getRawSnapshotFromMonitor(monitorConfig,{
-                        secondsInward: monitorConfig.details.snap_seconds_inward
-                    })
-                    if(screenShot){
+                    d.screenshotBuffer = d.screenshotBuffer || d.frame
+                    if(!d.screenshotBuffer){
+                        const { screenShot, isStaticFile } = await s.getRawSnapshotFromMonitor(monitorConfig,{
+                            secondsInward: monitorConfig.details.snap_seconds_inward
+                        })
                         d.screenshotBuffer = screenShot
+                    }
+                    if(d.screenshotBuffer){
                         sendMessage({
                             title: lang.Event+' - '+d.screenshotName,
                             description: lang.EventText1+' '+d.currentTimestamp,
                         },[
                             {
                                 type: 'photo',
-                                attachment: screenShot,
+                                attachment: d.screenshotBuffer,
                                 name: d.screenshotName+'.jpg'
                             }
                         ],d.ke)

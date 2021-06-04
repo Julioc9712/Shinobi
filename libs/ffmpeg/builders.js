@@ -126,6 +126,7 @@ module.exports = (s,config,lang) => {
         return `drawtext=fontfile=${timestampFont}:text='%{localtime}':x=${timestampX}:y=${timestampY}:fontcolor=${timestampColor}:box=1:boxcolor=${timestampBackgroundColor}:fontsize=${timestampFontSize}`
     }
     const createInputMap = (e, number, input) => {
+        // inputs, input map
         //`e` is the monitor object
         //`x` is an object used to contain temporary values.
         const inputFlags = []

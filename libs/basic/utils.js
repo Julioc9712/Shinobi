@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const moment = require('moment');
+const request  = require('request');
 module.exports = (processCwd) => {
     const parseJSON = (string) => {
         var parsed
@@ -78,6 +79,43 @@ module.exports = (processCwd) => {
         if(!e){e=new Date};if(!x){x='YYYY-MM-DDTHH-mm-ss'};
         return moment(e).format(x);
     }
+    const checkSubscription = (subscriptionId,callback) => {
+        function subscriptionFailed(){
+            console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            console.error('This Install of Shinobi is NOT Activated')
+            console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            s.systemLog('This Install of Shinobi is NOT Activated')
+            console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            console.log('https://licenses.shinobi.video/subscribe')
+        }
+        if(subscriptionId && subscriptionId !== 'sub_XXXXXXXXXXXX'){
+            var url = 'https://licenses.shinobi.video/subscribe/check?subscriptionId=' + subscriptionId
+            request(url,{
+                method: 'GET',
+                timeout: 30000
+            }, function(err,resp,body){
+                var json = s.parseJSON(body)
+                if(err)console.log(err,json)
+                var hasSubcribed = json && !!json.ok
+                callback(hasSubcribed)
+                if(hasSubcribed){
+                    s.systemLog('This Install of Shinobi is Activated')
+                    if(!json.expired && json.timeExpires){
+                        s.systemLog(`This License expires on ${json.timeExpires}`)
+                    }
+                }else{
+                    subscriptionFailed()
+                }
+                s.onSubscriptionCheckExtensions.forEach(function(extender){
+                    extender(hasSubcribed,json)
+                })
+            })
+        }else{
+            subscriptionFailed()
+            callback(false)
+        }
+    }
     return {
         parseJSON: parseJSON,
         stringJSON: stringJSON,
@@ -89,5 +127,6 @@ module.exports = (processCwd) => {
         utcToLocal: utcToLocal,
         localToUtc: localToUtc,
         formattedTime: formattedTime,
+        checkSubscription: checkSubscription,
     }
 }

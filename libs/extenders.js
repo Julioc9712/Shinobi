@@ -159,6 +159,11 @@ module.exports = function(s,config){
         s.onGetRamUsageExtensions.push(callback)
     }
     //
+    s.onSubscriptionCheckExtensions = []
+    s.onSubscriptionCheck = function(callback){
+        s.onSubscriptionCheckExtensions.push(callback)
+    }
+    //
     /////// VIDEOS ////////
     s.insertCompletedVideoExtensions = []
     s.insertCompletedVideoExtender = function(callback){

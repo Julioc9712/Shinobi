@@ -1,8 +1,10 @@
+const fs = require('fs').promises;
 const moment = require('moment');
 const execSync = require('child_process').execSync;
 const exec = require('child_process').exec;
 const spawn = require('child_process').spawn;
 const request = require('request');
+const imageSaveEventLock = {};
 // Matrix In Region Libs >
 const SAT = require('sat')
 const V = SAT.Vector;
@@ -16,6 +18,30 @@ module.exports = (s,config,lang,app,io) => {
     const {
         moveCameraPtzToMatrix
     } = require('../control/ptz.js')(s,config,lang)
+    async function saveImageFromEvent(options,frameBuffer){
+        const monitorId = options.mid || options.id
+        const groupKey = options.ke
+        if(imageSaveEventLock[groupKey + monitorId])return;
+        const eventTime = options.time
+        const objectsFound = options.matrices
+        const monitorConfig = Object.assign({id: monitorId},s.group[groupKey].rawMonitorConfigurations[monitorId])
+        const timelapseRecordingDirectory = s.getTimelapseFrameDirectory({mid: monitorId, ke: groupKey})
+        const currentDate = s.formattedTime(eventTime,'YYYY-MM-DD')
+        const filename = s.formattedTime(eventTime) + '.jpg'
+        const location = timelapseRecordingDirectory + currentDate + '/'
+        try{
+            await fs.stat(location)
+        }catch(err){
+            await fs.mkdir(location)
+        }
+        await fs.writeFile(location + filename,frameBuffer)
+        s.createTimelapseFrameAndInsert(monitorConfig,location,filename,eventTime,{
+            objects: objectsFound
+        })
+        imageSaveEventLock[groupKey + monitorId] = setTimeout(function(){
+            delete(imageSaveEventLock[groupKey + monitorId])
+        },1000)
+    }
     const countObjects = async (event) => {
         const matrices = event.details.matrices
         const eventsCounted = s.group[event.ke].activeMonitors[event.id].eventsCounted || {}
@@ -256,7 +282,7 @@ module.exports = (s,config,lang,app,io) => {
         }
         // check modified indifference
         if(
-            filter.indifference !== false &&
+            filter.indifference &&
             eventDetails.confidence < parseFloat(filter.indifference)
         ){
             // fails indifference check for modified indifference
@@ -322,6 +348,14 @@ module.exports = (s,config,lang,app,io) => {
             runMultiTrigger(monitorConfig,eventDetails, d, triggerEvent)
         }
         //save this detection result in SQL, only coords. not image.
+        if(d.frame){
+            saveImageFromEvent({
+                ke: d.ke,
+                mid: d.id,
+                time: eventTime,
+                matrices: eventDetails.matrices || [],
+            },d.frame)
+        }
         if(forceSave || (filter.save && monitorDetails.detector_save === '1')){
             s.knexQuery({
                 action: "insert",
@@ -382,6 +416,30 @@ module.exports = (s,config,lang,app,io) => {
             await extender(d,filter)
         }
     }
+    const getEventBasedRecordingUponCompletion = function(options){
+        const response = {ok: true}
+        return new Promise((resolve,reject) => {
+            const groupKey = options.ke
+            const monitorId = options.mid
+            const activeMonitor = s.group[groupKey].activeMonitors[monitorId]
+            const eventBasedRecording = activeMonitor.eventBasedRecording
+            if(eventBasedRecording.process){
+                const monitorConfig = s.group[groupKey].rawMonitorConfigurations[monitorId]
+                const recordingDirectory = s.getVideoDirectory(monitorConfig)
+                const fileTime = eventBasedRecording.lastFileTime
+                const filename = `${fileTime}.mp4`
+                response.filename = `${filename}`
+                response.filePath = `${recordingDirectory}${filename}`
+                eventBasedRecording.process.on('close',function(){
+                    setTimeout(() => {
+                        resolve(response)
+                    },1000)
+                })
+            }else{
+                resolve(response)
+            }
+        })
+    }
     const createEventBasedRecording = function(d,fileTime){
         if(!fileTime)fileTime = s.formattedTime()
         const logTitleText = lang["Traditional Recording"]
@@ -409,6 +467,7 @@ module.exports = (s,config,lang,app,io) => {
         }
         if(!activeMonitor.eventBasedRecording.process){
             activeMonitor.eventBasedRecording.allowEnd = false;
+            activeMonitor.eventBasedRecording.lastFileTime = `${fileTime}`;
             const runRecord = function(){
                 var ffmpegError = ''
                 var error
@@ -536,9 +595,9 @@ module.exports = (s,config,lang,app,io) => {
         s.onEventTriggerBeforeFilterExtensions.forEach(function(extender){
             extender(d,filter)
         })
+        const eventDetails = d.details
         const passedEventFilters = checkEventFilters(d,monitorDetails,filter)
         if(!passedEventFilters)return
-        const eventDetails = d.details
         const detailString = JSON.stringify(eventDetails)
         const eventTime = new Date()
         if(
@@ -618,5 +677,6 @@ module.exports = (s,config,lang,app,io) => {
         legacyFilterEvents: legacyFilterEvents,
         triggerEvent: triggerEvent,
         addEventDetailsToString: addEventDetailsToString,
+        getEventBasedRecordingUponCompletion: getEventBasedRecordingUponCompletion,
     }
 }

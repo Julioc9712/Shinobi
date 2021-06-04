@@ -752,9 +752,11 @@ module.exports = function(s,config,lang,app,io){
             },(err,r) => {
                 r.forEach(function(v,n){
                     if(s.group[v.ke] && s.group[v.ke].activeMonitors[v.mid]){
-                        r[n].currentlyWatching = Object.keys(s.group[v.ke].activeMonitors[v.mid].watch).length
-                        r[n].currentCpuUsage = s.group[v.ke].activeMonitors[v.mid].currentCpuUsage
-                        r[n].status = s.group[v.ke].activeMonitors[v.mid].monitorStatus
+                        const activeMonitor = s.group[v.ke].activeMonitors[v.mid]
+                        r[n].currentlyWatching = Object.keys(activeMonitor.watch).length
+                        r[n].currentCpuUsage = activeMonitor.currentCpuUsage
+                        r[n].status = activeMonitor.monitorStatus
+                        r[n].code = activeMonitor.monitorStatusCode
                     }
                     var buildStreamURL = function(type,channelNumber){
                         var streamURL

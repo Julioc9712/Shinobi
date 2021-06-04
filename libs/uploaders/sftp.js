@@ -16,6 +16,7 @@ module.exports = function(s,config,lang){
         if(!s.group[e.ke].sftp &&
             !s.group[e.ke].sftp &&
             userDetails.sftp !== '0' &&
+            userDetails.sftp_save === '1' &&
             userDetails.sftp_host &&
             userDetails.sftp_host !== ''&&
             userDetails.sftp_port &&

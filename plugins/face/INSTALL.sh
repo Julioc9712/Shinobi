@@ -1,145 +1,161 @@
 #!/bin/bash
+sh INSTALL-face.sh
 DIR=$(dirname $0)
+echo "Do not attempt to use this Installer on ARM-based CPUs."
+echo "Removing existing Tensorflow Node.js modules..."
 rm -rf $DIR/node_modules
-if [ -x "$(command -v apt)" ]; then
-    sudo apt update -y
+npm install yarn -g --unsafe-perm --force
+
+installJetsonFlag=false
+installArmFlag=false
+installGpuFlag=false
+dontCreateKeyFlag=false
+
+while [ ! $# -eq 0 ];
+	do
+		case "$1" in
+			--jetson)
+				installJetsonFlag=true
+				exit
+				;;
+			--arm)
+				installArmFlag=true
+				exit
+				;;
+			--gpu)
+				installGpuFlag=true
+				exit
+				;;
+			--dont-create-key)
+				dontCreateKeyFlag=true
+				exit
+				;;
+		esac
+	shift
+done
+
+if [ "$installJetsonFlag" = true ] && [ "$installArmFlag" = true ]; then
+	echo "--jetson and --arm cannot both be set. Exiting..."
+	exit -1
 fi
-# Check if Cent OS
-if [ -x "$(command -v yum)" ]; then
-    sudo yum update -y
+
+if ([ "$installJetsonFlag" = true ] || [ "$installArmFlag" = true ]) && [ "$installGpuFlag" = true ]; then
+	echo "--gpu flag cannot be set with --jetson or --arm. Exiting..."
+	exit -2
 fi
-INSTALL_WITH_GPU="0"
-INSTALL_FOR_ARM64="0"
-INSTALL_FOR_ARM="0"
-TFJS_SUFFIX=""
-echo "----------------------------------------"
-echo "-- Installing Face Plugin for Shinobi --"
-echo "----------------------------------------"
-echo "Are you Installing on an ARM CPU?"
-echo "like Jetson Nano or Raspberry Pi Model 3 B+. Default is No."
-echo "(y)es or (N)o"
-read useArm
-if [ "$useArm" = "y" ] || [ "$useArm" = "Y" ] || [ "$useArm" = "YES" ] || [ "$useArm" = "yes" ] || [ "$useArm" = "Yes" ]; then
-    INSTALL_FOR_ARM="1"
-    echo "Are you Installing on an ARM64 CPU?"
-    echo "like Jetson Nano. Default is No (64/32-bit)"
-    echo "(y)es or (N)o"
-    read useArm64
-    if [ "$useArm64" = "y" ] || [ "$useArm64" = "Y" ] || [ "$useArm64" = "YES" ] || [ "$useArm64" = "yes" ] || [ "$useArm64" = "Yes" ]; then
-        INSTALL_FOR_ARM64="1"
-    fi
+
+nonInteractiveFlag=false
+if [ "$installJetsonFlag" = true ] || [ "$installArmFlag" = true ] || [ "$installGpuFlag" = true ]; then
+	nonInteractiveFlag=true
 fi
-if [ -d "/usr/local/cuda" ]; then
-    echo "Do you want to install the plugin with CUDA support?"
-    echo "Do this if you installed NVIDIA Drivers, CUDA Toolkit, and CuDNN"
-    echo "(y)es or (N)o"
-    read usecuda
-    if [ "$usecuda" = "y" ] || [ "$usecuda" = "Y" ] || [ "$usecuda" = "YES" ] || [ "$usecuda" = "yes" ] || [ "$usecuda" = "Yes" ]; then
-        INSTALL_WITH_GPU="1"
-        TFJS_SUFFIX="-gpu"
-    fi
-fi
-echo "-----------------------------------"
-if [ ! -d "./faces" ]; then
-    mkdir faces
-fi
-if [ ! -d "./weights" ]; then
-    mkdir weights
-    if [ ! -x "$(command -v wget)" ]; then
-        # Check if Ubuntu
-        if [ -x "$(command -v apt)" ]; then
-            sudo apt install wget -y
-        fi
-        # Check if Cent OS
-        if [ -x "$(command -v yum)" ]; then
-            sudo yum install wget -y
-        fi
-    fi
-    cdnUrl="https://cdn.shinobi.video/weights/plugin-face-weights"
-    wget -O weights/face_landmark_68_model-shard1 $cdnUrl/face_landmark_68_model-shard1
-    wget -O weights/face_landmark_68_model-weights_manifest.json $cdnUrl/face_landmark_68_model-weights_manifest.json
-    wget -O weights/face_landmark_68_tiny_model-shard1 $cdnUrl/face_landmark_68_tiny_model-shard1
-    wget -O weights/face_landmark_68_tiny_model-weights_manifest.json $cdnUrl/face_landmark_68_tiny_model-weights_manifest.json
-    wget -O weights/face_recognition_model-shard1 $cdnUrl/face_recognition_model-shard1
-    wget -O weights/face_recognition_model-shard2 $cdnUrl/face_recognition_model-shard2
-    wget -O weights/face_recognition_model-weights_manifest.json $cdnUrl/face_recognition_model-weights_manifest.json
-    wget -O weights/mtcnn_model-shard1 $cdnUrl/mtcnn_model-shard1
-    wget -O weights/mtcnn_model-weights_manifest.json $cdnUrl/mtcnn_model-weights_manifest.json
-    wget -O weights/ssd_mobilenetv1_model-shard1 $cdnUrl/ssd_mobilenetv1_model-shard1
-    wget -O weights/ssd_mobilenetv1_model-shard2 $cdnUrl/ssd_mobilenetv1_model-shard2
-    wget -O weights/ssd_mobilenetv1_model-weights_manifest.json $cdnUrl/ssd_mobilenetv1_model-weights_manifest.json
-    wget -O weights/tiny_face_detector_model-shard1 $cdnUrl/tiny_face_detector_model-shard1
-    wget -O weights/tiny_face_detector_model-weights_manifest.json $cdnUrl/tiny_face_detector_model-weights_manifest.json
+
+manualInstallRequirements() {
+	npm install --unsafe-perm
+	npm install @tensorflow/tfjs-backend-cpu@2.7.0 @tensorflow/tfjs-backend-webgl@2.7.0 @tensorflow/tfjs-converter@2.7.0 @tensorflow/tfjs-core@2.7.0 @tensorflow/tfjs-layers@2.7.0 @tensorflow/tfjs-node@2.7.0 --unsafe-perm --force
+}
+
+installJetson() {
+	installGpuFlag=true
+	npm install @tensorflow/tfjs-node-gpu@2.7.0 --unsafe-perm --force
+	cd node_modules/@tensorflow/tfjs-node-gpu
+	echo '{"tf-lib": "https://cdn.shinobi.video/installers/libtensorflow-gpu-linux-arm64-1.15.0.tar.gz"}' > "scripts/custom-binary.json"
+}
+
+installArm() {
+	npm install @tensorflow/tfjs-node@2.7.0 --unsafe-perm --force
+	cd node_modules/@tensorflow/tfjs-node
+	echo '{"tf-lib": "https://cdn.shinobi.video/installers/libtensorflow-cpu-linux-arm-1.15.0.tar.gz"}' > "scripts/custom-binary.json"
+}
+
+installGpuRoute() {
+	installGpuFlag=true
+	manualInstallRequirements
+	npm install @tensorflow/tfjs-node-gpu@2.7.0 --unsafe-perm --force
+}
+
+installNonGpuRoute() {
+	manualInstallRequirements
+	npm install @tensorflow/tfjs-node@2.7.0 --unsafe-perm --force
+}
+
+runRebuildCpu() {
+	npm rebuild @tensorflow/tfjs-node --build-addon-from-source --unsafe-perm
+}
+
+runRebuildGpu() {
+	npm rebuild @tensorflow/tfjs-node-gpu --build-addon-from-source --unsafe-perm
+}
+
+if [ "$nonInteractiveFlag" = false ]; then
+	# echo "Shinobi - Are you installing on ARM64? This applies to computers like Jetson Nano and Raspberry Pi Model 3 B+"
+	# echo "(y)es or (N)o"
+	# read armCpu
+	# if [ "$armCpu" = "y" ] || [ "$armCpu" = "Y" ]; then
+	#     echo "Shinobi - Is it a Jetson Nano?"
+	#     echo "You must be on JetPack 4.3 for this plugin to install."
+	#     echo "JetPack 4.3 Image can be found here : https://developer.nvidia.com/jetpack-43-archive"
+	#     echo "(y)es or (N)o"
+	#     read isItJetsonNano
+	#     echo "Shinobi - You may see Unsupported Errors, please wait while patches are applied."
+	#     if [ "$isItJetsonNano" = "y" ] || [ "$isItJetsonNano" = "Y" ]; then
+	# 	installJetson
+	#     else
+	# 	installArm
+	#     fi
+	# else
+	    echo "Shinobi - Do you want to install TensorFlow.js with GPU support? "
+	    echo "You can run this installer again to change it."
+	    echo "(y)es or (N)o"
+	    read nodejsinstall
+	    if [ "$nodejsinstall" = "y" ] || [ "$nodejsinstall" = "Y" ]; then
+		installGpuRoute
+	    else
+		installNonGpuRoute
+	    fi
+	# fi
 else
-    echo "weights found..."
+	if [ "$installJetsonFlag" = true ]; then
+		installJetson
+		armAfterInstall
+	fi
+
+	if [ "$installArmFlag" = true ]; then
+		installArm
+		armAfterInstall
+	fi
+
+	if [ "$installGpuFlag" = true ]; then
+		installGpuRoute
+	else
+		installNonGpuRoute
+	fi
 fi
-echo "-----------------------------------"
+
+
+# npm install @tensorflow/tfjs-node-gpu@2.7.0
+# npm audit fix --force
+if [ "$installGpuFlag" = true ]; then
+	runRebuildGpu
+else
+	runRebuildCpu
+fi
 if [ ! -e "./conf.json" ]; then
+	dontCreateKeyFlag=false
     echo "Creating conf.json"
     sudo cp conf.sample.json conf.json
 else
     echo "conf.json already exists..."
 fi
-if [ ! -e "$DIR/../../libs/customAutoLoad/faceManagerCustomAutoLoadLibrary" ]; then
-    echo "Installing Face Manager customAutoLoad Module..."
-    sudo cp -r $DIR/faceManagerCustomAutoLoadLibrary $DIR/../../libs/customAutoLoad/faceManagerCustomAutoLoadLibrary
-else
-    echo "Face Manager customAutoLoad Module already installed..."
-fi
-tfjsBuildVal="cpu"
-if [ "$INSTALL_WITH_GPU" = "1" ]; then
-    tfjsBuildVal="gpu"
+
+if [ "$dontCreateKeyFlag" = false ]; then
+	tfjsBuildVal="cpu"
+	if [ "$installGpuFlag" = true ]; then
+		tfjsBuildVal="gpu"
+	fi
+
+	echo "Adding Random Plugin Key to Main Configuration"
+	node $DIR/../../tools/modifyConfigurationForPlugin.js face key=$(head -c 64 < /dev/urandom | sha256sum | awk '{print substr($1,1,60)}') tfjsBuild=$tfjsBuildVal
 fi
 
-echo "-----------------------------------"
-echo "Adding Random Plugin Key to Main Configuration"
-node $DIR/../../tools/modifyConfigurationForPlugin.js face key=$(head -c 64 < /dev/urandom | sha256sum | awk '{print substr($1,1,60)}') tfjsBuild=$tfjsBuildVal
-echo "-----------------------------------"
-echo "Getting node-gyp to build C++ modules"
-if [ ! -x "$(command -v node-gyp)" ]; then
-  # Check if Ubuntu
-  if [ -x "$(command -v apt)" ]; then
-      sudo apt install node-gyp -y
-      sudo apt-get install gcc g++ build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev -y
-  fi
-  # Check if Cent OS
-  if [ -x "$(command -v yum)" ]; then
-      sudo yum install node-gyp -y
-      sudo yum install gcc-c++ cairo-devel libjpeg-turbo-devel pango-devel giflib-devel -y
-  fi
-fi
-sudo npm install --unsafe-perm
-
-sudo npm install node-gyp -g --unsafe-perm --force
-echo "-----------------------------------"
-
-# echo "Getting C++ module : @tensorflow/tfjs-node@0.1.21"
-# echo "https://github.com/tensorflow/tfjs-node"
-# npm install @tensorflow/tfjs-converter@1.7.4 @tensorflow/tfjs-layers@1.7.4 --unsafe-perm
-if [ "$INSTALL_WITH_GPU" = "1" ]; then
-    echo "GPU version of tjfs : https://github.com/tensorflow/tfjs-node-gpu"
-else
-    echo "CPU version of tjfs : https://github.com/tensorflow/tfjs-node"
-fi
-npm install @tensorflow/tfjs-node$TFJS_SUFFIX --unsafe-perm
-if [ "$INSTALL_FOR_ARM" = "1" ]; then
-    BINARY_LOCATION="node_modules/@tensorflow/tfjs-node$TFJS_SUFFIX/scripts/custom-binary.json"
-    if [ "$INSTALL_FOR_ARM64" = "1" ]; then
-        echo "{
-  \"tf-lib\": \"https://cdn.shinobi.video/binaries/libtensorflow-gpu-linux-arm64-1.15.0.tar.gz\"
-}" > $BINARY_LOCATION
-    else
-        echo "{
-  \"tf-lib\": \"https://cdn.shinobi.video/binaries/libtensorflow-cpu-linux-arm-1.15.0.tar.gz\"
-}" > $BINARY_LOCATION
-    fi
-    npm rebuild @tensorflow/tfjs-node$TFJS_SUFFIX --build-addon-from-source --unsafe-perm
-fi
-rm -rf $DIR/node_modules/@tensorflow/tfjs-backend-cpu
-rm -rf $DIR/node_modules/@tensorflow/tfjs-backend-webgl
-echo "-----------------------------------"
-echo "Start the plugin with pm2 like so :"
-echo "pm2 start shinobi-face.js"
-echo "-----------------------------------"
-echo "Start the plugin without pm2 :"
-echo "node shinobi-face.js"
+echo "TF_FORCE_GPU_ALLOW_GROWTH=true" > "$DIR/.env"
+echo "#CUDA_VISIBLE_DEVICES=0,2" >> "$DIR/.env"

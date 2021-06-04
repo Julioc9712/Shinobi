@@ -4437,14 +4437,20 @@ module.exports = function(s,config,lang){
                 "color": "navy",
                 "info": [
                    {
+                       "field": lang.CSS,
                       "name": "detail=css",
                       fieldType:"textarea",
                       "placeholder": "#main_header{background:#b59f00}",
-                      "field": lang.CSS,
                       "description": "",
                       "default": "",
                       "example": "",
                       "possible": ""
+                  },
+                   {
+                       "field": lang.hlsOptions,
+                      "name": "localStorage=hlsOptions",
+                      fieldType:"textarea",
+                      "placeholder": "{}",
                   },
                   {
                       "field": lang['Force Monitors Per Row'],
@@ -5628,7 +5634,6 @@ module.exports = function(s,config,lang){
                 "section-pre-class": "col-md-4",
                 "info": [
                     {
-                        "id": "monitorStatesSelector",
                         "field": lang["Monitor"],
                         "fieldType": "select",
                         "class": "dark monitors_list",
@@ -6041,7 +6046,7 @@ module.exports = function(s,config,lang){
             },
          }
        },
-       "Montior Configuration Finder": {
+     "Montior Configuration Finder": {
             "section": "Montior Configuration Finder",
             "blocks": {
                 "Search Settings": {
@@ -6189,6 +6194,65 @@ module.exports = function(s,config,lang){
                        "id": "global-log-stream",
                        "attribute": `style="max-height: 600px;overflow: auto;"`,
                        "class": "search-body mt-3",
+                   }
+               ]
+           },
+         }
+       },
+     "Events": {
+          "section": "Events",
+          "blocks": {
+              "Saved Logs": {
+                 "name": lang["Search Settings"],
+                 "color": "blue",
+                 "section-pre-class": "col-md-4",
+                 "info": [
+                     {
+                        "id": "eventListWithPics-monitors-list",
+                        "field": lang["Type"],
+                        "fieldType": "select",
+                        "possible": [
+                            {
+                               "name": lang['All Monitors'],
+                               "value": "all"
+                            },
+                            {
+                               "name": lang.Monitors,
+                               "optgroup": []
+                           }
+                        ]
+                     },
+                     {
+                        "id": "eventListWithPics-daterange",
+                        "field": lang['Date Range'],
+                     },
+                     {
+                        "fieldType": "btn-group",
+                        "btns": [
+                            {
+                                "fieldType": "btn",
+                                "class": "btn-success",
+                                "forForm": true,
+                                "attribute": `type="submit"`,
+                                "btnContent": `${lang['Check']}`,
+                            },
+                        ],
+                     }
+                ]
+            },
+            "Events Found": {
+               "name": lang['Events Found'],
+               "color": "green",
+               "section-pre-class": "col-md-8 search-parent",
+               "info": [
+                   {
+                      "field": lang['Search'],
+                      "class": 'search-controller',
+                   },
+                   {
+                       "fieldType": "div",
+                       "id": "eventListWithPics-rows",
+                       "class": "search-body mt-3 row",
                    }
                ]
            },

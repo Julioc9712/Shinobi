@@ -5,9 +5,6 @@ const spawn = require('child_process').spawn
 const isWindows = (process.platform === 'win32' || process.platform === 'win64')
 process.send = process.send || function () {};
 
-if(!process.argv[2] || !process.argv[3]){
-    return writeToStderr('Missing FFMPEG Command String or no command operator')
-}
 var jsonData = JSON.parse(fs.readFileSync(process.argv[3],'utf8'))
 const ffmpegAbsolutePath = process.argv[2].trim()
 const ffmpegCommandString = jsonData.cmd
@@ -22,9 +19,11 @@ var writeToStderr = function(text){
       // stdioWriters[2].write(Buffer.from(`${new Error('writeToStderr').stack}`, 'utf8' ))
   }catch(err){
   }
-  // fs.appendFileSync('/home/Shinobi/test.log',text + '\n','utf8')
+  // fs.appendFileSync('/home/ubuntu/cdn-site/tools/compilers/diycam/Shinobi/test.log',text + '\n','utf8')
 }
-
+if(!process.argv[2] || !process.argv[3]){
+    return writeToStderr('Missing FFMPEG Command String or no command operator')
+}
 const buildMonitorUrl = function(e,noPath){
     var authd = ''
     var url

@@ -47,9 +47,12 @@ if(workerData && workerData.ok === true){
 var ready = false;
 const spawn = require('child_process').spawn;
 var child = null
+function debugLog(...args){
+    if(config.debugLog === true)console.log(...args)
+}
 function respawn() {
 
-    console.log("respawned python",(new Date()))
+    debugLog("respawned python",(new Date()))
     const theChild = spawn('python3', ['-u', currentDirectory + 'detect_image.py']);
 
     var lastStatusLog = new Date();
@@ -62,19 +65,19 @@ function respawn() {
         var rawString = data.toString('utf8');
         if (new Date() - lastStatusLog > 5000) {
             lastStatusLog = new Date();
-            console.log(rawString, new Date());
+            debugLog(rawString, lastStatusLog);
         }
         var messages = rawString.split('\n')
         messages.forEach((message) => {
             if (message === "") return;
             var obj = JSON.parse(message)
             if (obj.type === "error") {
-                console.log("Script got error: " + message.data, new Date());
+                debugLog("Script got error: " + message.data, new Date());
                 throw message.data;
             }
 
             if (obj.type === "info" && obj.data === "ready") {
-                console.log("set ready true")
+                debugLog("set ready true")
                 ready = true;
             } else {
                 if (obj.type !== "data" && obj.type !== "info") {
@@ -128,7 +131,7 @@ async function process(buffer, type) {
 s.detectObject = function (buffer, d, tx, frameLocation, callback) {
     process(buffer).then((resp) => {
         var results = resp.data
-        //console.log(resp.time)
+        //debugLog(resp.time)
         if (Array.isArray(results) && results[0]) {
             var mats = []
             results.forEach(function (v) {
@@ -156,7 +159,8 @@ s.detectObject = function (buffer, d, tx, frameLocation, callback) {
                     imgHeight: width,
                     imgWidth: height,
                     time: resp.time
-                }
+                },
+                frame: buffer
             })
         }
         callback()

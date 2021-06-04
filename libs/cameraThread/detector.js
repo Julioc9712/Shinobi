@@ -84,7 +84,7 @@ module.exports = function(jsonData,pamDiffResponder){
             // writeToStderr(err.stack)
         }
     }
-    createPamDiffEngine = function(){
+    function createPamDiffEngine(){
 
         const regionsAreMasks = jsonData.rawMonitorConfig.details.detector_frame !== '1' && jsonData.rawMonitorConfig.details.inverse_trigger === '1';
         if(Object.keys(regionJson).length === 0 || jsonData.rawMonitorConfig.details.detector_frame === '1'){

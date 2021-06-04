@@ -103,7 +103,14 @@
                                     <div class="tab-pane active" id="accounts" role="tabpanel">
                                         <div class="row">
                                             <div class="col-md-5 text-left">
-                                                <pre class="super-system-info form-group-group red"></pre>
+                                                <% if(!config.userHasSubscribed){ %>
+                                                    <% include blocks/heyActivate.ejs %>
+                                                <% } %>
+                                                <div class="card shadow mb-3">
+                                                    <pre class="super-system-info card-body mb-0">
+
+                                                    </pre>
+                                                </div>
                                             </div>
                                             <div class="col-md-7">
                                                 <div class="mb-4"><a href="#" class="add btn btn-block btn-default"><i class="fa fa-plus"></i> <%- lang.Add %></a></div>

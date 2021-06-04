@@ -98,8 +98,8 @@ s.detectObject = function(buffer,d,tx,frameLocation,callback){
                         matrices: matrices,
                         imgHeight: d.mon.detector_scale_y,
                         imgWidth: d.mon.detector_scale_x,
-                        frame: d.base64
-                    }
+                    },
+                    frame: buffer
                 })
             }
             callback()

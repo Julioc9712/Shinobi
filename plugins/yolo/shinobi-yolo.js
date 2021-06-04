@@ -72,7 +72,8 @@ s.detectObject = async function(buffer,d,tx,frameLocation,callback){
                         imgHeight:parseFloat(d.mon.detector_scale_y),
                         imgWidth:parseFloat(d.mon.detector_scale_x),
                         time: (new Date()) - timeStart
-                    }
+                    },
+                    frame: frame
                 })
             }
             fs.unlink(frame,function(){

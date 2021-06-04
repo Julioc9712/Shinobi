@@ -315,12 +315,6 @@ $(document).ready(function(e){
                     break;
                 }
             break;
-            case'cronStop':
-                $.ccio.cx({f:'cron',ff:'stop'})
-            break;
-            case'cronRestart':
-                $.ccio.cx({f:'cron',ff:'restart'})
-            break;
             case'jpegToggle':
                 e.cx={f:'monitor',ff:'jpeg_on'};
                 if($.ccio.op().jpeg_on===true){
