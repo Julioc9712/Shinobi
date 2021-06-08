@@ -4,6 +4,9 @@ const {
     checkEmail,
 } = require("./emailUtils.js")
 module.exports = function(s,config,lang){
+    const {
+        getEventBasedRecordingUponCompletion,
+    } = require('../events/utils.js')(s,config,lang)
     // mailing with nodemailer
     try{
         if(config.mail){
@@ -152,18 +155,31 @@ module.exports = function(s,config,lang){
                         })
                     }
                     if(monitorConfig.details.detector_mail_send_video === '1'){
-                        // change to function that captures on going video capture, waits, grabs new video file, slices portion (max for transmission) and prepares for delivery
-                        s.mergeDetectorBufferChunks(d,function(mergedFilepath,filename){
+                        let videoPath = null
+                        let videoName = null
+                        const eventBasedRecording = await getEventBasedRecordingUponCompletion({
+                            ke: d.ke,
+                            mid: d.mid
+                        })
+                        if(eventBasedRecording.filePath){
+                            videoPath = eventBasedRecording.filePath
+                            videoName = eventBasedRecording.filename
+                        }else{
+                            const siftedVideoFileFromRam = await s.mergeDetectorBufferChunks(d)
+                            videoPath = siftedVideoFileFromRam.filePath
+                            videoName = siftedVideoFileFromRam.filename
+                        }
+                        if(videoPath){
                             fs.readFile(mergedFilepath,function(err,buffer){
                                 if(buffer){
                                     sendMessage({
                                         from: config.mail.from,
                                         to: checkEmail(r.mail),
-                                        subject: filename,
+                                        subject: videoName,
                                         html: '',
                                         attachments: [
                                             {
-                                                filename: filename,
+                                                filename: videoName,
                                                 content: buffer
                                             }
                                         ]
@@ -175,7 +191,7 @@ module.exports = function(s,config,lang){
                                     })
                                 }
                             })
-                        })
+                        }
                     }
                     d.screenshotBuffer = d.screenshotBuffer || d.frame
                     if(!d.screenshotBuffer){

@@ -1,6 +1,9 @@
 var fs = require("fs")
 var Discord = require("discord.js")
 module.exports = function(s,config,lang){
+    const {
+        getEventBasedRecordingUponCompletion,
+    } = require('../events/utils.js')(s,config,lang)
     //discord bot
     if(config.discordBot === true){
         try{
@@ -64,14 +67,28 @@ module.exports = function(s,config,lang){
                         s.group[d.ke].activeMonitors[d.id].detector_discordbot = null
                     },detector_discordbot_timeout)
                     if(monitorConfig.details.detector_discordbot_send_video === '1'){
-                        // change to function that captures on going video capture, waits, grabs new video file, slices portion (max for transmission) and prepares for delivery
-                        s.mergeDetectorBufferChunks(d,function(mergedFilepath,filename){
+                        let videoPath = null
+                        let videoName = null
+                        const eventBasedRecording = await getEventBasedRecordingUponCompletion({
+                            ke: d.ke,
+                            mid: d.mid
+                        })
+                        if(eventBasedRecording.filePath){
+                            videoPath = eventBasedRecording.filePath
+                            videoName = eventBasedRecording.filename
+                        }else{
+                            const siftedVideoFileFromRam = await s.mergeDetectorBufferChunks(d)
+                            videoPath = siftedVideoFileFromRam.filePath
+                            videoName = siftedVideoFileFromRam.filename
+                        }
+                        console.log(videoPath,videoName)
+                        if(videoPath){
                             sendMessage({
                                 author: {
                                   name: s.group[d.ke].rawMonitorConfigurations[d.id].name,
                                   icon_url: config.iconURL
                                 },
-                                title: filename,
+                                title: videoName,
                                 fields: [],
                                 timestamp: d.currentTime,
                                 footer: {
@@ -80,11 +97,11 @@ module.exports = function(s,config,lang){
                                 }
                             },[
                                 {
-                                    attachment: mergedFilepath,
-                                    name: filename
+                                    attachment: videoPath,
+                                    name: videoName
                                 }
                             ],d.ke)
-                        })
+                        }
                     }
                     d.screenshotBuffer = d.screenshotBuffer || d.frame
                     if(!d.screenshotBuffer){

@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS `Cloud Timelapse Frames` (
   `filename` varchar(50) NOT NULL,
   `time` timestamp NULL DEFAULT NULL,
   `size` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Data exporting was unselected.
 
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS `Cloud Videos` (
   `end` timestamp NULL DEFAULT NULL,
   `status` int(1) DEFAULT 0 COMMENT '0:Complete,1:Read,2:Archive',
   `details` text DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Data exporting was unselected.
 
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS `Events Counts` (
   `end` timestamp NOT NULL DEFAULT current_timestamp(),
   `count` int(10) NOT NULL DEFAULT 1,
   `tag` varchar(30) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Data exporting was unselected.
 
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS `Files` (
   `details` text NOT NULL,
   `status` int(1) NOT NULL DEFAULT 0,
   `time` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Data exporting was unselected.
 
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS `LoginTokens` (
   `name` varchar(50) DEFAULT 'Unknown',
   `lastLogin` timestamp NOT NULL DEFAULT current_timestamp(),
   UNIQUE KEY `logintokens_loginid_unique` (`loginId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Data exporting was unselected.
 
@@ -157,7 +157,7 @@ CREATE TABLE IF NOT EXISTS `Schedules` (
   `start` varchar(10) DEFAULT NULL,
   `end` varchar(10) DEFAULT NULL,
   `enabled` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Data exporting was unselected.
 
@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS `Timelapse Frames` (
   `time` timestamp NULL DEFAULT NULL,
   `size` int(11) NOT NULL,
   KEY `timelapseframes_index` (`ke`,`mid`,`time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Data exporting was unselected.
 
@@ -183,7 +183,7 @@ CREATE TABLE IF NOT EXISTS `Timelapses` (
   `time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `end` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `size` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Data exporting was unselected.
 

@@ -285,67 +285,77 @@ module.exports = function(s,config,lang){
         })
     }
     s.mergeDetectorBufferChunks = function(monitor,callback){
-        var pathDir = s.dir.streams+monitor.ke+'/'+monitor.id+'/'
-        var mergedFile = s.formattedTime()+'.mp4'
-        var mergedFilepath = pathDir+mergedFile
-        fs.readdir(pathDir,function(err,streamDirItems){
-            var items = []
-            var copiedItems = []
-            var videoLength = s.group[monitor.ke].rawMonitorConfigurations[monitor.id].details.detector_send_video_length
-            if(!videoLength || videoLength === '')videoLength = '10'
-            if(videoLength.length === 1)videoLength = '0' + videoLength
-            var createMerged = function(copiedItems){
-                var allts = pathDir+items.join('_')
-                s.fileStats(allts,function(err,stats){
-                    if(err){
-                        //not exist
-                        var cat = 'cat '+copiedItems.join(' ')+' > '+allts
-                        exec(cat,function(){
-                            var merger = spawn(config.ffmpegDir,splitForFFPMEG(('-re -i '+allts+' -acodec copy -vcodec copy -t 00:00:' + videoLength + ' '+pathDir+mergedFile)))
-                            merger.stderr.on('data',function(data){
-                                s.userLog(monitor,{type:"Buffer Merge",msg:data.toString()})
-                            })
-                            merger.on('close',function(){
-                                s.file('delete',allts)
-                                copiedItems.forEach(function(copiedItem){
-                                    s.file('delete',copiedItem)
+        return new Promise((resolve,reject) => {
+            var pathDir = s.dir.streams+monitor.ke+'/'+monitor.id+'/'
+            var mergedFile = s.formattedTime()+'.mp4'
+            var mergedFilepath = pathDir+mergedFile
+            fs.readdir(pathDir,function(err,streamDirItems){
+                var items = []
+                var copiedItems = []
+                var videoLength = s.group[monitor.ke].rawMonitorConfigurations[monitor.id].details.detector_send_video_length
+                if(!videoLength || videoLength === '')videoLength = '10'
+                if(videoLength.length === 1)videoLength = '0' + videoLength
+                var createMerged = function(copiedItems){
+                    var allts = pathDir+items.join('_')
+                    s.fileStats(allts,function(err,stats){
+                        if(err){
+                            //not exist
+                            var cat = 'cat '+copiedItems.join(' ')+' > '+allts
+                            exec(cat,function(){
+                                var merger = spawn(config.ffmpegDir,splitForFFPMEG(('-re -i '+allts+' -acodec copy -vcodec copy -t 00:00:' + videoLength + ' '+pathDir+mergedFile)))
+                                merger.stderr.on('data',function(data){
+                                    s.userLog(monitor,{type:"Buffer Merge",msg:data.toString()})
                                 })
-                                setTimeout(function(){
-                                    s.file('delete',mergedFilepath)
-                                },1000 * 60 * 3)
-                                delete(merger)
-                                callback(mergedFilepath,mergedFile)
+                                merger.on('close',function(){
+                                    s.file('delete',allts)
+                                    copiedItems.forEach(function(copiedItem){
+                                        s.file('delete',copiedItem)
+                                    })
+                                    setTimeout(function(){
+                                        s.file('delete',mergedFilepath)
+                                    },1000 * 60 * 3)
+                                    delete(merger)
+                                    if(callback)callback(mergedFilepath,mergedFile)
+                                    resolve({
+                                        filePath: mergedFilepath,
+                                        filename: mergedFile,
+                                    })
+                                })
                             })
-                        })
-                    }else{
-                        //file exist
-                        callback(mergedFilepath,mergedFile)
-                    }
-                })
-            }
-            streamDirItems.forEach(function(filename){
-                if(filename.indexOf('detectorStream') > -1 && filename.indexOf('.m3u8') === -1){
-                    items.push(filename)
-                }
-            })
-            items.sort()
-            // items = items.slice(items.length - 5,items.length)
-            items.forEach(function(filename){
-                try{
-                    var tempFilename = filename.split('.')
-                    tempFilename[0] = tempFilename[0] + 'm'
-                    tempFilename = tempFilename.join('.')
-                    var tempWriteStream = fs.createWriteStream(pathDir+tempFilename)
-                    tempWriteStream.on('finish', function(){
-                        copiedItems.push(pathDir+tempFilename)
-                        if(copiedItems.length === items.length){
-                            createMerged(copiedItems.sort())
+                        }else{
+                            //file exist
+                            if(callback)callback(mergedFilepath,mergedFile)
+                            resolve({
+                                filePath: mergedFilepath,
+                                filename: mergedFile,
+                            })
                         }
                     })
-                    fs.createReadStream(pathDir+filename).pipe(tempWriteStream)
-                }catch(err){
-
                 }
+                streamDirItems.forEach(function(filename){
+                    if(filename.indexOf('detectorStream') > -1 && filename.indexOf('.m3u8') === -1){
+                        items.push(filename)
+                    }
+                })
+                items.sort()
+                // items = items.slice(items.length - 5,items.length)
+                items.forEach(function(filename){
+                    try{
+                        var tempFilename = filename.split('.')
+                        tempFilename[0] = tempFilename[0] + 'm'
+                        tempFilename = tempFilename.join('.')
+                        var tempWriteStream = fs.createWriteStream(pathDir+tempFilename)
+                        tempWriteStream.on('finish', function(){
+                            copiedItems.push(pathDir+tempFilename)
+                            if(copiedItems.length === items.length){
+                                createMerged(copiedItems.sort())
+                            }
+                        })
+                        fs.createReadStream(pathDir+filename).pipe(tempWriteStream)
+                    }catch(err){
+
+                    }
+                })
             })
         })
     }

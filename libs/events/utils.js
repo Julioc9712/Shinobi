@@ -416,6 +416,30 @@ module.exports = (s,config,lang,app,io) => {
             await extender(d,filter)
         }
     }
+    const getEventBasedRecordingUponCompletion = function(options){
+        const response = {ok: true}
+        return new Promise((resolve,reject) => {
+            const groupKey = options.ke
+            const monitorId = options.mid
+            const activeMonitor = s.group[groupKey].activeMonitors[monitorId]
+            const eventBasedRecording = activeMonitor.eventBasedRecording
+            if(eventBasedRecording.process){
+                const monitorConfig = s.group[groupKey].rawMonitorConfigurations[monitorId]
+                const recordingDirectory = s.getVideoDirectory(monitorConfig)
+                const fileTime = eventBasedRecording.lastFileTime
+                const filename = `${fileTime}.mp4`
+                response.filename = `${filename}`
+                response.filePath = `${recordingDirectory}${filename}`
+                eventBasedRecording.process.on('close',function(){
+                    setTimeout(() => {
+                        resolve(response)
+                    },1000)
+                })
+            }else{
+                resolve(response)
+            }
+        })
+    }
     const createEventBasedRecording = function(d,fileTime){
         if(!fileTime)fileTime = s.formattedTime()
         const logTitleText = lang["Traditional Recording"]
@@ -443,6 +467,7 @@ module.exports = (s,config,lang,app,io) => {
         }
         if(!activeMonitor.eventBasedRecording.process){
             activeMonitor.eventBasedRecording.allowEnd = false;
+            activeMonitor.eventBasedRecording.lastFileTime = `${fileTime}`;
             const runRecord = function(){
                 var ffmpegError = ''
                 var error
@@ -652,5 +677,6 @@ module.exports = (s,config,lang,app,io) => {
         legacyFilterEvents: legacyFilterEvents,
         triggerEvent: triggerEvent,
         addEventDetailsToString: addEventDetailsToString,
+        getEventBasedRecordingUponCompletion: getEventBasedRecordingUponCompletion,
     }
 }
