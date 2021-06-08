@@ -130,6 +130,7 @@ module.exports = (s,config,lang) => {
         //`e` is the monitor object
         //`x` is an object used to contain temporary values.
         const inputFlags = []
+        const useWallclockTimestamp = config.wallClockTimestampAsDefault && e.details.wall_clock_timestamp_ignore !== '1'
         const inputTypeIsH264 = input.type === 'h264'
         const inputTypeCanLoop = input.type === 'mp4' || input.type === 'local'
         const hardwareAccelerationEnabled = input.accelerator==='1'
@@ -137,6 +138,12 @@ module.exports = (s,config,lang) => {
         const monitorCaptureRate = !isNaN(parseFloat(input.sfps)) && input.sfps !== '0' ? parseFloat(input.sfps) : null
         const casualDecodingRequired = input.type === 'mp4' || input.type === 'mjpeg'
         if(input.cust_input)inputFlags.push(input.cust_input)
+        if(useWallclockTimestamp && inputTypeIsH264){
+            inputFlags.push(`-use_wallclock_as_timestamps 1`)
+        }
+        if(inputTypeIsH264){
+            inputFlags.push(`-copyts`)
+        }
         if(monitorCaptureRate){
             inputFlags.push(`-r ${monitorCaptureRate}`)
         }
@@ -157,6 +164,7 @@ module.exports = (s,config,lang) => {
         ){
             inputFlags.push(`-rtsp_transport ${input.rtsp_transport}`)
         }
+        inputFlags.push(`-dn`)
         //hardware acceleration
         if(hardwareAccelerationEnabled){
             if(input.hwaccel){
@@ -307,7 +315,7 @@ module.exports = (s,config,lang) => {
         const isStreamer = inputTypeIsStreamer(e)
         const isCudaEnabled = hasCudaEnabled(e)
         const inputFlags = []
-        const useWallclockTimestamp = config.wallClockTimestampAsDefault || e.details.wall_clock_timestamp_ignore !== '1'
+        const useWallclockTimestamp = config.wallClockTimestampAsDefault && e.details.wall_clock_timestamp_ignore !== '1'
         const inputTypeIsH264 = e.type === 'h264'
         const protocolIsRtsp = e.protocol === 'rtsp'
         const inputTypeCanLoop = e.type === 'mp4' || e.type === 'local'
@@ -319,6 +327,9 @@ module.exports = (s,config,lang) => {
         if(e.details.cust_input)inputFlags.push(e.details.cust_input)
         if(useWallclockTimestamp && inputTypeIsH264 && !arrayContains('-use_wallclock_as_timestamps',inputFlags)){
             inputFlags.push('-use_wallclock_as_timestamps 1')
+        }
+        if(hasInputMaps(e) && inputTypeIsH264){
+            inputFlags.push(`-copyts`)
         }
         if(monitorCaptureRate){
             inputFlags.push(`-r ${monitorCaptureRate}`)
@@ -338,6 +349,7 @@ module.exports = (s,config,lang) => {
         if(inputTypeIsH264 && protocolIsRtsp && rtspTransportIsManual){
             inputFlags.push(`-rtsp_transport ${e.details.rtsp_transport}`)
         }
+        inputFlags.push(`-dn`)
         //hardware acceleration
         if(hardwareAccelerationEnabled && !isStreamer){
             if(e.details.hwaccel){
