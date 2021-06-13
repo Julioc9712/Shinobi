@@ -80,13 +80,11 @@ cd /home/Shinobi
 mkdir -p libs/customAutoLoad
 if [ -e "/config/conf.json" ]; then
     cp /config/conf.json conf.json
-fi
-if [ ! -e "./conf.json" ]; then
-    sudo cp conf.sample.json conf.json
+elif [ ! -e "./conf.json" ]; then
+    cp conf.sample.json conf.json
 fi
 sudo sed -i -e 's/change_this_to_something_very_random__just_anything_other_than_this/'"$cronKey"'/g' conf.json
 node tools/modifyConfiguration.js cpuUsageMarker=CPU subscriptionId=$SUBSCRIPTION_ID thisIsDocker=true pluginKeys="$PLUGIN_KEYS" db="$DATABASE_CONFIG" ssl="$SSL_CONFIG"
-sudo cp conf.json /config/conf.json
 
 
 echo "============="
@@ -95,10 +93,8 @@ echo "Default Password : admin"
 echo "Log in at http://HOST_IP:SHINOBI_PORT/super"
 if [ -e "/config/super.json" ]; then
     cp /config/super.json super.json
-fi
-if [ ! -e "./super.json" ]; then
-    sudo cp super.sample.json super.json
-    sudo cp super.sample.json /config/super.json
+elif [ ! -e "./super.json" ]; then
+    cp super.sample.json super.json
 fi
 
 if [ -e "/config/init.extension.sh" ]; then

@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const moment = require('moment');
 const request  = require('request');
-module.exports = (processCwd) => {
+module.exports = (processCwd,config) => {
     const parseJSON = (string) => {
         var parsed
         try{
@@ -89,15 +89,21 @@ module.exports = (processCwd) => {
             console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
             console.log('https://licenses.shinobi.video/subscribe')
         }
-        if(subscriptionId && subscriptionId !== 'sub_XXXXXXXXXXXX'){
+        if(subscriptionId && subscriptionId !== 'sub_XXXXXXXXXXXX' && !config.disableOnlineSubscriptionCheck){
             var url = 'https://licenses.shinobi.video/subscribe/check?subscriptionId=' + subscriptionId
+            var hasSubcribed = false
             request(url,{
                 method: 'GET',
                 timeout: 30000
             }, function(err,resp,body){
                 var json = s.parseJSON(body)
                 if(err)console.log(err,json)
-                var hasSubcribed = json && !!json.ok
+                hasSubcribed = json && !!json.ok
+                var i;
+                for (i = 0; i < s.onSubscriptionCheckExtensions.length; i++) {
+                    const extender = s.onSubscriptionCheckExtensions[i]
+                    hasSubcribed = extender(hasSubcribed,json,subscriptionId)
+                }
                 callback(hasSubcribed)
                 if(hasSubcribed){
                     s.systemLog('This Install of Shinobi is Activated')
@@ -107,13 +113,16 @@ module.exports = (processCwd) => {
                 }else{
                     subscriptionFailed()
                 }
-                s.onSubscriptionCheckExtensions.forEach(function(extender){
-                    extender(hasSubcribed,json)
-                })
             })
         }else{
-            subscriptionFailed()
-            callback(false)
+            for (i = 0; i < s.onSubscriptionCheckExtensions.length; i++) {
+                const extender = s.onSubscriptionCheckExtensions[i]
+                hasSubcribed = extender(false,{},subscriptionId)
+            }
+            if(hasSubcribed === false){
+                subscriptionFailed()
+            }
+            callback(hasSubcribed)
         }
     }
     return {
