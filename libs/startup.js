@@ -10,7 +10,7 @@ module.exports = function(s,config,lang,io){
     } = require('./video/utils.js')(s,config,lang)
     const {
         checkSubscription
-    } = require('./basic/utils.js')(process.cwd())
+    } = require('./basic/utils.js')(process.cwd(),config)
     return new Promise((resolve, reject) => {
         var checkedAdminUsers = {}
         console.log('FFmpeg version : '+s.ffmpegVersion)

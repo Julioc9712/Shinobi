@@ -422,8 +422,8 @@ module.exports = (s,config,lang,app,io) => {
             const groupKey = options.ke
             const monitorId = options.mid
             const activeMonitor = s.group[groupKey].activeMonitors[monitorId]
-            const eventBasedRecording = activeMonitor.eventBasedRecording
-            if(eventBasedRecording.process){
+            if(activeMonitor && activeMonitor.eventBasedRecording && activeMonitor.eventBasedRecording.process){
+                const eventBasedRecording = activeMonitor.eventBasedRecording
                 const monitorConfig = s.group[groupKey].rawMonitorConfigurations[monitorId]
                 const recordingDirectory = s.getVideoDirectory(monitorConfig)
                 const fileTime = eventBasedRecording.lastFileTime

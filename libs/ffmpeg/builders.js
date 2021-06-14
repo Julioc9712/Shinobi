@@ -307,7 +307,7 @@ module.exports = (s,config,lang) => {
         const isStreamer = inputTypeIsStreamer(e)
         const isCudaEnabled = hasCudaEnabled(e)
         const inputFlags = []
-        const useWallclockTimestamp = config.wallClockTimestampAsDefault || e.details.wall_clock_timestamp_ignore !== '1'
+        const useWallclockTimestamp = e.details.wall_clock_timestamp_ignore !== '1' || config.wallClockTimestampAsDefault && !e.details.wall_clock_timestamp_ignore
         const inputTypeIsH264 = e.type === 'h264'
         const protocolIsRtsp = e.protocol === 'rtsp'
         const inputTypeCanLoop = e.type === 'mp4' || e.type === 'local'
