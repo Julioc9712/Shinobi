@@ -103,9 +103,7 @@
                                     <div class="tab-pane active" id="accounts" role="tabpanel">
                                         <div class="row">
                                             <div class="col-md-5 text-left">
-                                                <% if(!config.userHasSubscribed){ %>
-                                                    <% include blocks/heyActivate.ejs %>
-                                                <% } %>
+                                                <% include blocks/heyActivate.ejs %>
                                                 <div class="card shadow mb-3">
                                                     <pre class="super-system-info card-body mb-0">
 
@@ -348,5 +346,8 @@ $('body')
 <% include blocks/mainpermissions.ejs %>
 <% customAutoLoad.superLibsJs.forEach(function(lib){ %>
     <script src="<%-window.libURL%>libs/js/<%-lib%>"></script>
+<% }) %>
+<% customAutoLoad.superRawJs.forEach(function(scriptData){ %>
+    <script><%- scriptData %></script>
 <% }) %>
 </html>

@@ -84,7 +84,7 @@ elif [ ! -e "./conf.json" ]; then
     cp conf.sample.json conf.json
 fi
 sudo sed -i -e 's/change_this_to_something_very_random__just_anything_other_than_this/'"$cronKey"'/g' conf.json
-node tools/modifyConfiguration.js cpuUsageMarker=CPU subscriptionId=$SUBSCRIPTION_ID thisIsDocker=true pluginKeys="$PLUGIN_KEYS" db="$DATABASE_CONFIG" ssl="$SSL_CONFIG"
+# node tools/modifyConfiguration.js cpuUsageMarker=CPU subscriptionId=$SUBSCRIPTION_ID thisIsDocker=true pluginKeys="$PLUGIN_KEYS" db="$DATABASE_CONFIG" ssl="$SSL_CONFIG"
 
 
 echo "============="

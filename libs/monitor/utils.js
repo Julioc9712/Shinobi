@@ -6,6 +6,40 @@ module.exports = (s,config,lang) => {
         splitForFFPMEG,
     } = require('../ffmpeg/utils.js')(s,config,lang)
     const getUpdateableFields = require('./updatedFields.js')
+    const processKill = (proc) => {
+        const response = {ok: true}
+        return new Promise((resolve,reject) => {
+            function sendError(err){
+                response.ok = false
+                response.err = err
+                resolve(response)
+            }
+            try{
+                proc.stdin.write("q\r\n")
+                setTimeout(() => {
+                    if(proc && proc.kill){
+                        if(s.isWin){
+                            spawn("taskkill", ["/pid", proc.pid, '/t'])
+                        }else{
+                            proc.kill('SIGTERM')
+                        }
+                        setTimeout(function(){
+                            try{
+                                proc.kill()
+                                resolve(response)
+                            }catch(err){
+                                s.debugLog(err)
+                                sendError(err)
+                            }
+                        },1000)
+                    }
+                },1000)
+            }catch(err){
+                s.debugLog(err)
+                sendError(err)
+            }
+        })
+    }
     const cameraDestroy = function(e,p){
         if(
             s.group[e.ke] &&
@@ -72,27 +106,9 @@ module.exports = (s,config,lang) => {
             if(activeMonitor.childNode){
                 s.cx({f:'kill',d:s.cleanMonitorObject(e)},activeMonitor.childNodeId)
             }else{
-                try{
-                    proc.stdin.write("q\r\n")
-                    setTimeout(() => {
-                        if(proc && proc.kill){
-                            if(s.isWin){
-                                spawn("taskkill", ["/pid", proc.pid, '/t'])
-                            }else{
-                                proc.kill('SIGTERM')
-                            }
-                            setTimeout(function(){
-                                try{
-                                    proc.kill()
-                                }catch(err){
-                                    s.debugLog(err)
-                                }
-                            },1000)
-                        }
-                    },1000)
-                }catch(err){
-                    s.debugLog(err)
-                }
+                processKill(proc).then((response) => {
+                    s.debugLog(`cameraDestroy`,response)
+                })
             }
         }
     }
@@ -130,21 +146,11 @@ module.exports = (s,config,lang) => {
                 completeRequest()
             })
             var snapProcessTimeout = setTimeout(function(){
-                var pid = snapProcess.pid
-                if(s.isWin){
-                    spawn("taskkill", ["/pid", pid, '/t'])
-                }else{
-                    process.kill(-pid, 'SIGTERM')
-                }
-                setTimeout(function(){
-                    if(s.isWin === false){
-                        treekill(pid)
-                    }else{
-                        snapProcess.kill()
-                    }
+                processKill(snapProcess).then((response) => {
+                    s.debugLog(`createSnapshot-snapProcessTimeout`,response)
                     completeRequest()
-                },10000)
-            },30000)
+                })
+            },5000)
         })
     }
     const addCredentialsToStreamLink = (options) => {
@@ -192,6 +198,7 @@ module.exports = (s,config,lang) => {
     return {
         cameraDestroy: cameraDestroy,
         createSnapshot: createSnapshot,
+        processKill: processKill,
         addCredentialsToStreamLink: addCredentialsToStreamLink,
         monitorConfigurationMigrator: monitorConfigurationMigrator,
     }

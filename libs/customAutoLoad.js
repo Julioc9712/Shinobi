@@ -179,6 +179,8 @@ module.exports = async (s,config,lang,app,io) => {
         const moduleName = shinobiModule.name
         s.customAutoLoadModules[moduleName] = {}
         var customModulePath = modulesBasePath + '/' + moduleName
+        s.debugLog(customModulePath)
+        s.debugLog(JSON.stringify(shinobiModule,null,3))
         if(shinobiModule.isIgnitor){
             s.customAutoLoadModules[moduleName].type = 'file'
             try{
@@ -329,6 +331,7 @@ module.exports = async (s,config,lang,app,io) => {
             adminLibsCss: [],
             superPageBlocks: [],
             superLibsJs: [],
+            superRawJs: [],
             superLibsCss: []
         }
         fs.readdir(modulesBasePath,function(err,folderContents){

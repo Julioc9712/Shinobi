@@ -18,6 +18,9 @@ module.exports = (s,config,lang,app,io) => {
     const {
         moveCameraPtzToMatrix
     } = require('../control/ptz.js')(s,config,lang)
+    const {
+        cutVideoLength
+    } = require('../video/utils.js')(s,config,lang)
     async function saveImageFromEvent(options,frameBuffer){
         const monitorId = options.mid || options.id
         const groupKey = options.ke
@@ -425,13 +428,24 @@ module.exports = (s,config,lang,app,io) => {
             if(activeMonitor && activeMonitor.eventBasedRecording && activeMonitor.eventBasedRecording.process){
                 const eventBasedRecording = activeMonitor.eventBasedRecording
                 const monitorConfig = s.group[groupKey].rawMonitorConfigurations[monitorId]
+                const videoLength = monitorConfig.details.detector_send_video_length
                 const recordingDirectory = s.getVideoDirectory(monitorConfig)
                 const fileTime = eventBasedRecording.lastFileTime
                 const filename = `${fileTime}.mp4`
                 response.filename = `${filename}`
                 response.filePath = `${recordingDirectory}${filename}`
                 eventBasedRecording.process.on('close',function(){
-                    setTimeout(() => {
+                    setTimeout(async () => {
+                        if(!isNaN(videoLength)){
+                            const cutResponse = await cutVideoLength({
+                                ke: groupKey,
+                                mid: monitorId,
+                                filePath: response.filePath,
+                                cutLength: parseInt(videoLength),
+                            })
+                            response.filename = cutResponse.filename
+                            response.filePath = cutResponse.filePath
+                        }
                         resolve(response)
                     },1000)
                 })

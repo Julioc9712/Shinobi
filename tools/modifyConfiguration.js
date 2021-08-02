@@ -59,11 +59,7 @@ processArgv.forEach(function(val) {
 try{
     if(config.thisIsDocker){
         const dockerConfigFile = '/config/conf.json'
-        fs.stat(dockerConfigFile,(err) => {
-            if(!err){
-                fs.writeFile(dockerConfigFile,JSON.stringify(config,null,3),function(){})
-            }
-        })
+        fs.writeFileSync(dockerConfigFile,JSON.stringify(config,null,3))
     }
 }catch(err){
     console.log(err)

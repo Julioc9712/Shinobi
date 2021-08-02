@@ -1,10 +1,10 @@
 <form id="hey-activate" class="card shadow mb-3">
     <div class="card-header">
-    	<%- lang['Not Activated'] %>
+    	<%- config.hasSubcribed ? lang['Activated'] : lang['Not Activated'] %>
     </div>
     <div class="card-body" style="min-height:auto">
         <div class="form-group">
-        	<input name="subscriptionId" id="pass" tabindex="2" class="form-control wide-text" placeholder="License Key / Subscription ID">
+        	<input name="subscriptionId" tabindex="2" class="form-control wide-text" placeholder="License Key / Subscription ID">
         </div>
         <div class="form-group mb-0">
         	<button class="btn btn-sm btn-round btn-block btn-success" type="submit"><%- lang.Save %></button>
@@ -42,10 +42,11 @@
                     noticeTitle = lang.Activated
                     noticeText = lang.activatedText
                     noticeType = 'success'
-                    heyActivateCard.remove()
+                    heyActivateCard.find('[name="subscriptionId"]').val('')
                 }else{
                     heyActivateCardSubmit.html(lang.Save)
                 }
+                heyActivateCard.find('.card-header').html(noticeTitle)
                 new PNotify({
                     title: noticeTitle,
                     text: noticeText,

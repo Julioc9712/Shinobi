@@ -2261,7 +2261,7 @@ module.exports = function(s,config,lang){
                        hidden: true,
                       "name": "detail=detector_trigger",
                       "field": lang['Trigger Record'],
-                      "description": "This will order the camera to record if it is set to \"Watch-Only\" when a motion even is detected.",
+                      "description": "This will order the camera to record if it is set to \"Watch-Only\" when an Event is detected.",
                       "default": "0",
                       "example": "",
                       "form-group-class": "h_det_input h_det_1",
@@ -3998,6 +3998,23 @@ module.exports = function(s,config,lang){
                    {
                       "name": "detail=notify_onUnexpectedExit",
                       "field": lang['On Unexpected Exit'],
+                      "default": "0",
+                      "example": "1",
+                      "fieldType": "select",
+                      "possible": [
+                         {
+                            "name": lang.No,
+                            "value": "0"
+                         },
+                         {
+                            "name": lang.Yes,
+                            "value": "1"
+                         }
+                      ]
+                   },
+                   {
+                      "name": "detail=notify_useRawSnapshot",
+                      "field": lang['Use Raw Snapshot'],
                       "default": "0",
                       "example": "1",
                       "fieldType": "select",

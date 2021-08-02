@@ -254,11 +254,7 @@ module.exports = function(s,config,lang,app){
                 try{
                     if(config.thisIsDocker){
                         const dockerSuperFile = '/config/super.json'
-                        fs.stat(dockerSuperFile,(err) => {
-                            if(!err){
-                                fs.writeFile(dockerSuperFile,JSON.stringify(currentSuperUserList,null,3),function(){})
-                            }
-                        })
+                        fs.writeFileSync(dockerSuperFile,JSON.stringify(currentSuperUserList,null,3))
                     }
                 }catch(err){
                     console.log(err)

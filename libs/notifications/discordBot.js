@@ -1,6 +1,6 @@
 var fs = require("fs")
 var Discord = require("discord.js")
-module.exports = function(s,config,lang){
+module.exports = function(s,config,lang,getSnapshot){
     const {
         getEventBasedRecordingUponCompletion,
     } = require('../events/utils.js')(s,config,lang)
@@ -81,7 +81,6 @@ module.exports = function(s,config,lang){
                             videoPath = siftedVideoFileFromRam.filePath
                             videoName = siftedVideoFileFromRam.filename
                         }
-                        console.log(videoPath,videoName)
                         if(videoPath){
                             sendMessage({
                                 author: {
@@ -103,13 +102,7 @@ module.exports = function(s,config,lang){
                             ],d.ke)
                         }
                     }
-                    d.screenshotBuffer = d.screenshotBuffer || d.frame
-                    if(!d.screenshotBuffer){
-                        const { screenShot, isStaticFile } = await s.getRawSnapshotFromMonitor(monitorConfig,{
-                            secondsInward: monitorConfig.details.snap_seconds_inward
-                        })
-                        d.screenshotBuffer = screenShot
-                    }
+                    await getSnapshot(d,monitorConfig)
                     if(d.screenshotBuffer){
                         sendMessage({
                             author: {

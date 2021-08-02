@@ -87,22 +87,8 @@ docker run -d --name='Shinobi' -p '8080:8080/tcp' -v "/dev/shm/Shinobi/streams":
 
 ### Environment Variables
 
- | Environment Variable | Description                                                          | Default            |
- |----------------------|----------------------------------------------------------------------|--------------------|
- | SUBSCRIPTION_ID      | **THIS IS NOT REQUIRED**. If you are a subscriber to any of the Shinobi services you may use that key as the value for this parameter. If you have donated by PayPal you may use your Transaction ID to activate the license as well. | *None*     |
- | DB_USER              | Username that the Shinobi process will connect to the database with. | majesticflame      |
- | DB_PASSWORD          | Password that the Shinobi process will connect to the database with. | *None* |
- | DB_HOST              | Address that the Shinobi process will connect to the database with.  | localhost          |
- | DB_DATABASE          | Database that the Shinobi process will interact with.                | ccio               |
- | DB_DISABLE_INCLUDED     | Disable included database to use your own. Set to `true` to disable.| false |
- | PLUGIN_KEYS     | The object containing connection keys for plugins running in client mode (non-host, default). | {} |
- | SSL_ENABLED     | Enable or Disable SSL. | false |
- | SSL_COUNTRY     | Country Code for SSL. | CA |
- | SSL_STATE     | Province/State Code for SSL. | BC |
- | SSL_LOCATION     | Location of where SSL key is being used. | Vancouver |
- | SSL_ORGANIZATION     | Company Name associated to key. | Shinobi Systems |
- | SSL_ORGANIZATION_UNIT     | Department associated to key. | IT Department |
- | SSL_COMMON_NAME     | Common Name associated to key. | nvr.ninja |
+> Environment Variables have been disabled. You must now make changes in the conf.json itself when it is mounted on the host.
+> If conf.json does not exist inside the mounted folder then you may create it and Shinobi will use that on next container start.
 
  > You must add (to the docker container) `/config/ssl/server.key` and `/config/ssl/server.cert`. The `/config` folder is mapped to `$HOME/Shinobi/config` on the host by default with the quick run methods. Place `key` and `cert` in `$HOME/Shinobi/config/ssl`. If `SSL_ENABLED=true` and these files don't exist they will be generated with `openssl`.
 

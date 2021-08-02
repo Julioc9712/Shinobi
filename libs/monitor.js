@@ -24,6 +24,7 @@ module.exports = function(s,config,lang){
         splitForFFPMEG,
     } = require('./ffmpeg/utils.js')(s,config,lang)
     const {
+        processKill,
         cameraDestroy,
         monitorConfigurationMigrator,
     } = require('./monitor/utils.js')(s,config,lang)
@@ -202,14 +203,14 @@ module.exports = function(s,config,lang){
                         })
                         snapProcess.on('error', (data) => {
                             console.log(data)
-                            snapProcess.terminate()
+                            processKill(snapProcess)
                         })
                         snapProcess.on('exit', (code) => {
                             clearTimeout(snapProcessTimeout)
                             sendTempImage()
                         })
                         var snapProcessTimeout = setTimeout(function(){
-                            snapProcess.terminate()
+                            processKill(snapProcess)
                         },dynamicTimeout)
                     }catch(err){
                         console.log(err)

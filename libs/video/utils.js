@@ -176,8 +176,42 @@ module.exports = (s,config,lang) => {
             finish()
         }
     }
+    function cutVideoLength(options){
+        return new Promise((resolve,reject) => {
+            const response = {ok: false}
+            const inputFilePath = options.filePath
+            const monitorId = options.mid
+            const groupKey = options.ke
+            const cutLength = options.cutLength || 10
+            const tempDirectory = s.getStreamsDirectory(options)
+            let fileExt = inputFilePath.split('.')
+            fileExt = fileExt[fileExt.length -1]
+            const filename = `${s.gid(10)}.${fileExt}`
+            const videoOutPath = `${tempDirectory}`
+            const cuttingProcess = spawn(config.ffmpegDir,['-loglevel','warning','-i', inputFilePath, '-c','copy','-t',`${cutLength}`,videoOutPath])
+            cuttingProcess.stderr.on('data',(data) => {
+                const err = data.toString()
+                s.debugLog('cutVideoLength',options,err)
+            })
+            cuttingProcess.on('close',(data) => {
+                fs.stat(videoOutPath,(err) => {
+                    if(!err){
+                        response.filename = filename
+                        response.filePath = videoOutPath
+                        setTimeout(() => {
+                            s.file('delete',videoOutPath)
+                        },1000 * 60 * 3)
+                    }else{
+                        s.debugLog('cutVideoLength:readFile',options,err)
+                    }
+                    resolve(response)
+                })
+            })
+        })
+    }
     return {
         orphanedVideoCheck: orphanedVideoCheck,
         scanForOrphanedVideos: scanForOrphanedVideos,
+        cutVideoLength: cutVideoLength,
     }
 }
