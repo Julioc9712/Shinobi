@@ -13,4 +13,5 @@ module.exports = function(s,config,lang){
     require('./notifications/email.js')(s,config,lang,getSnapshot)
     require('./notifications/discordBot.js')(s,config,lang,getSnapshot)
     require('./notifications/telegram.js')(s,config,lang,getSnapshot)
+    require('./notifications/pushover.js')(s,config,lang,getSnapshot)
 }
