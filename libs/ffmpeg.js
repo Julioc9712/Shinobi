@@ -63,11 +63,18 @@ module.exports = async (s,config,lang,onFinish) => {
                 }
             },null,3),'utf8')
             var cameraCommandParams = [
-              __dirname + '/cameraThread/singleCamera.js',
+              config.monitorDaemonPath ? config.monitorDaemonPath : __dirname + '/cameraThread/singleCamera.js',
               config.ffmpegDir,
               e.sdir + 'cmd.txt'
             ]
-            return spawn('node',cameraCommandParams,{detached: true,stdio: stdioPipes})
+            const cameraProcess = spawn('node',cameraCommandParams,{detached: true,stdio: stdioPipes})
+            if(config.debugLog === true){
+                cameraProcess.stderr.on('data',(data) => {
+                    console.log(`${e.ke} ${e.mid}`)
+                    console.log(data.toString())
+                })
+            }
+            return cameraProcess
         }catch(err){
             s.systemLog(err)
             return null

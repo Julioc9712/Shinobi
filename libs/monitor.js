@@ -910,7 +910,14 @@ module.exports = function(s,config,lang){
                            if(object.substr(object.length - 1) !== '}')theJson += '}'
                            if(object.substr(0,1) !== '{')theJson = '{' + theJson
                            var data = JSON.parse(theJson)
-                           triggerEvent(data)
+                           switch(data.f){
+                               case'trigger':
+                                    triggerEvent(data)
+                               break;
+                               case's.tx':
+                                   s.tx(data.data,data.to)
+                               break;
+                           }
                        })
                    }catch(err){
                        console.log('There was an error parsing a detector event')

@@ -6,6 +6,7 @@ const isWindows = (process.platform === 'win32' || process.platform === 'win64')
 process.send = process.send || function () {};
 
 var jsonData = JSON.parse(fs.readFileSync(process.argv[3],'utf8'))
+const config = jsonData.globalInfo.config
 const ffmpegAbsolutePath = process.argv[2].trim()
 const ffmpegCommandString = jsonData.cmd
 const rawMonitorConfig = jsonData.rawMonitorConfig
@@ -21,6 +22,7 @@ var writeToStderr = function(text){
   }
   // fs.appendFileSync('/home/ubuntu/cdn-site/tools/compilers/diycam/Shinobi/test.log',text + '\n','utf8')
 }
+process.logData = writeToStderr
 if(!process.argv[2] || !process.argv[3]){
     return writeToStderr('Missing FFMPEG Command String or no command operator')
 }
@@ -109,10 +111,8 @@ writeToStderr('Thread Opening')
 
 if(rawMonitorConfig.details.detector === '1' && rawMonitorConfig.details.detector_pam === '1'){
   try{
-    const attachPamDetector = require(__dirname + '/detector.js')(jsonData,stdioWriters[3])
-    attachPamDetector(cameraProcess,(err)=>{
-      writeToStderr(err)
-    })
+    const attachPamDetector = require(config.monitorDetectorDaemonPath ? config.monitorDetectorDaemonPath : __dirname + '/detector.js')(jsonData,stdioWriters[3])
+    attachPamDetector(cameraProcess)
   }catch(err){
     writeToStderr(err.stack)
   }
