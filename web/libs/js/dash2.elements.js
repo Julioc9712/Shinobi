@@ -159,7 +159,7 @@ $(document).ready(function(e){
                 var el = $('#video_viewer')
                 var videoContainer = el.find('.video-container')
                 el.find('.modal-title span').html(e.mon.name+' - '+e.file)
-                var html = '<video class="video_video" video="'+e.href+'" autoplay loop controls><source src="'+e.href+'" type="video/'+e.mon.ext+'"></video><br><small class="msg"></small>'
+                var html = '<video class="video_video" video="'+e.href+'" autoplay controls><source src="'+e.href+'" type="video/'+e.mon.ext+'"></video><br><small class="msg"></small>'
                 videoContainer.html(html)
                 el.find('video')[0].onerror = function(){
                     videoContainer.find('.msg').text(lang.h265BrowserText1)
@@ -214,7 +214,7 @@ $(document).ready(function(e){
                 $.confirm.e.modal('show');
                 $.confirm.title.text(lang['Delete Video']+' : '+e.file)
                 e.html=lang.DeleteVideoMsg
-                e.html+='<video class="video_video" autoplay loop controls><source src="'+videoLink+'" type="video/'+e.mon.ext+'"></video>';
+                e.html+='<video class="video_video" autoplay controls><source src="'+videoLink+'" type="video/'+e.mon.ext+'"></video>';
                 $.confirm.body.html(e.html)
                 $.confirm.click({title:'Delete Video',class:'btn-danger'},function(){
                     $.getJSON(href,function(d){
