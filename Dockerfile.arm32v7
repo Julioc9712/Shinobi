@@ -66,6 +66,8 @@ RUN apt install -y software-properties-common \
         tar \
         x264
 
+RUN apt install -y zip
+
 RUN apt install -y \
                 ffmpeg \
                 git \

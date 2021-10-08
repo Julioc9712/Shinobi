@@ -105,7 +105,17 @@ module.exports = function(s,config,lang){
                 }
             })
         }
-        s.tx({f:'log',ke:e.ke,mid:e.mid,log:x,time:s.timeObject()},'GRPLOG_'+e.ke);
+        const logEvent = {
+            f: 'log',
+            ke: e.ke,
+            mid: e.mid,
+            log: x,
+            time: s.timeObject()
+        }
+        s.tx(logEvent,'GRPLOG_'+e.ke);
+        s.onUserLogExtensions.forEach(function(extender){
+            extender(logEvent)
+        })
     }
     s.loadGroup = function(e){
         s.loadGroupExtensions.forEach(function(extender){

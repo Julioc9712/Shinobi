@@ -371,6 +371,7 @@ module.exports = function(s,config,lang){
     }
     const moveCameraPtzToMatrix = function(event,trackingTarget){
         if(moveLock[event.ke + event.id])return;
+        trackingTarget = trackingTarget || 'person'
         const imgHeight = event.details.imgHeight
         const imgWidth = event.details.imgWidth
         const thresholdX = imgWidth * 0.125
@@ -378,7 +379,7 @@ module.exports = function(s,config,lang){
         const imageCenterX = imgWidth / 2
         const imageCenterY = imgHeight / 2
         const matrices = event.details.matrices || []
-        const largestMatrix = getLargestMatrix(matrices.filter(matrix => matrix.tag === (trackingTarget || 'person')))
+        const largestMatrix = getLargestMatrix(matrices.filter(matrix => trackingTarget.indexOf(matrix.tag) > -1))
         // console.log(matrices.find(matrix => matrix.tag === 'person'))
         if(!largestMatrix)return;
         const monitorConfig = s.group[event.ke].rawMonitorConfigurations[event.id]

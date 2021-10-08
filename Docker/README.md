@@ -94,6 +94,10 @@ docker run -d --name='Shinobi' -p '8080:8080/tcp' -v "/dev/shm/Shinobi/streams":
 
 > For those using `DB_DISABLE_INCLUDED=true` please remember to create a user in your databse first. The Docker image will create the `DB_DATABASE` under the specified connection information.
 
+### Power Video Viewer Blank or Not working
+
+This seems to be an issue with using Docker on some linux OS' like Arch Linux. It is uncertain what the specific issue is but for now please use Docker on a consumer or enterprise supported distribution of linux, like Ubuntu 20.04.
+
 ### Tips
 
 Modifying `conf.json` or Superuser credentials.

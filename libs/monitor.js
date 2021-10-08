@@ -904,15 +904,28 @@ module.exports = function(s,config,lang){
             if(e.details.detector_pam === '1'){
                // s.group[e.ke].activeMonitors[e.id].spawn.stdio[3].pipe(s.group[e.ke].activeMonitors[e.id].p2p).pipe(s.group[e.ke].activeMonitors[e.id].pamDiff)
                s.group[e.ke].activeMonitors[e.id].spawn.stdio[3].on('data',function(buf){
+                   let theJson
                    try{
                        buf.toString().split('}{').forEach((object,n)=>{
-                           var theJson = object
+                           theJson = object
                            if(object.substr(object.length - 1) !== '}')theJson += '}'
                            if(object.substr(0,1) !== '{')theJson = '{' + theJson
-                           var data = JSON.parse(theJson)
-                           triggerEvent(data)
+                           try{
+                               var data = JSON.parse(theJson)
+                           }catch(err){
+                               var data = JSON.parse(theJson + '}')
+                           }
+                           switch(data.f){
+                               case'trigger':
+                                    triggerEvent(data)
+                               break;
+                               case's.tx':
+                                   s.tx(data.data,data.to)
+                               break;
+                           }
                        })
                    }catch(err){
+                       console.log(theJson)
                        console.log('There was an error parsing a detector event')
                        console.log(err)
                    }

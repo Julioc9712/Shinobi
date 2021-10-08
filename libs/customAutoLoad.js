@@ -221,6 +221,7 @@ module.exports = async (s,config,lang,app,io) => {
                                                             case'blocks':
                                                                 fs.readdir(thirdLevelName,function(err,webFolderContents){
                                                                     webFolderContents.forEach(function(filename){
+                                                                        if(!filename)return;
                                                                         var fullPath = thirdLevelName + '/' + filename
                                                                         var blockPrefix = ''
                                                                         switch(true){

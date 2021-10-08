@@ -5,6 +5,11 @@ module.exports = function(s,config){
         s.onSocketAuthenticationExtensions.push(callback)
     }
     //
+    s.onUserLogExtensions = []
+    s.onUserLog = function(callback){
+        s.onUserLogExtensions.push(callback)
+    }
+    //
     s.loadGroupExtensions = []
     s.loadGroupExtender = function(callback){
         s.loadGroupExtensions.push(callback)

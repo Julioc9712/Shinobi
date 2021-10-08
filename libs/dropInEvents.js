@@ -84,7 +84,6 @@ module.exports = function(s,config,lang,app,io){
                             plug: "dropInEvent",
                             reason: reason
                         },
-                        doObjectDetection: (s.isAtleatOneDetectorPluginConnected && s.group[ke].rawMonitorConfigurations[mid].details.detector_use_detect_object === '1')
                     },config.dropInEventForceSaveEvent)
                 }
                 if(search(filename,'.txt')){
@@ -310,7 +309,6 @@ module.exports = function(s,config,lang,app,io){
                                 plug: "dropInEvent",
                                 reason: reasonTag
                             },
-                            doObjectDetection: (s.isAtleatOneDetectorPluginConnected && details.detector_use_detect_object === '1')
                         },config.dropInEventForceSaveEvent)
                         callback()
                     })

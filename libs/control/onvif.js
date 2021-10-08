@@ -29,7 +29,7 @@ module.exports = function(s,config,lang,app,io){
         Object.keys(options).forEach((key) => {
             const value = options[key]
             if(typeof value === 'string'){
-                newOptions[key] = value.replace(/__CURRENT_TOKEN/g,Camera.current_profile.token)
+                newOptions[key] = value.replace(/__CURRENT_TOKEN/g,Camera.current_profile ? Camera.current_profile.token : 'NOTOKEN')
             }else if(value !== undefined && value !== null){
                 newOptions[key] = value
             }

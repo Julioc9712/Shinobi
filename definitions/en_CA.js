@@ -392,8 +392,6 @@ module.exports = function(s,config,lang){
                        "default": "10",
                        "example": "",
                        "possible": "",
-                       "form-group-class": "h_t_input h_t_h264 h_t_hls h_t_mp4 h_t_jpeg h_t_mjpeg h_t_local",
-                       "form-group-class-pre-layer": "h_auto_host_input h_auto_host_0 auto_host_fill",
                     },
                     {
                        "name": "detail=skip_ping",
