@@ -186,6 +186,11 @@ module.exports = function(s,config,lang){
                         var temporaryImageFile = streamDir + s.gid(5) + '.jpg'
                         var iconImageFile = streamDir + 'icon.jpg'
                         var ffmpegCmd = splitForFFPMEG(`-loglevel warning -re -probesize 100000 -analyzeduration 100000 ${inputOptions.join(' ')} -i "${url}" ${outputOptions.join(' ')} -f image2 -an -vf "fps=1" -vframes 1 "${temporaryImageFile}"`)
+                        checkExists(streamDir, function(success) {
+                            if (success === false) {
+                                fs.mkdirSync(streamDir, {recursive: true}, (err) => {s.debugLog(err)})
+                            }
+                        })
                         const snapProcess = new Worker(__dirname + '/cameraThread/snapshot.js', {
                             workerData: {
                                 jsonData: {
