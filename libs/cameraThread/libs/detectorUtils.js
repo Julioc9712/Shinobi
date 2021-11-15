@@ -1,6 +1,7 @@
 const P2P = require('pipe2pam')
-const PamDiff = require('pam-diff')
-module.exports = function(jsonData,pamDiffResponder){
+let PamDiff = require('pam-diff')
+module.exports = function(jsonData,pamDiffResponder,alternatePamDiff){
+    if(alternatePamDiff)PamDiff = alternatePamDiff;
     const noiseFilterArray = {};
     const config = jsonData.globalInfo.config
     const completeMonitorConfig = jsonData.rawMonitorConfig
@@ -390,5 +391,6 @@ module.exports = function(jsonData,pamDiffResponder){
         regionConfidenceMaximums,
         regionTriggerThresholds,
         mergeTriggers,
+        pamDiff,
     }
 }

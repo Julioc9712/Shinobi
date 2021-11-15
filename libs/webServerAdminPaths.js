@@ -302,7 +302,13 @@ module.exports = function(s,config,lang,app){
                 }
             }else{
                 if(!user.details.sub || user.details.allmonitors === '1' || user.details.monitor_edit.indexOf(req.params.id) > -1 || hasRestrictions && user.details.monitor_create === '1'){
-                    s.userLog(s.group[req.params.ke].rawMonitorConfigurations[req.params.id],{type:'Monitor Deleted',msg:'by user : '+user.uid});
+                    s.userLog({
+                        ke: req.params.ke,
+                        mid: req.params.id
+                    },{
+                        type: 'Monitor Deleted',
+                        msg: 'by user : '+user.uid
+                    });
                     req.params.delete=1;s.camera('stop',req.params);
                     s.tx({f:'monitor_delete',uid:user.uid,mid:req.params.id,ke:req.params.ke},'GRP_'+req.params.ke);
                     s.knexQuery({

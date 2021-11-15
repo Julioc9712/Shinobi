@@ -1,4 +1,4 @@
-FROM node:16.13-buster-slim
+FROM nvidia/cuda:11.4.2-cudnn8-runtime-ubuntu20.04
 
 ENV DB_USER=majesticflame \
     DB_PASSWORD='' \
@@ -20,7 +20,14 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN mkdir -p /home/Shinobi /config /var/lib/mysql
 
 RUN apt update -y
-RUN apt install wget curl net-tools -y
+RUN apt install wget curl net-tools  -y
+
+# Additional packages to support NodeJS as the base build is NVidia CUDA
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
+RUN apt install nodejs -y
+
+RUN node -v
+RUN npm -v
 
 # Install MariaDB server... the debian way
 RUN if [ "$DB_DISABLE_INCLUDED" = "false" ] ; then set -ex; \

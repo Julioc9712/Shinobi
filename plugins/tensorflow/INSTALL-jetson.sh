@@ -30,22 +30,16 @@ npm rebuild @tensorflow/tfjs-node-gpu --build-addon-from-source --unsafe-perm
 
 # # npm audit fix --force
 if [ ! -e "$DIR/conf.json" ]; then
-	dontCreateKeyFlag=false
     echo "Creating conf.json"
     sudo cp $DIR/conf.sample.json $DIR/conf.json
 else
     echo "conf.json already exists..."
 fi
 
-if [ "$dontCreateKeyFlag" = false ]; then
-	tfjsBuildVal="cpu"
-	if [ "$installGpuFlag" = true ]; then
-		tfjsBuildVal="gpu"
-	fi
+tfjsBuildVal="gpu"
 
-	echo "Adding Random Plugin Key to Main Configuration"
-	node $DIR/../../tools/modifyConfigurationForPlugin.js tensorflow key=$(head -c 64 < /dev/urandom | sha256sum | awk '{print substr($1,1,60)}') tfjsBuild=$tfjsBuildVal
-fi
+echo "Adding Random Plugin Key to Main Configuration"
+node $DIR/../../tools/modifyConfigurationForPlugin.js tensorflow key=$(head -c 64 < /dev/urandom | sha256sum | awk '{print substr($1,1,60)}') tfjsBuild=$tfjsBuildVal
 
 echo "TF_FORCE_GPU_ALLOW_GROWTH=true" > "$DIR/.env"
 echo "#CUDA_VISIBLE_DEVICES=0,2" >> "$DIR/.env"

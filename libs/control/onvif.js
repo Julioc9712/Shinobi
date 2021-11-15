@@ -2,6 +2,10 @@ var os = require('os');
 var exec = require('child_process').exec;
 const onvif = require("shinobi-onvif");
 module.exports = function(s,config,lang,app,io){
+    const {
+        createSnapshot,
+        addCredentialsToStreamLink,
+    } = require('../monitor/utils.js')(s,config,lang)
     const createOnvifDevice = async (onvifAuth) => {
         var response = {ok: false}
         const monitorConfig = s.group[onvifAuth.ke].rawMonitorConfigurations[onvifAuth.id]
@@ -118,6 +122,16 @@ module.exports = function(s,config,lang,app,io){
             doAction(s.group[onvifAuth.ke].activeMonitors[onvifAuth.id].onvifConnection)
         }
     }
+    async function getSnapshotFromOnvif(onvifOptions){
+        return await createSnapshot({
+            output: ['-s 400x400'],
+            url: addCredentialsToStreamLink({
+                username: onvifOptions.username,
+                password: onvifOptions.password,
+                url: onvifOptions.uri
+            }),
+        })
+    }
     /**
     * API : ONVIF Method Controller
      */
@@ -140,6 +154,7 @@ module.exports = function(s,config,lang,app,io){
             })
         },res,req);
     })
+    s.getSnapshotFromOnvif = getSnapshotFromOnvif
     s.createOnvifDevice = createOnvifDevice
     s.runOnvifMethod = runOnvifMethod
 }

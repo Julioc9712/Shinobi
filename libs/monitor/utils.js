@@ -147,7 +147,7 @@ module.exports = (s,config,lang) => {
                 })
             }
             const temporaryImageFile = streamDir + s.gid(5) + '.jpg'
-            const ffmpegCmd = splitForFFPMEG(`-loglevel warning -re -probesize 100000 -analyzeduration 100000 ${inputOptions.join(' ')} -i "${url}" ${outputOptions.join(' ')} -f image2 -an -vf "fps=1" -vframes 1 "${temporaryImageFile}"`)
+            const ffmpegCmd = splitForFFPMEG(`-loglevel warning -re -stimeout 30000000 -probesize 100000 -analyzeduration 100000 ${inputOptions.join(' ')} -i "${url}" ${outputOptions.join(' ')} -f image2 -an -vf "fps=1" -vframes 1 "${temporaryImageFile}"`)
             const snapProcess = spawn('ffmpeg',ffmpegCmd,{detached: true})
             snapProcess.stderr.on('data',function(data){
                 // s.debugLog(data.toString())

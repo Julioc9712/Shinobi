@@ -379,6 +379,9 @@ module.exports = (s,config,lang,app,io) => {
     const runEventExecutions = async (eventTime,monitorConfig,eventDetails,forceSave,filter,d, triggerEvent) => {
         const monitorDetails = monitorConfig.details
         const detailString = JSON.stringify(eventDetails)
+        if(monitorDetails.detector_ptz_follow === '1'){
+            moveCameraPtzToMatrix(d,monitorDetails.detector_ptz_follow_target)
+        }
         if(monitorDetails.det_multi_trig === '1'){
             runMultiTrigger(monitorConfig,eventDetails, d, triggerEvent)
         }
@@ -673,9 +676,6 @@ module.exports = (s,config,lang,app,io) => {
         ){
             didCountingAlready = true
             countObjects(d)
-        }
-        if(monitorDetails.detector_ptz_follow === '1'){
-            moveCameraPtzToMatrix(d,monitorDetails.detector_ptz_follow_target)
         }
         if(filter.useLock){
             const passedMotionLock = checkMotionLock(d,monitorDetails)
