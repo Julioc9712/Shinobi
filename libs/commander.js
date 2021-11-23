@@ -1,85 +1,76 @@
 const { Worker } = require('worker_threads');
 module.exports = function(s,config,lang,app){
+    const fetch = require('node-fetch')
     const { modifyConfiguration, getConfiguration } = require('./system/utils.js')(config)
+    let customerServerList = !!config.p2pServerList;
     var runningWorker;
     config.machineId = config.p2pApiKey + '' + config.p2pGroupId
     config.p2pTargetAuth = config.p2pTargetAuth || s.gid(30)
-    if(!config.p2pServerList)config.p2pServerList = {
-        "vancouver-1": {
-            name: 'Vancouver-1',
-            host: 'p2p-vancouver-1.shinobi.cloud',
-            p2pPort: '8084',
-            webPort: '8000',
-            maxNetworkSpeed: {
-                up: 5000,
-                down: 5000,
-                shared: true
+    if(!config.workerStreamOutHandlers){
+        config.workerStreamOutHandlers = [
+          'Base64',
+          'FLV',
+          'MP4',
+        ];
+    }
+    if(!customerServerList){
+        config.p2pServerList = {
+            "vancouver-1": {
+                name: 'Vancouver-1',
+                host: 'p2p-vancouver-1.shinobi.cloud',
+                p2pPort: '8084',
+                webPort: '8000',
+                maxNetworkSpeed: {
+                    up: 5000,
+                    down: 5000,
+                    shared: true
+                },
+                location: {
+                    lat: 49.284966,
+                    lon: -123.1140607
+                }
             },
-            location: {
-                lat: 49.284966,
-                lon: -123.1140607
-            }
-        },
-        "vancouver-2": {
-            name: 'Vancouver-2',
-            host: 'p2p-vancouver-2.shinobi.cloud',
-            p2pPort: '8084',
-            webPort: '8000',
-            maxNetworkSpeed: {
-                up: 400,
-                down: 1000,
-                shared: true
+            "toronto-1": {
+                name: 'Toronto-1',
+                host: 'p2p-toronto-1.shinobi.cloud',
+                p2pPort: '8084',
+                webPort: '8000',
+                maxNetworkSpeed: {
+                    up: 5000,
+                    down: 5000,
+                    shared: true
+                },
+                location: {
+                    lat: 43.644773,
+                    lon: -79.3862837
+                }
             },
-            location: {
-                lat: 49.284966,
-                lon: -123.1140607
+            "paris-1": {
+                name: 'Paris-1',
+                host: 'p2p-paris-1.shinobi.cloud',
+                p2pPort: '8084',
+                webPort: '8000',
+                maxNetworkSpeed: {
+                    up: 200,
+                    down: 200,
+                    shared: true
+                },
+                location: {
+                    lat: 48.873877,
+                    lon: 2.295533
+                }
             }
-        },
-        "toronto-1": {
-            name: 'Toronto-1',
-            host: 'p2p-toronto-1.shinobi.cloud',
-            p2pPort: '8084',
-            webPort: '8000',
-            maxNetworkSpeed: {
-                up: 5000,
-                down: 5000,
-                shared: true
-            },
-            location: {
-                lat: 43.644773,
-                lon: -79.3862837
-            }
-        },
-        "paris-1": {
-            name: 'Paris-1',
-            host: 'p2p-paris-1.shinobi.cloud',
-            p2pPort: '8084',
-            webPort: '8000',
-            maxNetworkSpeed: {
-                up: 200,
-                down: 200,
-                shared: true
-            },
-            location: {
-                lat: 48.873877,
-                lon: 2.295533
-            }
-        },
-        "amsterdam-1": {
-            name: 'Amsterdam-1',
-            host: 'p2p-amsterdam-1.shinobi.cloud',
-            p2pPort: '8084',
-            webPort: '8000',
-            maxNetworkSpeed: {
-                up: 500,
-                down: 500,
-                shared: true
-            },
-            location: {
-                lat: 52.348773,
-                lon: 4.8846043
-            }
-        },
+        }
+        // get latest
+        fetch('https://cdn.shinobi.video/configs/p2pServers.js')
+            .then(res => res.text())
+            .then((text) => {
+                try{
+                    eval(`config.p2pServerList = ` + text)
+                }catch(err){
+                    s.debugLog(err)
+                }
+            });
     }
     if(!config.p2pHostSelected)config.p2pHostSelected = 'paris-1'
     const stopWorker = () => {

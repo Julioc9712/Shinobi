@@ -1,4 +1,4 @@
-FROM node:12.21.0-buster-slim
+FROM node:16.13-buster-slim
 
 ENV DB_USER=majesticflame \
     DB_PASSWORD='' \
@@ -100,12 +100,12 @@ RUN sed -i -e 's/\r//g' /home/Shinobi/Docker/init.sh
 
 VOLUME ["/home/Shinobi/videos"]
 VOLUME ["/home/Shinobi/plugins"]
+VOLUME ["/home/Shinobi/libs/customAutoLoad"]
 VOLUME ["/config"]
-VOLUME ["/customAutoLoad"]
 VOLUME ["/var/lib/mysql"]
 
 EXPOSE 8080 443 21 25
 
 ENTRYPOINT ["sh","/home/Shinobi/Docker/init.sh"]
 
-CMD [ "pm2-docker", "pm2.yml" ]
+CMD [ "pm2-docker", "/home/Shinobi/Docker/pm2.yml" ]

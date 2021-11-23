@@ -4,10 +4,6 @@ const {
     stringContains,
 } = require('../common.js')
 module.exports = (s,config,lang) => {
-    const {
-        createSnapshot,
-        addCredentialsToStreamLink,
-    } = require('../monitor/utils.js')(s,config,lang)
     const ipRange = (start_ip, end_ip) => {
       var startLong = toLong(start_ip);
       var endLong = toLong(end_ip);
@@ -148,13 +144,10 @@ module.exports = (s,config,lang) => {
                 var imageSnap
                 if(cameraResponse.uri){
                     try{
-                        imageSnap = (await createSnapshot({
-                            output: ['-s 400x400'],
-                            url: addCredentialsToStreamLink({
-                                username: onvifUsername,
-                                password: onvifPassword,
-                                url: cameraResponse.uri
-                            }),
+                        imageSnap = (await s.getSnapshotFromOnvif({
+                            username: onvifUsername,
+                            password: onvifPassword,
+                            uri: cameraResponse.uri,
                         })).toString('base64');
                     }catch(err){
                         s.debugLog(err)

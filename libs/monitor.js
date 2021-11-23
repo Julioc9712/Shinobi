@@ -186,6 +186,11 @@ module.exports = function(s,config,lang){
                         var temporaryImageFile = streamDir + s.gid(5) + '.jpg'
                         var iconImageFile = streamDir + 'icon.jpg'
                         var ffmpegCmd = splitForFFPMEG(`-loglevel warning -re -probesize 100000 -analyzeduration 100000 ${inputOptions.join(' ')} -i "${url}" ${outputOptions.join(' ')} -f image2 -an -vf "fps=1" -vframes 1 "${temporaryImageFile}"`)
+                        checkExists(streamDir, function(success) {
+                            if (success === false) {
+                                fs.mkdirSync(streamDir, {recursive: true}, (err) => {s.debugLog(err)})
+                            }
+                        })
                         const snapProcess = new Worker(__dirname + '/cameraThread/snapshot.js', {
                             workerData: {
                                 jsonData: {
@@ -495,9 +500,12 @@ module.exports = function(s,config,lang){
         s.checkDetails(e)
         if(e.ke && config.doSnapshot === true){
             if(s.group[e.ke] && s.group[e.ke].rawMonitorConfigurations && s.group[e.ke].rawMonitorConfigurations[e.mid] && s.group[e.ke].rawMonitorConfigurations[e.mid].mode !== 'stop'){
-                var pathDir = s.dir.streams+e.ke+'/'+e.mid+'/'
-                const {screenShot, isStaticFile} = await s.getRawSnapshotFromMonitor(s.group[e.ke].rawMonitorConfigurations[e.mid],options)
-                if(screenShot){
+                if(s.group[e.ke].activeMonitors[e.mid].onvifConnection){
+                    const screenShot = await s.getSnapshotFromOnvif({
+                        username: onvifUsername,
+                        password: onvifPassword,
+                        uri: cameraResponse.uri,
+                    });
                     s.tx({
                         f: 'monitor_snapshot',
                         snapshot: screenShot.toString('base64'),
@@ -506,9 +514,21 @@ module.exports = function(s,config,lang){
                         ke: e.ke
                     },'GRP_'+e.ke)
                 }else{
-                    s.debugLog('Damaged Snapshot Data')
-                    s.tx({f:'monitor_snapshot',snapshot:e.mon.name,snapshot_format:'plc',mid:e.mid,ke:e.ke},'GRP_'+e.ke)
-               }
+                    var pathDir = s.dir.streams+e.ke+'/'+e.mid+'/'
+                    const {screenShot, isStaticFile} = await s.getRawSnapshotFromMonitor(s.group[e.ke].rawMonitorConfigurations[e.mid],options)
+                    if(screenShot){
+                        s.tx({
+                            f: 'monitor_snapshot',
+                            snapshot: screenShot.toString('base64'),
+                            snapshot_format: 'b64',
+                            mid: e.mid,
+                            ke: e.ke
+                        },'GRP_'+e.ke)
+                    }else{
+                        s.debugLog('Damaged Snapshot Data')
+                        s.tx({f:'monitor_snapshot',snapshot:e.mon.name,snapshot_format:'plc',mid:e.mid,ke:e.ke},'GRP_'+e.ke)
+                   }
+                }
             }else{
                 s.tx({f:'monitor_snapshot',snapshot:'Disabled',snapshot_format:'plc',mid:e.mid,ke:e.ke},'GRP_'+e.ke)
             }
@@ -930,11 +950,15 @@ module.exports = function(s,config,lang){
                        console.log(err)
                    }
                 })
-                if(e.details.detector_use_detect_object === '1'){
+                if(e.details.detector_use_detect_object === '1' && e.details.detector_use_motion === '1' ){
                     s.group[e.ke].activeMonitors[e.id].spawn.stdio[4].on('data',function(data){
                         onDetectorJpegOutputSecondary(e,data)
                     })
-                }
+                }else{
+		    s.group[e.ke].activeMonitors[e.id].spawn.stdio[4].on('data',function(data){
+                        onDetectorJpegOutputAlone(e,data)
+                    })
+		}
             }else if(e.details.detector_use_detect_object === '1' && e.details.detector_send_frames !== '1'){
                 s.group[e.ke].activeMonitors[e.id].spawn.stdio[4].on('data',function(data){
                     onDetectorJpegOutputSecondary(e,data)

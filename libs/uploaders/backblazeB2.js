@@ -53,9 +53,9 @@ module.exports = function(s,config,lang){
                         applicationKey: userDetails.bb_b2_applicationKey
                     })
                     b2.authorize().then(function(resp){
-                        s.group[e.ke].bb_b2_downloadUrl = resp.data.downloadUrl
+                        s.group[e.ke].bb_b2_downloadUrl = resp.downloadUrl
                         b2.listBuckets().then(function(resp){
-                            var buckets = resp.data.buckets
+                            var buckets = resp.buckets
                             var bucketN = -2
                             buckets.forEach(function(item,n){
                                 if(item.bucketName === userDetails.bb_b2_bucket){
@@ -69,7 +69,7 @@ module.exports = function(s,config,lang){
                                     userDetails.bb_b2_bucket,
                                     'allPublic'
                                 ).then(function(resp){
-                                    s.group[e.ke].bb_b2_bucketId = resp.data.bucketId
+                                    s.group[e.ke].bb_b2_bucketId = resp.bucketId
                                 }).catch(backblazeErr)
                             }
                         }).catch(backblazeErr)
@@ -98,7 +98,7 @@ module.exports = function(s,config,lang){
             fileId: videoDetails.fileId,
             fileName: videoDetails.fileName
         }).then(function(resp){
-            // console.log('deleteFileVersion',resp.data)
+            // console.log('deleteFileVersion',resp)
         }).catch(function(err){
             console.log('deleteFileVersion',err)
         })
@@ -117,7 +117,7 @@ module.exports = function(s,config,lang){
                 var backblazeSavePath = s.group[e.ke].init.bb_b2_dir+e.ke+'/'+e.mid+'/'+k.filename
                 var getUploadUrl = function(bucketId,callback){
                     s.group[e.ke].bb_b2.getUploadUrl(bucketId).then(function(resp){
-                        callback(resp.data)
+                        callback(resp)
                     }).catch(backblazeErr)
                 }
                 getUploadUrl(s.group[e.ke].bb_b2_bucketId,function(req){
@@ -128,7 +128,7 @@ module.exports = function(s,config,lang){
                         data: data,
                         onUploadProgress: null
                     }).then(function(resp){
-                        if(s.group[e.ke].init.bb_b2_log === '1' && resp.data.fileId){
+                        if(s.group[e.ke].init.bb_b2_log === '1' && resp.fileId){
                             var backblazeDownloadUrl = s.group[e.ke].bb_b2_downloadUrl + '/file/' + s.group[e.ke].init.bb_b2_bucket + '/' + backblazeSavePath
                             s.knexQuery({
                                 action: "insert",
@@ -140,9 +140,9 @@ module.exports = function(s,config,lang){
                                     status: 1,
                                     details: s.s({
                                         type : 'b2',
-                                        bucketId : resp.data.bucketId,
-                                        fileId : resp.data.fileId,
-                                        fileName : resp.data.fileName
+                                        bucketId : resp.bucketId,
+                                        fileId : resp.fileId,
+                                        fileName : resp.fileName
                                     }),
                                     size: k.filesize,
                                     end: k.endTime,

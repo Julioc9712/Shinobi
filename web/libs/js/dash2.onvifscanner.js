@@ -53,7 +53,7 @@ $(document).ready(function(e){
                 mid: tempID + `${options.port}`,
                 host: pathLocation.hostname,
                 port: pathLocation.port,
-                path: pathLocation.pathname,
+                path: pathLocation.pathname + (pathLocation.search && pathLocation.search !== '?' ? pathLocation.search : ''),
                 protocol: theLocation.protocol,
                 details: {
                     auto_host: addCredentialsToUri(streamUrl,currentUsername,currentPassword),

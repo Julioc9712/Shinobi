@@ -38,7 +38,7 @@ module.exports = function(s,config,lang,app,io){
                         ipAddress = cn.request.connection.remoteAddress.replace('::ffff:','')+':'+d.port
                         cn.ip = ipAddress
                         cn.shinobi_child = 1
-                        tx = function(z){
+                        cn.tx = function(z){
                             cn.emit('c',z)
                         }
                         if(!s.childNodes[cn.ip]){
@@ -52,7 +52,7 @@ module.exports = function(s,config,lang,app,io){
                         d.availableHWAccels.forEach(function(accel){
                             if(config.availableHWAccels.indexOf(accel) === -1)config.availableHWAccels.push(accel)
                         })
-                        tx({
+                        cn.tx({
                             f : 'init_success',
                             childNodes : s.childNodes
                         })
@@ -103,7 +103,7 @@ module.exports = function(s,config,lang,app,io){
                                     return console.log('FILE NOT EXIST')
                                 }
                                 s.group[d.ke].activeMonitors[d.mid].childNodeStreamWriters[d.filename].end()
-                                tx({
+                                cn.tx({
                                     f: 'deleteTimelapseFrame',
                                     file: d.filename,
                                     currentDate: d.currentDate,
@@ -118,6 +118,9 @@ module.exports = function(s,config,lang,app,io){
                             case'created_file_chunk':
                                 if(!s.group[d.ke].activeMonitors[d.mid].childNodeStreamWriters[d.filename]){
                                     d.dir = s.getVideoDirectory(s.group[d.ke].rawMonitorConfigurations[d.mid])
+                                    if (!fs.existsSync(d.dir)) {
+                                        fs.mkdirSync(d.dir, {recursive: true}, (err) => {s.debugLog(err)})
+                                    }
                                     s.group[d.ke].activeMonitors[d.mid].childNodeStreamWriters[d.filename] = fs.createWriteStream(d.dir+d.filename)
                                 }
                                 s.group[d.ke].activeMonitors[d.mid].childNodeStreamWriters[d.filename].write(d.chunk)
@@ -127,7 +130,7 @@ module.exports = function(s,config,lang,app,io){
                                     return console.log('FILE NOT EXIST')
                                 }
                                 s.group[d.ke].activeMonitors[d.mid].childNodeStreamWriters[d.filename].end();
-                                tx({
+                                cn.tx({
                                     f:'delete',
                                     file:d.filename,
                                     ke:d.ke,
