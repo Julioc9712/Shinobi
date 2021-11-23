@@ -107,8 +107,8 @@ RUN sed -i -e 's/\r//g' /home/Shinobi/Docker/init.sh
 
 VOLUME ["/home/Shinobi/videos"]
 VOLUME ["/home/Shinobi/plugins"]
+VOLUME ["/home/Shinobi/libs/customAutoLoad"]
 VOLUME ["/config"]
-VOLUME ["/customAutoLoad"]
 VOLUME ["/var/lib/mysql"]
 
 EXPOSE 8080 443 21 25

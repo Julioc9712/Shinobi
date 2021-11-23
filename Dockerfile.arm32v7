@@ -98,8 +98,8 @@ RUN chmod -f +x /home/Shinobi/Docker/init.sh
 
 VOLUME ["/home/Shinobi/videos"]
 VOLUME ["/home/Shinobi/plugins"]
+VOLUME ["/home/Shinobi/libs/customAutoLoad"]
 VOLUME ["/config"]
-VOLUME ["/customAutoLoad"]
 VOLUME ["/var/lib/mysql"]
 
 EXPOSE 8080
