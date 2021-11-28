@@ -148,7 +148,7 @@ if [ "${installdbserver^}" = "Y" ] || [ "${installdbserver^}" = "" ]; then
 
 	if [ "${securedbserver^}" = "Y" ]; then
 		#Configure basic security for MariaDB
-		sudo mysql_secure_installation
+		sudo mariadb-secure-installation
 	else
 		echo "========================================================="
 		echo "Skipping database server security configuration..."

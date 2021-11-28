@@ -76,7 +76,7 @@ if [ "$mysqlagree" = "y" ] || [ "$mysqlagree" = "Y" ]; then
     sudo systemctl start mariadb
     sudo systemctl enable mariadb
     #Run mysql install
-    sudo mysql_secure_installation
+    sudo mariadb-secure-installation
 fi
 echo "============="
 echo "Shinobi - Database Installation"
