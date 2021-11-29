@@ -987,7 +987,22 @@ module.exports = function(s,config,lang,io){
                              s.deleteFileBinEntry(d.file)
                          break;
                          case's.setDiskUsedForGroup':
-                            s.setDiskUsedForGroup(d.ke,d.size,d.target || undefined)
+                            function doOnMain(){
+                                s.setDiskUsedForGroup(d.ke,d.size,d.target || undefined)
+                            }
+                            if(d.videoRow){
+                                let storageIndex = s.getVideoStorageIndex(d.videoRow);
+                                if(storageIndex){
+                                    s.setDiskUsedForGroupAddStorage(d.ke,{
+                                        size: d.size,
+                                        storageIndex: storageIndex
+                                    })
+                                }else{
+                                    doOnMain()
+                                }
+                            }else{
+                                doOnMain()
+                            }
                          break;
                          case'start':case'end':
                              d.mid='_cron';s.userLog(d,{type:'cron',msg:d.msg})

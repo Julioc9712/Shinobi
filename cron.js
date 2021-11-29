@@ -92,8 +92,8 @@ const deleteVideo = (x) => {
 const deleteFileBinEntry = (x) => {
     postMessage({f:'s.deleteFileBinEntry',file:x})
 }
-const setDiskUsedForGroup = (groupKey,size,target) => {
-    postMessage({f:'s.setDiskUsedForGroup', ke: groupKey, size: size, target: target})
+const setDiskUsedForGroup = (groupKey,size,target,videoRow) => {
+    postMessage({f:'s.setDiskUsedForGroup', ke: groupKey, size: size, target: target, videoRow: videoRow})
 }
 const getVideoDirectory = function(e){
     if(e.mid&&!e.id){e.id=e.mid};
@@ -185,6 +185,7 @@ const checkFilterRules = function(v){
     })
 }
 const deleteVideosByDays = async (v,days,addedQueries) => {
+    const groupKey = v.ke;
     const whereQuery = [
         ['ke','=',v.ke],
         ['time','<', sqlDate(days+' DAY')],
@@ -207,7 +208,8 @@ const deleteVideosByDays = async (v,days,addedQueries) => {
             const filename = formattedTime(row.time) + '.' + row.ext
             try{
                 await fs.promises.unlink(dir + filename)
-                clearSize += row.size / 1048576
+                const fileSizeMB = row.size / 1048576;
+                setDiskUsedForGroup(groupKey,-fileSizeMB,null,row)
                 sendToWebSocket({
                     f: 'video_delete',
                     filename: filename + '.' + row.ext,
@@ -227,7 +229,6 @@ const deleteVideosByDays = async (v,days,addedQueries) => {
             where: whereQuery
         })
         affectedRows = deleteResponse.rows || 0
-        setDiskUsedForGroup(v.ke,-clearSize)
     }
     return {
         ok: true,
