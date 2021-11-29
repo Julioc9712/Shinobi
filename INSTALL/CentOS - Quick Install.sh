@@ -125,7 +125,7 @@ if [ "${ffmpeginstall^}" = "Y" ]; then
 	elif [ "$version" = 8 ]; then
 		#Enable Negativo17 repo for FFMPEG (CentOS 8)
 		sudo dnf install epel-release dnf-utils -y -q -e 0
-		sudo yum-config-manager --set-enabled PowerTools
+		sudo yum-config-manager --set-enabled powertools
 		sudo yum-config-manager --add-repo=https://negativo17.org/repos/epel-multimedia.repo
 		sudo dnf install ffmpeg ffmpeg-devel -y -q -e 0
 	fi
@@ -148,7 +148,7 @@ if [ "${installdbserver^}" = "Y" ] || [ "${installdbserver^}" = "" ]; then
 
 	if [ "${securedbserver^}" = "Y" ]; then
 		#Configure basic security for MariaDB
-		sudo mysql_secure_installation
+		sudo mariadb-secure-installation
 	else
 		echo "========================================================="
 		echo "Skipping database server security configuration..."

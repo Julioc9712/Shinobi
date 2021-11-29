@@ -608,9 +608,11 @@ module.exports = function(s,config,lang){
     }
     s.getVideoStorageIndex = function(video){
         try{
-            var details = s.parseJSON(video.details) || {}
-            var storageId = details.storageId
-            if(s.group[video.ke] && s.group[video.ke].activeMonitors[video.id] && s.group[video.ke].activeMonitors[video.id].addStorageId)storageId = s.group[video.ke].activeMonitors[video.id].addStorageId
+            const monitorId = video.id || video.mid
+            const details = s.parseJSON(video.details) || {}
+            const storageId = details.storageId
+            const activeMonitor = s.group[video.ke] && s.group[video.ke].activeMonitors[monitorId] ? s.group[video.ke].activeMonitors[monitorId] : null;
+            if(activeMonitor && activeMonitor.addStorageId)storageId = activeMonitor.addStorageId;
             if(storageId){
                 return s.group[video.ke].addStorageUse[storageId]
             }
