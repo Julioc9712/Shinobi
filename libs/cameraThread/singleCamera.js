@@ -14,9 +14,33 @@ const stdioPipes = jsonData.pipes || []
 var newPipes = []
 var stdioWriters = [];
 
-var writeToStderr = function(text){
+const dataPort = require('./libs/dataPortConnection.js')(jsonData,
+// onConnected
+() => {
+    dataPort.send(jsonData.dataPortToken)
+},
+// onError
+(err) => {
+    writeToStderr([
+        'dataPort:Connection:Error',
+        err
+    ])
+},
+// onClose
+(e) => {
+    writeToStderr([
+        'dataPort:Connection:Closed',
+        e
+    ])
+})
+
+var writeToStderr = function(argsAsArray){
   try{
-    process.stderr.write(Buffer.from(`${text}`, 'utf8' ))
+    // process.stderr.write(Buffer.from(`${text}`, 'utf8' ))
+    dataPort.send({
+        f: 'debugLog',
+        data: argsAsArray,
+    })
       // stdioWriters[2].write(Buffer.from(`${new Error('writeToStderr').stack}`, 'utf8' ))
   }catch(err){
   }
@@ -111,7 +135,9 @@ writeToStderr('Thread Opening')
 
 if(rawMonitorConfig.details.detector === '1' && rawMonitorConfig.details.detector_pam === '1'){
   try{
-    const attachPamDetector = require(config.monitorDetectorDaemonPath ? config.monitorDetectorDaemonPath : __dirname + '/detector.js')(jsonData,stdioWriters[3])
+    const attachPamDetector = require(config.monitorDetectorDaemonPath ? config.monitorDetectorDaemonPath : __dirname + '/detector.js')(jsonData,(detectorObject) => {
+        dataPort.send(JSON.stringify(detectorObject))
+    })
     attachPamDetector(cameraProcess)
   }catch(err){
     writeToStderr(err.stack)

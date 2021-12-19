@@ -1,8 +1,9 @@
-var fs = require('fs');
-var http = require('http');
-var https = require('https');
-var express = require('express');
-var app = express()
+const fs = require('fs');
+const url = require('url');
+const http = require('http');
+const https = require('https');
+const express = require('express');
+const app = express()
 module.exports = function(s,config,lang,io){
     //get page URL
     if(!config.baseURL){
@@ -103,9 +104,20 @@ module.exports = function(s,config,lang,io){
         })
     }
     //start HTTP
+    const onHttpRequestUpgradeExtensions = s.onHttpRequestUpgradeExtensions;
     var server = http.createServer(app);
     server.listen(config.port,config.bindip,function(){
         console.log(lang.Shinobi+' : Web Server Listening on '+config.port);
+    });
+    server.on('upgrade', function upgrade(request, socket, head) {
+        const pathname = url.parse(request.url).pathname;
+        if(typeof onHttpRequestUpgradeExtensions[pathname] === 'function'){
+            onHttpRequestUpgradeExtensions[pathname](request, socket, head)
+        } else if (pathname.indexOf('/socket.io') > -1) {
+            return;
+        } else {
+            socket.destroy();
+        }
     });
     if(config.webPaths.home !== '/'){
         io.attach(server,{

@@ -15,6 +15,13 @@ const {
 } = require('worker_threads');
 const { copyObject, createQueue, queryStringToObject, createQueryStringFromObject } = require('./common.js')
 module.exports = function(s,config,lang){
+    const isMasterNode = (
+        (
+            config.childNodes.enabled === true &&
+            config.childNodes.mode === 'master'
+        ) ||
+        config.childNodes.enabled === false
+    );
     const {
         probeMonitor,
         getStreamInfoFromProbe,
@@ -44,6 +51,10 @@ module.exports = function(s,config,lang){
     const {
         scanForOrphanedVideos
     } = require('./video/utils.js')(s,config,lang)
+    const {
+        selectNodeForOperation,
+        bindMonitorToChildNode
+    } = require('./childNode/utils.js')(s,config,lang)
     const startMonitorInQueue = createQueue(1, 3)
     s.initiateMonitorObject = function(e){
         if(!s.group[e.ke]){s.group[e.ke]={}};
@@ -600,7 +611,7 @@ module.exports = function(s,config,lang){
     }
     const createTimelapseDirectory = function(e,callback){
         var directory = s.getTimelapseFrameDirectory(e)
-        fs.mkdir(directory,function(err){
+        fs.mkdir(directory,{ recursive: true },function(err){
             s.handleFolderError(err)
             callback(err,directory)
         })
@@ -889,42 +900,16 @@ module.exports = function(s,config,lang){
             //frames from motion detect
             if(e.details.detector_pam === '1'){
                // s.group[e.ke].activeMonitors[e.id].spawn.stdio[3].pipe(s.group[e.ke].activeMonitors[e.id].p2p).pipe(s.group[e.ke].activeMonitors[e.id].pamDiff)
-               s.group[e.ke].activeMonitors[e.id].spawn.stdio[3].on('data',function(buf){
-                   let theJson
-                   try{
-                       buf.toString().split('}{').forEach((object,n)=>{
-                           theJson = object
-                           if(object.substr(object.length - 1) !== '}')theJson += '}'
-                           if(object.substr(0,1) !== '{')theJson = '{' + theJson
-                           try{
-                               var data = JSON.parse(theJson)
-                           }catch(err){
-                               var data = JSON.parse(theJson + '}')
-                           }
-                           switch(data.f){
-                               case'trigger':
-                                    triggerEvent(data)
-                               break;
-                               case's.tx':
-                                   s.tx(data.data,data.to)
-                               break;
-                           }
-                       })
-                   }catch(err){
-                       console.log(theJson)
-                       console.log('There was an error parsing a detector event')
-                       console.log(err)
-                   }
-                })
+               // spawn.stdio[3] is deprecated and now motion events are handled by dataPort
                 if(e.details.detector_use_detect_object === '1' && e.details.detector_use_motion === '1' ){
                     s.group[e.ke].activeMonitors[e.id].spawn.stdio[4].on('data',function(data){
                         onDetectorJpegOutputSecondary(e,data)
                     })
                 }else{
-		    s.group[e.ke].activeMonitors[e.id].spawn.stdio[4].on('data',function(data){
+		            s.group[e.ke].activeMonitors[e.id].spawn.stdio[4].on('data',function(data){
                         onDetectorJpegOutputAlone(e,data)
                     })
-		}
+		        }
             }else if(e.details.detector_use_detect_object === '1' && e.details.detector_send_frames !== '1'){
                 s.group[e.ke].activeMonitors[e.id].spawn.stdio[4].on('data',function(data){
                     onDetectorJpegOutputSecondary(e,data)
@@ -1287,6 +1272,8 @@ module.exports = function(s,config,lang){
                     //data, options
                     d : s.group[e.ke].rawMonitorConfigurations[e.id]
                 },activeMonitor.childNodeId)
+                clearTimeout(activeMonitor.recordingChecker);
+                clearTimeout(activeMonitor.streamChecker);
             }
             if(
                 e.type !== 'socket' &&
@@ -1302,37 +1289,21 @@ module.exports = function(s,config,lang){
         }
         try{
             if(config.childNodes.enabled === true && config.childNodes.mode === 'master'){
-                var copiedMonitorObject = s.cleanMonitorObject(s.group[e.ke].rawMonitorConfigurations[e.id])
-                var childNodeList = Object.keys(s.childNodes)
-                if(childNodeList.length > 0){
-                    e.childNodeFound = false
-                    var selectNode = function(ip){
-                        e.childNodeFound = true
-                        e.childNodeSelected = ip
-                    }
-                    var nodeWithLowestActiveCamerasCount = 65535
-                    var nodeWithLowestActiveCameras = null
-                    childNodeList.forEach(function(ip){
-                        delete(s.childNodes[ip].activeCameras[e.ke+e.id])
-                        var nodeCameraCount = Object.keys(s.childNodes[ip].activeCameras).length
-                        if(!s.childNodes[ip].dead && nodeCameraCount < nodeWithLowestActiveCamerasCount && s.childNodes[ip].cpu < 75){
-                            nodeWithLowestActiveCamerasCount = nodeCameraCount
-                            nodeWithLowestActiveCameras = ip
-                        }
-                    })
-                    if(nodeWithLowestActiveCameras)selectNode(nodeWithLowestActiveCameras)
-                    if(e.childNodeFound === true){
-                        s.childNodes[e.childNodeSelected].activeCameras[e.ke+e.id] = copiedMonitorObject
-                        activeMonitor.childNode = e.childNodeSelected
-                        activeMonitor.childNodeId = s.childNodes[e.childNodeSelected].cnid;
-                        s.cx({f:'sync',sync:s.group[e.ke].rawMonitorConfigurations[e.id],ke:e.ke,mid:e.id},activeMonitor.childNodeId);
+                selectNodeForOperation({
+                    ke: e.ke,
+                    mid: e.id,
+                }).then((selectedNode) => {
+                    if(selectedNode){
+                        bindMonitorToChildNode({
+                            ke: e.ke,
+                            mid: e.id,
+                            childNodeId: selectedNode,
+                        })
                         doOnChildMachine()
                     }else{
                         startMonitorInQueue.push(doOnThisMachine,function(){})
                     }
-                }else{
-                    startMonitorInQueue.push(doOnThisMachine,function(){})
-                }
+                });
             }else{
                 startMonitorInQueue.push(doOnThisMachine,function(){})
             }
@@ -1540,13 +1511,13 @@ module.exports = function(s,config,lang){
                 if(!s.group[e.ke]||!s.group[e.ke].activeMonitors[e.id]){return}
                 if(config.childNodes.enabled === true && config.childNodes.mode === 'master' && s.group[e.ke].activeMonitors[e.id].childNode && s.childNodes[s.group[e.ke].activeMonitors[e.id].childNode].activeCameras[e.ke+e.id]){
                     s.group[e.ke].activeMonitors[e.id].isStarted = false
+                    s.cx({f:'sync',sync:s.group[e.ke].rawMonitorConfigurations[e.id],ke:e.ke,mid:e.id},s.group[e.ke].activeMonitors[e.id].childNodeId);
                     s.cx({
                         //function
                         f : 'cameraStop',
                         //data, options
                         d : s.group[e.ke].rawMonitorConfigurations[e.id]
                     },s.group[e.ke].activeMonitors[e.id].childNodeId)
-                    s.cx({f:'sync',sync:s.group[e.ke].rawMonitorConfigurations[e.id],ke:e.ke,mid:e.id},s.group[e.ke].activeMonitors[e.id].childNodeId);
                 }else{
                     closeEventBasedRecording(e)
                     if(s.group[e.ke].activeMonitors[e.id].fswatch){s.group[e.ke].activeMonitors[e.id].fswatch.close();delete(s.group[e.ke].activeMonitors[e.id].fswatch)}
@@ -1588,15 +1559,17 @@ module.exports = function(s,config,lang){
                     status: wantedStatus,
                     code: wantedStatusCode,
                 })
-                setTimeout(() => {
-                    scanForOrphanedVideos({
-                        ke: e.ke,
-                        mid: e.id,
-                    },{
-                        forceCheck: true,
-                        checkMax: 2
-                    })
-                },2000)
+                if(isMasterNode){
+                    setTimeout(() => {
+                        scanForOrphanedVideos({
+                            ke: e.ke,
+                            mid: e.id,
+                        },{
+                            forceCheck: true,
+                            checkMax: 2
+                        })
+                    },2000)
+                }
                 clearTimeout(s.group[e.ke].activeMonitors[e.id].onMonitorStartTimer)
                 s.onMonitorStopExtensions.forEach(function(extender){
                     extender(Object.assign(s.group[e.ke].rawMonitorConfigurations[e.id],{}),e)
@@ -1610,6 +1583,15 @@ module.exports = function(s,config,lang){
                 if(activeMonitor.isStarted === true){
                     //stop action, monitor already started or recording
                     return
+                }
+                if(activeMonitor.masterSaysToStop === true){
+                    s.sendMonitorStatus({
+                        id: e.id,
+                        ke: e.ke,
+                        status: lang.Stopped,
+                        code: 5,
+                    })
+                    return;
                 }
                 if(config.probeMonitorOnStart === true){
                     const probeResponse = await probeMonitor(s.group[e.ke].rawMonitorConfigurations[e.id],2000,true)

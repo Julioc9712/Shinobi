@@ -1,4 +1,5 @@
 const async = require("async");
+const fetch = require("node-fetch");
 const mergeDeep = function(...objects) {
   const isObject = obj => obj && typeof obj === 'object';
 
@@ -21,7 +22,18 @@ const mergeDeep = function(...objects) {
     return prev;
   }, {});
 }
+const getBuffer = async (url) => {
+  try {
+    const response = await fetch(url);
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    return buffer;
+  } catch (error) {
+    return { error };
+  }
+};
 module.exports = {
+    getBuffer: getBuffer,
     mergeDeep: mergeDeep,
     validateIntValue: (value) => {
         const newValue = !isNaN(parseInt(value)) ? parseInt(value) : null

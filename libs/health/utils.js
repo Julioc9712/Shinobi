@@ -16,14 +16,11 @@ const currentCPUInfo = {
     total: 0,
     active: 0
 }
-const lastCPUInfo = {
+let lastCPUInfo = {
     total: 0,
     active: 0
 }
 exports.getCpuUsageOnLinux = () => {
-    lastCPUInfo.active = currentCPUInfo.active;
-    lastCPUInfo.idle = currentCPUInfo.idle;
-    lastCPUInfo.total = currentCPUInfo.total;
     return new Promise((resolve,reject) => {
         const getUsage = function(callback){
             fs.readFile("/proc/stat" ,'utf8', function(err, data){
@@ -36,6 +33,7 @@ exports.getCpuUsageOnLinux = () => {
                 }
                 currentCPUInfo.active = currentCPUInfo.total - currentCPUInfo.idle
                 currentCPUInfo.percentUsed = calculateCPUPercentage(lastCPUInfo, currentCPUInfo);
+                lastCPUInfo = Object.assign({},currentCPUInfo)
                 callback(currentCPUInfo.percentUsed)
             })
         }

@@ -70,13 +70,13 @@ module.exports = function(jsonData,pamDiffResponder,alternatePamDiff){
       var sendDetectedData = function(detectorObject){
         pamDiffResponder(detectorObject)
       }
-    }else{
-      var sendDetectedData = function(detectorObject){
-        pamDiffResponder.write(Buffer.from(JSON.stringify(detectorObject)))
-      }
+  }else{
+        var sendDetectedData = function(detectorObject){
+            pamDiffResponder.write(Buffer.from(JSON.stringify(detectorObject)))
+        }
     }
     function logData(...args){
-        process.logData(JSON.stringify(args))
+        process.logData(args)
     }
     function getRegionsWithMinimumChange(data){
         try{

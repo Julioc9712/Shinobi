@@ -2,6 +2,7 @@ var os = require('os');
 const onvif = require("shinobi-onvif");
 const {
     stringContains,
+    getBuffer,
 } = require('../common.js')
 module.exports = (s,config,lang) => {
     const ipRange = (start_ip, end_ip) => {
@@ -119,9 +120,7 @@ module.exports = (s,config,lang) => {
                     ProfileToken : device.current_profile.token,
                     Protocol : 'RTSP'
                 })
-                const snapUri = (await device.services.media.getSnapshotUri({
-                    ProfileToken : device.current_profile.token,
-                })).GetSnapshotUriResponse.MediaUri.Uri
+
                 var cameraResponse = {
                     ip: camera.ip,
                     port: camera.port,
@@ -145,16 +144,13 @@ module.exports = (s,config,lang) => {
                 }
                 responseList.push(cameraResponse)
                 var imageSnap
-                if(cameraResponse.uri){
-                    try{
-                        imageSnap = (await s.getSnapshotFromOnvif({
-                            username: onvifUsername,
-                            password: onvifPassword,
-                            uri: snapUri,
-                        })).toString('base64');
-                    }catch(err){
-                        s.debugLog(err)
-                    }
+                try{
+                    const snapUri = (await device.services.media.getSnapshotUri({
+                        ProfileToken : device.current_profile.token,
+                    })).data.GetSnapshotUriResponse.MediaUri.Uri
+                    imageSnap = (await getBuffer(snapUri)).toString('base64');
+                }catch(err){
+                    s.debugLog(err)
                 }
                 if(foundCameraCallback)foundCameraCallback(Object.assign(cameraResponse,{f: 'onvif', snapShot: imageSnap}))
             }catch(err){

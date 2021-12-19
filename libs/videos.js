@@ -2,6 +2,9 @@ var fs = require('fs');
 var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
 module.exports = function(s,config,lang){
+    const {
+        sendVideoToMasterNode,
+    } = require('./childNode/childUtils.js')(s,config,lang)
     /**
      * Gets the video directory of the supplied video or monitor database row.
      * @constructor
@@ -95,105 +98,85 @@ module.exports = function(s,config,lang){
         if(!k)k={};
         e.dir = s.getVideoDirectory(e)
         k.dir = e.dir.toString()
-        if(s.group[e.ke].activeMonitors[e.id].childNode){
-            s.cx({
-                f: 'insertCompleted',
-                d: s.group[e.ke].rawMonitorConfigurations[e.id],
-                k: k
-            },s.group[e.ke].activeMonitors[e.id].childNodeId);
-        }else{
-            //get file directory
+        const activeMonitor = s.group[e.ke].activeMonitors[e.id]
+        //get file directory
+        k.fileExists = fs.existsSync(k.dir+k.file)
+        if(k.fileExists!==true){
+            k.dir = s.dir.videos+'/'+e.ke+'/'+e.id+'/'
             k.fileExists = fs.existsSync(k.dir+k.file)
-            if(k.fileExists!==true){
-                k.dir = s.dir.videos+'/'+e.ke+'/'+e.id+'/'
-                k.fileExists = fs.existsSync(k.dir+k.file)
-                if(k.fileExists !== true){
-                    s.dir.addStorage.forEach(function(v){
-                        if(k.fileExists !== true){
-                            k.dir = s.checkCorrectPathEnding(v.path)+e.ke+'/'+e.id+'/'
-                            k.fileExists = fs.existsSync(k.dir+k.file)
-                        }
-                    })
-                }
+            if(k.fileExists !== true){
+                s.dir.addStorage.forEach(function(v){
+                    if(k.fileExists !== true){
+                        k.dir = s.checkCorrectPathEnding(v.path)+e.ke+'/'+e.id+'/'
+                        k.fileExists = fs.existsSync(k.dir+k.file)
+                    }
+                })
             }
-            if(k.fileExists===true){
-                //close video row
-                k.details = k.details && k.details instanceof Object ? k.details : {}
-                k.stat = fs.statSync(k.dir+k.file)
-                k.filesize = k.stat.size
-                k.filesizeMB = parseFloat((k.filesize/1048576).toFixed(2))
+        }
+        if(k.fileExists===true){
+            //close video row
+            k.details = k.details && k.details instanceof Object ? k.details : {}
+            k.stat = fs.statSync(k.dir+k.file)
+            k.filesize = k.stat.size
+            k.filesizeMB = parseFloat((k.filesize/1048576).toFixed(2))
 
-                k.startTime = new Date(s.nameToTime(k.file))
-                k.endTime = new Date(k.endTime || k.stat.mtime)
-                if(config.useUTC === true){
-                    fs.rename(k.dir+k.file, k.dir+s.formattedTime(k.startTime)+'.'+e.ext, (err) => {
-                        if (err) return console.error(err);
-                    });
-                    k.filename = s.formattedTime(k.startTime)+'.'+e.ext
-                }else{
-                    k.filename = k.file
-                }
-                if(!e.ext){e.ext = k.filename.split('.')[1]}
-                //send event for completed recording
-                const response = {
+            k.startTime = new Date(s.nameToTime(k.file))
+            k.endTime = new Date(k.endTime || k.stat.mtime)
+            if(config.useUTC === true){
+                fs.rename(k.dir+k.file, k.dir+s.formattedTime(k.startTime)+'.'+e.ext, (err) => {
+                    if (err) return console.error(err);
+                });
+                k.filename = s.formattedTime(k.startTime)+'.'+e.ext
+            }else{
+                k.filename = k.file
+            }
+            if(!e.ext){e.ext = k.filename.split('.')[1]}
+            //send event for completed recording
+            const response = {
+                mid: e.mid,
+                ke: e.ke,
+                filename: k.filename,
+                filesize: k.filesize,
+                time: s.timeObject(k.startTime).format('YYYY-MM-DD HH:mm:ss'),
+                end: s.timeObject(k.endTime).format('YYYY-MM-DD HH:mm:ss')
+            }
+            if(config.childNodes.enabled === true && config.childNodes.mode === 'child' && config.childNodes.host){
+                var filePath = k.dir + k.filename;
+                sendVideoToMasterNode(filePath,response)
+            }else{
+                var href = '/videos/'+e.ke+'/'+e.mid+'/'+k.filename
+                if(config.useUTC === true)href += '?isUTC=true';
+                const monitorEventsCounted = activeMonitor.detector_motion_count
+                s.txWithSubPermissions({
+                    f: 'video_build_success',
+                    hrefNoAuth: href,
+                    filename: k.filename,
                     mid: e.mid,
                     ke: e.ke,
-                    filename: k.filename,
-                    d: s.cleanMonitorObject(s.group[e.ke].rawMonitorConfigurations[e.id]),
-                    filesize: k.filesize,
-                    time: s.timeObject(k.startTime).format('YYYY-MM-DD HH:mm:ss'),
-                    end: s.timeObject(k.endTime).format('YYYY-MM-DD HH:mm:ss')
-                }
-                if(config.childNodes.enabled === true && config.childNodes.mode === 'child' && config.childNodes.host){
-                    fs.createReadStream(k.dir+k.filename,{ highWaterMark: 500 })
-                    .on('data',function(data){
-                        s.cx(Object.assign(response,{
-                            f:'created_file_chunk',
-                            chunk: data,
-                        }))
-                    })
-                    .on('close',function(){
-                        clearTimeout(s.group[e.ke].activeMonitors[e.id].recordingChecker)
-                        clearTimeout(s.group[e.ke].activeMonitors[e.id].streamChecker)
-                        s.cx(Object.assign(response,{
-                            f:'created_file',
-                        }))
+                    time: k.startTime,
+                    size: k.filesize,
+                    end: k.endTime,
+                    events: monitorEventsCounted && monitorEventsCounted.length > 0 ? monitorEventsCounted : null
+                },'GRP_'+e.ke,'video_view')
+                //purge over max
+                s.purgeDiskForGroup(e.ke)
+                //send new diskUsage values
+                var storageIndex = s.getVideoStorageIndex(e)
+                if(storageIndex){
+                    s.setDiskUsedForGroupAddStorage(e.ke,{
+                        size: k.filesizeMB,
+                        storageIndex: storageIndex
                     })
                 }else{
-                    var href = '/videos/'+e.ke+'/'+e.mid+'/'+k.filename
-                    if(config.useUTC === true)href += '?isUTC=true';
-                    const monitorEventsCounted = s.group[e.ke].activeMonitors[e.mid].detector_motion_count
-                    s.txWithSubPermissions({
-                        f: 'video_build_success',
-                        hrefNoAuth: href,
-                        filename: k.filename,
-                        mid: e.mid,
-                        ke: e.ke,
-                        time: k.startTime,
-                        size: k.filesize,
-                        end: k.endTime,
-                        events: monitorEventsCounted && monitorEventsCounted.length > 0 ? monitorEventsCounted : null
-                    },'GRP_'+e.ke,'video_view')
-                    //purge over max
-                    s.purgeDiskForGroup(e.ke)
-                    //send new diskUsage values
-                    var storageIndex = s.getVideoStorageIndex(e)
-                    if(storageIndex){
-                        s.setDiskUsedForGroupAddStorage(e.ke,{
-                            size: k.filesizeMB,
-                            storageIndex: storageIndex
-                        })
-                    }else{
-                        s.setDiskUsedForGroup(e.ke,k.filesizeMB)
-                    }
-                    s.onBeforeInsertCompletedVideoExtensions.forEach(function(extender){
-                        extender(e,k)
-                    })
-                    s.insertDatabaseRow(e,k,callback)
-                    s.insertCompletedVideoExtensions.forEach(function(extender){
-                        extender(e,k,response)
-                    })
+                    s.setDiskUsedForGroup(e.ke,k.filesizeMB)
                 }
+                s.onBeforeInsertCompletedVideoExtensions.forEach(function(extender){
+                    extender(e,k)
+                })
+                s.insertDatabaseRow(e,k,callback)
+                s.insertCompletedVideoExtensions.forEach(function(extender){
+                    extender(e,k,response)
+                })
             }
         }
         s.group[e.ke].activeMonitors[e.mid].detector_motion_count = []

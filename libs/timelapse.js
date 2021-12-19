@@ -2,6 +2,9 @@ var fs = require('fs')
 var moment = require('moment')
 var express = require('express')
 module.exports = function(s,config,lang,app,io){
+    const {
+        sendTimelapseFrameToMasterNode,
+    } = require('./childNode/childUtils.js')(s,config,lang)
     const timelapseFramesCache = {}
     const timelapseFramesCacheTimeouts = {}
     s.getTimelapseFrameDirectory = function(e){
@@ -22,8 +25,8 @@ module.exports = function(s,config,lang,app,io){
         if(e.details && e.details.dir && e.details.dir !== ''){
             details.dir = e.details.dir
         }
-        var timeNow = eventTime || new Date()
-        var queryInfo = {
+        const timeNow = eventTime || new Date()
+        const queryInfo = {
             ke: e.ke,
             mid: e.id,
             details: s.s(details),
@@ -32,45 +35,16 @@ module.exports = function(s,config,lang,app,io){
             time: timeNow
         }
         if(config.childNodes.enabled === true && config.childNodes.mode === 'child' && config.childNodes.host){
-            var currentDate = s.formattedTime(queryInfo.time,'YYYY-MM-DD')
-            s.cx({
-                f: 'open_timelapse_file_transfer',
+            var currentDate = s.formattedTime(timeNow,'YYYY-MM-DD')
+            const childNodeData = {
                 ke: e.ke,
                 mid: e.id,
-                d: s.group[e.ke].rawMonitorConfigurations[e.id],
+                time: currentDate,
                 filename: filename,
                 currentDate: currentDate,
                 queryInfo: queryInfo
-            })
-            var formattedTime = s.timeObject(timeNow).format()
-            fs.createReadStream(filePath,{ highWaterMark: 500 })
-            .on('data',function(data){
-                s.cx({
-                    f: 'created_timelapse_file_chunk',
-                    ke: e.ke,
-                    mid: e.id,
-                    time: formattedTime,
-                    filesize: e.filesize,
-                    chunk: data,
-                    d: s.group[e.ke].rawMonitorConfigurations[e.id],
-                    filename: filename,
-                    currentDate: currentDate,
-                    queryInfo: queryInfo
-                })
-            })
-            .on('close',function(){
-                s.cx({
-                    f: 'created_timelapse_file',
-                    ke: e.ke,
-                    mid: e.id,
-                    time: formattedTime,
-                    filesize: e.filesize,
-                    d: s.group[e.ke].rawMonitorConfigurations[e.id],
-                    filename: filename,
-                    currentDate: currentDate,
-                    queryInfo: queryInfo
-                })
-            })
+            }
+            sendTimelapseFrameToMasterNode(filePath,childNodeData)
         }else{
             s.insertTimelapseFrameDatabaseRow(e,queryInfo,filePath)
         }
