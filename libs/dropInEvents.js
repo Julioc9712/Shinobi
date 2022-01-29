@@ -188,7 +188,7 @@ module.exports = function(s,config,lang,app,io){
             createDropInEventsDirectory()
             if(!config.ftpServerPort)config.ftpServerPort = 21
             if(!config.ftpServerUrl)config.ftpServerUrl = `ftp://0.0.0.0:${config.ftpServerPort}`
-            if(!config.ftpServerPasvUrl)config.ftpServerPasvUrl = config.ftpServerUrl.replace(/.*:\/\//, '').replace(/:.*/, ''),
+            if(!config.ftpServerPasvUrl)config.ftpServerPasvUrl = config.ftpServerUrl.replace(/.*:\/\//, '').replace(/:.*/, '');
             if(!config.ftpServerPasvMinPort)config.ftpServerPasvMinPort = 10050;
             if(!config.ftpServerPasvMaxPort)config.ftpServerPasvMaxPort = 10100;
             config.ftpServerUrl = config.ftpServerUrl.replace('{{PORT}}',config.ftpServerPort)
