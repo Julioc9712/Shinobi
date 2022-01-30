@@ -654,20 +654,20 @@ module.exports = (s,config,lang) => {
                     if(objectDetectorOutputIsEnabled){
                         addObjectDetectorInputMap()
                         addObjectDetectValues()
-                        detectorFlags.push('-an -f singlejpeg pipe:4')
+                        detectorFlags.push('-an -f mjpeg pipe:4')
                     }
                 }else if(sendFramesToObjectDetector){
                     addObjectDetectorInputMap()
                     addObjectDetectValues()
-                    detectorFlags.push('-an -f singlejpeg pipe:4')
+                    detectorFlags.push('-an -f mjpeg pipe:4')
                 }else{
                     addInputMap()
-                    detectorFlags.push('-an -f singlejpeg pipe:4')
+                    detectorFlags.push('-an -f mjpeg pipe:4')
                 }
             }else if(sendFramesToObjectDetector){
                 addObjectDetectorInputMap()
                 addObjectDetectValues()
-                detectorFlags.push('-an -f singlejpeg pipe:4')
+                detectorFlags.push('-an -f mjpeg pipe:4')
             }
             return detectorFlags.join(' ')
         }
@@ -759,7 +759,7 @@ module.exports = (s,config,lang) => {
             if(videoFilters.length > 0){
                 videoFlags.push(`-vf "${videoFilters.join(',')}"`)
             }
-            videoFlags.push(`-f singlejpeg -an -q:v 1 pipe:7`)
+            videoFlags.push(`-f mjpeg -an -q:v 1 pipe:7`)
             return videoFlags.join(' ')
         }
         return ``
