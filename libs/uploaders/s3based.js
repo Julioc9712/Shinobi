@@ -177,6 +177,7 @@ module.exports = function(s,config,lang){
                             mid: queryInfo.mid,
                             ke: queryInfo.ke,
                             time: queryInfo.time,
+			    filename: queryInfo.filename,
                             details: s.s({
                                 type : 'whcs',
                                 location : saveLocation
