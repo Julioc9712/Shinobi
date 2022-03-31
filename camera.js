@@ -8,7 +8,7 @@
 // Subscribe : https://licenses.shinobi.video/subscribe?planSubscribe=plan_G31AZ9mknNCa6z
 // PayPal : paypal@m03.ca
 //
-const io = new (require('socket.io'))()
+const io = new (require('socket.io').Server)()
 //process handlers
 const s = require('./libs/process.js')(process,__dirname)
 //load extender functions

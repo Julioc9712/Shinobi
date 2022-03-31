@@ -2,6 +2,7 @@ $(document).ready(function(){
     var easyRemoteAccessTab = $('#easyRemoteAccess')
     var p2pHostSelectedContainer = $('#p2pHostSelected')
     var easyRemoteAccessForm = easyRemoteAccessTab.find('form')
+    var remoteDashboardLinkButton = easyRemoteAccessTab.find('.remote-dashboard-link')
     var loadingRegistration = false
     var currentlyRegisteredP2PServer = currentlySelectedP2PServerId ? currentlySelectedP2PServerId + '' : undefined
     function copyToClipboard(str) {
@@ -35,11 +36,13 @@ $(document).ready(function(){
         var chartViewerCount = cardEl.find('.chartViewerCount')
         var connectedUsers = cardEl.find('.connectedUsers')
         var registeredServers = cardEl.find('.registeredServers')
-        var socketConnection = io(`ws://${server.host}:${server.p2pPort}`,{
+        var chartPort = server.v2 ? server.chartPort || parseInt(server.webPort)  + 2 : server.p2pPort
+        var socketConnection = io(`ws://${server.host}:${chartPort}`,{
             transports: ['websocket'],
             query: {
                 charts: '1'
-            }
+            },
+            reconnect: false,
         })
         socketConnection.on('initUI',function(data){
             cardEl.find('.ramTotal').text(bytesToSize(data.ram))
@@ -74,6 +77,22 @@ $(document).ready(function(){
             var cardEl = easyRemoteAccessTab.find(`[drawn-id="${key}"]`)
             easyRemoteAccessTab.find(`[drawn-id].selected`).removeClass('selected')
             cardEl.addClass('selected')
+            setCurrentRemoteLink()
+        }
+    }
+    function setCurrentRemoteLink(){
+        var apiKey = easyRemoteAccessForm.find('[name="p2pApiKey"]').val()
+        var selectedServer = p2pServerList[currentlyRegisteredP2PServer]
+        console.log(selectedServer,currentlySelectedP2PServerId,p2pServerList)
+        if(selectedServer && selectedServer.host){
+            var href = `http://${selectedServer.host}:${selectedServer.webPort}/s/${apiKey}/${window.useBetterP2P ? '' : '?p2p=1'}`
+            remoteDashboardLinkButton.attr('href',href)
+        }else{
+            new PNotify({
+                type: 'warning',
+                title: lang['P2P Server Not Selected'],
+                text: lang.p2pServerNotSelectedText,
+            })
         }
     }
     easyRemoteAccessTab.find('.submit').click(function(){
@@ -96,6 +115,7 @@ $(document).ready(function(){
                     title: lang['P2P Settings Applied'],
                     text: lang.p2pSettingsText1,
                 })
+                setCurrentRemoteLink()
                 setTimeout(enableForm,5000)
             }
         })
@@ -108,26 +128,6 @@ $(document).ready(function(){
         el.addClass('active')
         currentlySelectedP2PServerId = p2pServerId
     })
-    easyRemoteAccessTab.on('click','.remote-dashboard-link',function(e){
-        e.preventDefault()
-        if(!loadingRegistration){
-            var apiKey = easyRemoteAccessForm.find('[name="p2pApiKey"]').val()
-            var selectedServer = p2pServerList[currentlyRegisteredP2PServer]
-            console.log(selectedServer,currentlySelectedP2PServerId,p2pServerList)
-            if(selectedServer && selectedServer.host){
-                var href = `http://${selectedServer.host}:${selectedServer.webPort}/s/${apiKey}/?p2p=1`
-                var win = window.open(href, '_blank');
-                win.focus();
-            }else{
-                new PNotify({
-                    type: 'warning',
-                    title: lang['P2P Server Not Selected'],
-                    text: lang.p2pServerNotSelectedText,
-                })
-            }
-        }
-        return false;
-    })
     easyRemoteAccessTab.on('click','.remote-dashboard-link-copy',function(e){
         e.preventDefault()
         if(!loadingRegistration){
@@ -135,7 +135,7 @@ $(document).ready(function(){
             var selectedServer = p2pServerList[currentlyRegisteredP2PServer]
             console.log(selectedServer,currentlySelectedP2PServerId,p2pServerList)
             if(selectedServer && selectedServer.host){
-                var href = `http://${selectedServer.host}:${selectedServer.webPort}/s/${apiKey}?p2p=1`
+                var href = `http://${selectedServer.host}:${selectedServer.webPort}/s/${apiKey}/${window.useBetterP2P ? '' : '?p2p=1'}`
                 copyToClipboard(href)
                 new PNotify({
                     type: 'success',
@@ -154,6 +154,7 @@ $(document).ready(function(){
     })
     $.each(p2pServerList,function(key,server){
         server.key = key
+        if(window.useBetterP2P && !server.v2)return;
         beginStatusConnectionForServer(key,server)
     })
     displayCurrentlySelectedInternally()

@@ -19,6 +19,7 @@
  </style>
  <script>
      window.p2pServerList = <%- JSON.stringify(p2pServerList) %>
+     window.useBetterP2P = <%- !!config.useBetterP2P %>
      window.currentlySelectedP2PServerId = `<%- config.p2pHostSelected %>`
  </script>
 <link rel="stylesheet" href="<%-window.libURL%>libs/css/super.easyRemoteAccess.css">
@@ -29,23 +30,19 @@
                 <a style="flex:12" href="#" class="submit btn btn-success"><i class="fa fa-check"></i> <%- lang.Save %></a>
             </div>
             <div class="form-group">
-                <label>
-                    <div><span><%-lang['Enabled']%></span></div>
-                    <div><select class="form-control" type="email" name="p2pEnabled">
-                        <option <% if(config.p2pEnabled === true){ %>selected<% } %> value="1">Yes</option>
-                        <option <% if(config.p2pEnabled !== true){ %>selected<% } %> value="0">No</option>
-                    </select></div>
-                </label>
+                <span><%-lang['Enabled']%></span>
+                <select class="form-control" type="email" name="p2pEnabled">
+                    <option <% if(config.p2pEnabled === true){ %>selected<% } %> value="1">Yes</option>
+                    <option <% if(config.p2pEnabled !== true){ %>selected<% } %> value="0">No</option>
+                </select>
             </div>
             <div class="form-group">
-                <label>
-                    <div><span><%-lang['P2P API Key']%></span></div>
-                    <div><input class="form-control" type="text" name="p2pApiKey" value="<%- config.p2pApiKey %>"></div>
-                </label>
+                <span><%-lang['P2P API Key']%></span>
+                <input class="form-control" type="text" name="p2pApiKey" value="<%- config.p2pApiKey %>">
             </div>
             <div class="form-group btn-group" style="display:flex">
                 <a style="flex:6" target="_blank" href="#" class="btn btn-default remote-dashboard-link-copy"><i class="fa fa-copy"></i> <%- lang['Copy Remote Link'] %></a>
-                <a style="flex:6" target="_blank" href="#" class="btn btn-info remote-dashboard-link"><i class="fa fa-external-link"></i> <%- lang['Open Remote Dashboard'] %></a>
+                <a style="flex:6" target="_blank" href="#" class="btn btn-info remote-dashboard-link" target="_blank"><i class="fa fa-external-link"></i> <%- lang['Open Remote Dashboard'] %></a>
             </div>
         </div>
         <div class="col-md-6 pt-2 pb-4">

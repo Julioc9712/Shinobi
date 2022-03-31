@@ -15,11 +15,13 @@ module.exports = function(s,config,lang,app){
     }
     if(!customerServerList){
         config.p2pServerList = {
-            "vancouver-1": {
+            "vancouver-1-v2": {
                 name: 'Vancouver-1',
                 host: 'p2p-vancouver-1.shinobi.cloud',
-                p2pPort: '8084',
-                webPort: '8000',
+                v2: true,
+                p2pPort: '81',
+                webPort: '80',
+                chartPort: '82',
                 maxNetworkSpeed: {
                     up: 5000,
                     down: 5000,
@@ -30,11 +32,13 @@ module.exports = function(s,config,lang,app){
                     lon: -123.1140607
                 }
             },
-            "toronto-1": {
+            "toronto-1-v2": {
                 name: 'Toronto-1',
                 host: 'p2p-toronto-1.shinobi.cloud',
-                p2pPort: '8084',
-                webPort: '8000',
+                v2: true,
+                p2pPort: '81',
+                webPort: '80',
+                chartPort: '82',
                 maxNetworkSpeed: {
                     up: 5000,
                     down: 5000,
@@ -45,11 +49,13 @@ module.exports = function(s,config,lang,app){
                     lon: -79.3862837
                 }
             },
-            "paris-1": {
+            "paris-1-v2": {
                 name: 'Paris-1',
                 host: 'p2p-paris-1.shinobi.cloud',
-                p2pPort: '8084',
-                webPort: '8000',
+                v2: true,
+                p2pPort: '81',
+                webPort: '80',
+                chartPort: '82',
                 maxNetworkSpeed: {
                     up: 200,
                     down: 200,

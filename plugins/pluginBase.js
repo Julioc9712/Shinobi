@@ -304,7 +304,7 @@ module.exports = function(__dirname, config){
     if(config.mode === 'host'){
         plugLog('Plugin started as Host')
         //start plugin as host
-        var io = require('socket.io')(server,{
+        const io = new (require('socket.io').Server)(server,{
             transports: ['websocket']
         })
         io.engine.ws = new (require('cws').Server)({
