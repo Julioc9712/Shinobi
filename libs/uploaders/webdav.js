@@ -41,11 +41,10 @@ module.exports = function(s,config,lang){
                 userDetails.webdav_dir='/'
             }
             userDetails.webdav_dir = s.checkCorrectPathEnding(userDetails.webdav_dir)
-            s.group[e.ke].webdav = webdav(
-                userDetails.webdav_url,
-                userDetails.webdav_user,
-                userDetails.webdav_pass
-            )
+            s.group[e.ke].webdav = webdav.createAdapter(userDetails.webdav_url, {
+                username: userDetails.webdav_user,
+                password: userDetails.webdav_pass
+            })
         }
     }
     var unloadWebDavForUser = function(user){

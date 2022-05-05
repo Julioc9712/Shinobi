@@ -1,5 +1,5 @@
-var fs = require('fs')
-var request = require('request')
+const fs = require('fs')
+const fetch = require('node-fetch')
 module.exports = function(s,config,lang,app,io){
     if(config.shinobiHubEndpoint === undefined){config.shinobiHubEndpoint = `https://hub.shinobi.video/`}else{config.shinobiHubEndpoint = s.checkCorrectPathEnding(config.shinobiHubEndpoint)}
     var stripUsernameAndPassword = function(string,username,password){
@@ -100,7 +100,11 @@ module.exports = function(s,config,lang,app,io){
                         queryString.push(key + '=' + value)
                     })
                 }
-                request(`${config.shinobiHubEndpoint}api/${shinobiHubApiKey}/getConfiguration/${req.params.type}${req.params.id ? '/' + req.params.id : ''}${queryString.length > 0 ? '?' + queryString.join('&') : ''}`).pipe(res)
+                const configUrl = `${config.shinobiHubEndpoint}api/${shinobiHubApiKey}/getConfiguration/${req.params.type}${req.params.id ? '/' + req.params.id : ''}${queryString.length > 0 ? '?' + queryString.join('&') : ''}`
+                fetch(configUrl).then(actual => {
+                    actual.headers.forEach((v, n) => res.setHeader(n, v));
+                    actual.body.pipe(res);
+                })
             }else{
                 s.closeJsonResponse(res,{
                     ok: false,

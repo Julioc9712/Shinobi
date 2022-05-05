@@ -1,5 +1,4 @@
 const fs = require('fs')
-const request = require('request')
 const exec = require('child_process').exec
 const spawn = require('child_process').spawn
 const isWindows = (process.platform === 'win32' || process.platform === 'win64')
@@ -14,6 +13,7 @@ const stdioPipes = jsonData.pipes || []
 var newPipes = []
 var stdioWriters = [];
 
+const { fetchTimeout } = require('../basic/utils.js')(process.cwd(),config)
 const dataPort = require('./libs/dataPortConnection.js')(jsonData,
 // onConnected
 () => {
@@ -145,7 +145,6 @@ if(rawMonitorConfig.details.detector === '1' && rawMonitorConfig.details.detecto
 }
 
 if(rawMonitorConfig.type === 'jpeg'){
-    var recordingSnapRequest
     var recordingSnapper
     var errorTimeout
     var errorCount = 0
@@ -163,16 +162,11 @@ if(rawMonitorConfig.type === 'jpeg'){
     setTimeout(() => {
         if(!cameraProcess.stdio[0])return writeToStderr('No Camera Process Found for Snapper');
         const captureOne = function(f){
-            recordingSnapRequest = request({
-                url: buildMonitorUrl(rawMonitorConfig),
+            fetchTimeout(buildMonitorUrl(rawMonitorConfig),15000,{
                 method: 'GET',
-                encoding: null,
-                timeout: 15000
-            },function(err,data){
-                if(err){
-                    writeToStderr(JSON.stringify(err))
-                    return;
-                }
+            })
+            .then(response => response.text())
+            .then(function(body){
                 // writeToStderr(data.body.length)
                 cameraProcess.stdio[0].write(data.body)
                 recordingSnapper = setTimeout(function(){
@@ -185,7 +179,7 @@ if(rawMonitorConfig.type === 'jpeg'){
                         delete(errorTimeout)
                     },3000)
                 }
-            }).on('error', function(err){
+            }).catch(function(err){
                 ++errorCount
                 clearTimeout(errorTimeout)
                 errorTimeout = null

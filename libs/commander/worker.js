@@ -1,5 +1,5 @@
 const { parentPort } = require('worker_threads');
-const request = require('request');
+const fetch = require('node-fetch');
 const socketIOClient = require('socket.io-client');
 const p2pClientConnectionStaticName = 'Commander'
 const p2pClientConnections = {}
@@ -58,15 +58,28 @@ const initialize = (config,lang) => {
         if(method === 'GET' && data){
             requestEndpoint += '?' + createQueryStringFromObject(data)
         }
-        const theRequest = request(requestEndpoint,{
+        const theRequest = fetch(requestEndpoint,{
             method: method,
-            json: method !== 'GET' ? (data ? data : null) : null
-        }, typeof callback === 'function' ? (err,resp,body) => {
-            // var json = parseJSON(body)
-            if(err)console.error(err,data)
-            callback(err,body,resp)
-        } : null)
-        .on('data', onDataReceived);
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: method !== 'GET' ? JSON.stringify(data ? data : null) : null
+        })
+        .then(res => {
+            res.body.on('data', onDataReceived);
+            return res
+        });
+        if(typeof callback === 'function'){
+            theRequest.then(res => res.json())
+            .then(json => {
+                callback(null,json);
+            })
+        }
+        theRequest.catch((err) => {
+            console.error(err);
+            if(typeof callback === 'function')callback(err,null);
+        });
         return theRequest
     }
     const createShinobiSocketConnection = (connectionId) => {

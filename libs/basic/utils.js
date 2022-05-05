@@ -1,7 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const moment = require('moment');
-const request  = require('request');
+const fetch  = require('node-fetch');
+const { AbortController } = require('node-abort-controller')
+const DigestFetch = require('digest-fetch')
 module.exports = (processCwd,config) => {
     const parseJSON = (string) => {
         var parsed
@@ -79,6 +81,50 @@ module.exports = (processCwd,config) => {
         if(!e){e=new Date};if(!x){x='YYYY-MM-DDTHH-mm-ss'};
         return moment(e).format(x);
     }
+    const fetchTimeout = (url, ms, { signal, ...options } = {}) => {
+        const controller = new AbortController();
+        const promise = fetch(url, { signal: controller.signal, ...options });
+        if (signal) signal.addEventListener("abort", () => controller.abort());
+        const timeout = setTimeout(() => controller.abort(), ms);
+        return promise.finally(() => clearTimeout(timeout));
+    }
+    async function fetchDownloadAndWrite(downloadUrl,outputPath,readFileAfterWrite,options){
+        const writeStream = fs.createWriteStream(outputPath);
+        const downloadBuffer = await fetch(downloadUrl,options).then((res) => res.buffer());
+        writeStream.write(downloadBuffer);
+        writeStream.end();
+        if(readFileAfterWrite === 1){
+            return fs.createReadStream(outputPath)
+        }else if(readFileAfterWrite === 2){
+            return downloadBuffer
+        }
+        return null
+    }
+    function fetchWithAuthentication(requestUrl,options,callback){
+        let hasDigestAuthEnabled = options.digestAuth;
+        let theRequester;
+        const hasUsernameAndPassword = options.username && typeof options.password === 'string'
+        const requestOptions = {
+            method : options.method || 'GET'
+        }
+        if(typeof options.postData === 'object'){
+            const formData = new fetch.FormData()
+            const formKeys = Object.keys(options.postData)
+            formKeys.forEach(function(key){
+                const value = formKeys[key]
+                formData.set(key, value)
+            })
+            requestOptions.body = formData
+        }
+        if(hasUsernameAndPassword && hasDigestAuthEnabled){
+            theRequester = (new DigestFetch(options.username, options.password)).fetch
+        }else if(hasUsernameAndPassword){
+            theRequester = (new DigestFetch(options.username, options.password, { basic: true })).fetch
+        }else{
+            theRequester = fetch
+        }
+        return theRequester(requestUrl,requestOptions)
+    }
     const checkSubscription = (subscriptionId,callback) => {
         function subscriptionFailed(){
             console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
@@ -92,12 +138,12 @@ module.exports = (processCwd,config) => {
         if(subscriptionId && subscriptionId !== 'sub_XXXXXXXXXXXX' && !config.disableOnlineSubscriptionCheck){
             var url = 'https://licenses.shinobi.video/subscribe/check?subscriptionId=' + subscriptionId
             var hasSubcribed = false
-            request(url,{
+            fetchTimeout(url,30000,{
                 method: 'GET',
-                timeout: 30000
-            }, function(err,resp,body){
+            })
+            .then(response => response.text())
+            .then(function(body){
                 var json = s.parseJSON(body)
-                if(err)console.log(err,json)
                 hasSubcribed = json && !!json.ok
                 var i;
                 for (i = 0; i < s.onSubscriptionCheckExtensions.length; i++) {
@@ -113,8 +159,12 @@ module.exports = (processCwd,config) => {
                 }else{
                     subscriptionFailed()
                 }
+            }).catch((err) => {
+                if(err)console.log(err)
+                subscriptionFailed()
             })
         }else{
+            var i;
             for (i = 0; i < s.onSubscriptionCheckExtensions.length; i++) {
                 const extender = s.onSubscriptionCheckExtensions[i]
                 hasSubcribed = extender(false,{},subscriptionId)
@@ -144,5 +194,8 @@ module.exports = (processCwd,config) => {
         formattedTime: formattedTime,
         checkSubscription: checkSubscription,
         isEven: isEven,
+        fetchTimeout: fetchTimeout,
+        fetchDownloadAndWrite: fetchDownloadAndWrite,
+        fetchWithAuthentication: fetchWithAuthentication,
     }
 }

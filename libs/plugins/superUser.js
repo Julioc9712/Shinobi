@@ -1,13 +1,12 @@
 const fs = require('fs-extra');
 const express = require('express')
-const request = require('request')
 const unzipper = require('unzipper')
-const fetch = require("node-fetch")
 const spawn = require('child_process').spawn
 const {
   Worker
 } = require('worker_threads');
 module.exports = async (s,config,lang,app,io,currentUse) => {
+    const { fetchDownloadAndWrite } = require('../basic/utils.js')(process.cwd(),config)
     const {
         currentPluginCpuUsage,
         currentPluginGpuUsage,
@@ -96,10 +95,9 @@ module.exports = async (s,config,lang,app,io,currentUse) => {
         fs.mkdirSync(downloadPath)
         return new Promise(async (resolve, reject) => {
             fs.mkdir(downloadPath, () => {
-                request(downloadUrl).pipe(fs.createWriteStream(downloadPath + '.zip'))
-                .on('finish',() => {
-                    zip = fs.createReadStream(downloadPath + '.zip')
-                    .pipe(unzipper.Parse())
+                fetchDownloadAndWrite(downloadUrl,downloadPath + '.zip', 1)
+                .then((readStream) => {
+                    readStream.pipe(unzipper.Parse())
                     .on('entry', async (file) => {
                         if(file.type === 'Directory'){
                             try{

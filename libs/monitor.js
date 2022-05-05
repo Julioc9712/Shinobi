@@ -5,7 +5,6 @@ const exec = require('child_process').exec;
 const Mp4Frag = require('mp4frag');
 const onvif = require("shinobi-onvif");
 const treekill = require('tree-kill');
-const request = require('request');
 const connectionTester = require('connection-tester')
 const SoundDetection = require('shinobi-sound-detection')
 const async = require("async");
@@ -15,6 +14,7 @@ const {
 } = require('worker_threads');
 const { copyObject, createQueue, queryStringToObject, createQueryStringFromObject } = require('./common.js')
 module.exports = function(s,config,lang){
+    const { fetchTimeout } = require('./basic/utils.js')(process.cwd(),config)
     const isMasterNode = (
         (
             config.childNodes.enabled === true &&
@@ -1079,11 +1079,11 @@ module.exports = function(s,config,lang){
                 s.group[e.ke].activeMonitors[monitorId].detector_notrigger_webhook = s.createTimeout('detector_notrigger_webhook',s.group[e.ke].activeMonitors[monitorId],currentConfig.detector_notrigger_webhook_timeout,10)
                 var detector_notrigger_webhook_url = addEventDetailsToString(e,currentConfig.detector_notrigger_webhook_url)
                 var webhookMethod = currentConfig.detector_notrigger_webhook_method
-                if(!webhookMethod || webhookMethod === '')webhookMethod = 'GET'
-                request(detector_notrigger_webhook_url,{method: webhookMethod,encoding:null},function(err,data){
-                    if(err){
-                        s.userLog(d,{type:lang["Event Webhook Error"],msg:{error:err,data:data}})
-                    }
+                if(!webhookMethod || webhookMethod === '')webhookMethod = 'GET';
+                fetchTimeout(detector_notrigger_webhook_url,10000,{
+                    method: webhookMethod
+                }).catch((err) => {
+                    s.userLog(d,{type:lang["Event Webhook Error"],msg:{error:err,data:data}})
                 })
             }
             if(currentConfig.detector_notrigger_command_enable === '1' && !s.group[e.ke].activeMonitors[monitorId].detector_notrigger_command){

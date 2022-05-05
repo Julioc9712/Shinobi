@@ -3,7 +3,7 @@ var fs = require('fs');
 var bodyParser = require('body-parser');
 var os = require('os');
 var moment = require('moment');
-var request = require('request');
+var fetch = require('node-fetch');
 var execSync = require('child_process').execSync;
 var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
@@ -1277,7 +1277,11 @@ module.exports = function(s,config,lang,app,io){
                             res.end(user.lang['File Not Found in Database'])
                         })
                     }else{
-                        req.pipe(request(r.href)).pipe(res)
+                        // req.pipe(request(r.href)).pipe(res)
+                        fetch(actualUrl).then(actual => {
+                            actual.headers.forEach((v, n) => res.setHeader(n, v));
+                            actual.body.pipe(res);
+                        })
                     }
                 }else{
                     res.end(user.lang['File Not Found in Database'])

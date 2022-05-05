@@ -942,6 +942,8 @@
    "MailError": "MAIL ERROR : Could not send email, Check conf.json. Skipping any features relying on mailing.",
    "updateKeyText1": "\"updateKey\" is missing from \"conf.json\", cannot do updates this way until you add it.",
    "updateKeyText2": "\"updateKey\" is incorrect.",
+   "Control Trigger Started": "Control Trigger Started",
+   "Control Triggered": "Control Triggered",
    "Control Error": "Control Error",
    "Database row does not exist": "Database row does not exist",
    "File Delete Error": "File Delete Error",

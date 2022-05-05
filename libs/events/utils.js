@@ -3,7 +3,6 @@ const moment = require('moment');
 const execSync = require('child_process').execSync;
 const exec = require('child_process').exec;
 const spawn = require('child_process').spawn;
-const request = require('request');
 const imageSaveEventLock = {};
 // Matrix In Region Libs >
 const SAT = require('sat')
@@ -25,8 +24,9 @@ module.exports = (s,config,lang,app,io) => {
         cutVideoLength
     } = require('../video/utils.js')(s,config,lang)
     const {
-        isEven
-    } = require('../basic/utils.js')(s,config,lang)
+        isEven,
+        fetchTimeout,
+    } = require('../basic/utils.js')(process.cwd(),config)
     async function saveImageFromEvent(options,frameBuffer){
         const monitorId = options.mid || options.id
         const groupKey = options.ke
@@ -432,10 +432,10 @@ module.exports = (s,config,lang,app,io) => {
             var detector_webhook_url = addEventDetailsToString(d,monitorDetails.detector_webhook_url)
             var webhookMethod = monitorDetails.detector_webhook_method
             if(!webhookMethod || webhookMethod === '')webhookMethod = 'GET'
-            request(detector_webhook_url,{method: webhookMethod,encoding:null},function(err,data){
-                if(err){
-                    s.userLog(d,{type:lang["Event Webhook Error"],msg:{error:err,data:data}})
-                }
+            fetchTimeout(detector_webhook_url,10000,{
+                method: webhookMethod
+            }).catch((err) => {
+                s.userLog(d,{type:lang["Event Webhook Error"],msg:{error:err,data:data}})
             })
         }
 

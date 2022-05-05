@@ -3,7 +3,6 @@ var fs = require('fs');
 var bodyParser = require('body-parser');
 var os = require('os');
 var moment = require('moment');
-var request = require('request');
 var execSync = require('child_process').execSync;
 var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
@@ -169,9 +168,13 @@ module.exports = function(s,config,lang,app){
     * API : Get HLS Stream
     */
     app.get([config.webPaths.apiPrefix+':auth/hls/:ke/:id/:file',config.webPaths.apiPrefix+':auth/hls/:ke/:id/:channel/:file'], function (req,res){
-        req.fn=function(user){
+        s.auth(req.params,function(user){
             s.checkChildProxy(req.params,function(){
                 noCache(res)
+                if(user.permissions.watch_stream==="0"||user.details.sub&&user.details.allmonitors!=='1'&&user.details.monitors.indexOf(req.params.id)===-1){
+                    res.end(user.lang['Not Permitted'])
+                    return
+                }
                 req.dir=s.dir.streams+req.params.ke+'/'+req.params.id+'/'
                 if(req.params.channel){
                     req.dir+='channel'+(parseInt(req.params.channel)+config.pipeAddition)+'/'+req.params.file;
@@ -185,8 +188,7 @@ module.exports = function(s,config,lang,app){
                     res.end(lang['File Not Found'])
                 }
             },res,req)
-        }
-        s.auth(req.params,req.fn,res,req);
+        },res,req);
     })
     /**
     * API : Get JPEG Snapshot
