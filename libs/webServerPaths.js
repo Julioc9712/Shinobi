@@ -1269,8 +1269,9 @@ module.exports = function(s,config,lang,app,io){
             },(err,r) => {
                 if(r&&r[0]){
                     r = r[0]
-                    if(JSON.parse(r.details).type === 'googd' && s.cloudDiskUseOnGetVideoDataExtensions['googd']){
-                        s.cloudDiskUseOnGetVideoDataExtensions['googd'](r).then((dataPipe) => {
+                    var type = JSON.parse(r.details).type;
+                    if(type && s.cloudDiskUseOnGetVideoDataExtensions[type]){
+                        s.cloudDiskUseOnGetVideoDataExtensions[type](r).then((dataPipe) => {
                             dataPipe.pipe(res)
                         }).catch((err) => {
                             console.log(err)
