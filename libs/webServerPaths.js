@@ -34,9 +34,6 @@ module.exports = function(s,config,lang,app,io){
         reEncodeVideoAndReplace,
         getVideosBasedOnTagFoundInMatrixOfAssociatedEvent,
     } = require('./video/utils.js')(s,config,lang)
-    const {
-        roundToDigits
-    } = require('./basic/utils')(process.cwd(),config)
     s.renderPage = function(req,res,paths,passables,callback){
         passables.window = {}
         passables.data = req.params
@@ -1906,73 +1903,5 @@ module.exports = function(s,config,lang,app,io){
             res.end()
         })
         fs.createReadStream(s.mainDirectory + '/web/pages/robots.txt').pipe(res)
-    })
-
-
-    app.get('/child-nodes', function (req, res) {
-        if (config.childNodes.enabled !== true ||
-            config.childNodes.mode !== 'master') {
-            return s.closeJsonResponse(res, {
-                enabled: false
-            })
-        }
-
-        const skipDead = req.query.skipDead === "true"
-
-        const maxCpuPercent = config.childNodes.maxCpuPercent || 75
-        const maxRamPercent = config.childNodes.maxRamPercent || 75
-
-        const nodes = []
-
-        for (const childNodeIp in s.childNodes) {
-            const childNode = s.childNodes[childNodeIp]
-
-            if (childNode.dead === true && skipDead) {
-                continue
-            }
-
-            const activeCameras = []
-            for (const cameraId in childNode.activeCameras) {
-                const camera = childNode.activeCameras[cameraId]
-
-                activeCameras.push({
-                    id: camera.mid,
-                    group: camera.ke,
-                    name: camera.name
-                })
-            }
-
-            const schedulable = !childNode.dead &&
-                childNode.cpuPercent < maxCpuPercent &&
-                childNode.ramPercent < maxRamPercent
-
-            nodes.push({
-                id: childNode.cnid,
-                ip: childNodeIp,
-                dead: childNode.dead,
-                schedulable,
-                platform: childNode.platform || 'Unknown',
-                memory: {
-                    totalInMb: childNode.totalmem ? Math.floor(childNode.totalmem) : -1,
-                    percentUsed: childNode.ramPercent ? roundToDigits(childNode.ramPercent, 2) : -1
-                },
-                cpu: {
-                    total: childNode.coreCount || -1,
-                    percentUsed: childNode.cpuPercent ? roundToDigits(childNode.cpuPercent, 2) : -1
-                },
-                activeCameras
-            })
-        }
-
-        s.closeJsonResponse(res, {
-            enabled: true,
-            options: {
-                port: config.childNodes.port,
-                masterDoWorkToo: config.childNodes.masterDoWorkToo,
-                maxCpuPercent: config.childNodes.maxCpuPercent,
-                maxRamPercent: config.childNodes.maxRamPercent
-            },
-            nodes
-        })
     })
 }
