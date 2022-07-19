@@ -430,3 +430,8 @@ ul.squeeze {
 .bg-dark .bootstrap-table .table td {
     color: #fff!important;
 }
+
+.grid {
+    background-image: repeating-linear-gradient(rgb(204 204 204 / 50%) 0 1px, transparent 1px 100%), repeating-linear-gradient(90deg, rgb(204 204 204 / 50%) 0 1px, transparent 1px 100%);
+    background-size: 71px 71px;
+}

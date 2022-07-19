@@ -8,6 +8,7 @@ $(document).ready(function(e){
     var regionEditorCanvasHolder = regionEditorWindow.find('.canvas_holder')
     var regionEditorMonitorsList = $('#region_editor_monitors')
     var regionEditorLiveView = $('#region_editor_live')
+    var regionEditorGridOverlay = regionEditorWindow.find('.grid')
     var useRegionStillImage = false
     var getRegionEditorCanvas = function(){
         return regionEditorWindow.find('canvas')
@@ -113,25 +114,44 @@ $(document).ready(function(e){
     }
     function initLiveStream(monitorId){
         var monitorId = monitorId || getCurrentlySelectedMonitorId()
-        var apiPoint = 'embed'
         var liveElement = regionEditorLiveView.find('iframe,img')
-        regionEditorLiveView.find('iframe,img').attr('src','').hide()
-        if(useRegionStillImage){
-            apiPoint = 'jpeg'
-        }else{
-            apiPoint = 'embed'
-        }
-        var apiUrl = `${getApiPrefix(apiPoint)}/${monitorId}`
-        if(apiPoint === 'embed'){
-            apiUrl += '/fullscreen|jquery|relative'
-        }else{
-            apiUrl += '/s.jpg'
-        }
-        if(liveElement.attr('src') !== apiUrl){
+        var loadedMonitor = loadedMonitors[monitorId]
+        var monitorDetails = loadedMonitor.details
+        if(loadedMonitor.mode === 'stop'){
+            var apiUrl = placeholder.getData(placeholder.plcimg({
+                bgcolor: '#000',
+                text: lang[`Cannot watch a monitor that isn't running.`],
+                size: regionViewerDetails.detector_scale_x+'x'+regionViewerDetails.detector_scale_y
+            }))
             liveElement.attr('src',apiUrl).show()
+        }else{
+            var apiPoint = 'embed'
+            regionEditorLiveView.find('iframe,img').attr('src','').hide()
+            regionEditorGridOverlay.css('background-size',`71px 71px`).show()
+            if(monitorDetails.detector_motion_tile_mode === '1'){
+                var tileSize = monitorDetails.detector_tile_size || 20
+                regionEditorGridOverlay.css('background-size',`${tileSize}px ${tileSize}px`).show()
+            }else{
+                regionEditorGridOverlay.hide()
+            }
+            if(useRegionStillImage){
+                apiPoint = 'jpeg'
+            }else{
+                apiPoint = 'embed'
+            }
+            var apiUrl = `${getApiPrefix(apiPoint)}/${monitorId}`
+            if(apiPoint === 'embed'){
+                apiUrl += '/fullscreen|jquery|relative'
+            }else{
+                apiUrl += '/s.jpg'
+            }
+            if(liveElement.attr('src') !== apiUrl){
+                liveElement.attr('src',apiUrl).show()
+            }
+            liveElement.attr('width',regionViewerDetails.detector_scale_x)
+            liveElement.attr('height',regionViewerDetails.detector_scale_y)
         }
-        liveElement.attr('width',regionViewerDetails.detector_scale_x)
-        liveElement.attr('height',regionViewerDetails.detector_scale_y)
+
     }
     var initCanvas = function(dontReloadStream){
         var newArray = [];
@@ -301,6 +321,9 @@ $(document).ready(function(e){
         var theSelected = `${regionEditorMonitorsList.val()}`
         drawMonitorListToSelector(regionEditorMonitorsList)
         regionEditorMonitorsList.val(theSelected)
+    })
+    addOnTabAway('regionEditor', function () {
+        regionEditorLiveView.find('iframe,img').remove()
     })
     drawSubMenuItems('regionEditor',definitions['Region Editor'])
 })

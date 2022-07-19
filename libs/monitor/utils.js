@@ -31,7 +31,9 @@ module.exports = (s,config,lang) => {
                 resolve(response)
             }
             try{
-                proc.stdin.write("q\r\n")
+                if(proc && proc.stdin) {
+                    proc.stdin.write("q\r\n");
+                }
                 setTimeout(() => {
                     if(proc && proc.kill){
                         if(s.isWin){

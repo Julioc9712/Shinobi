@@ -16,6 +16,7 @@ $(document).ready(function(e){
     var monitorSlotPlaySpeeds = {}
     var currentlyPlayingVideos = {}
     var powerVideoMute = true
+    var powerVideoCanAutoPlay = true
     var lastPowerVideoSelectedMonitors = []
     var extenders = {
         onVideoPlayerTimeUpdateExtensions: [],
@@ -48,6 +49,11 @@ $(document).ready(function(e){
     });
     // fix utc/localtime translation (use timelapseJpeg as guide, it works as expected) />
     function loadVideosToTimeLineMemory(monitorId,videos,events){
+        videos.forEach((video) => {
+            createVideoLinks(video,{
+                hideRemote: true
+            })
+        })
         powerVideoLoadedVideos[monitorId] = videos
         powerVideoLoadedEvents[monitorId] = events
     }
@@ -357,6 +363,15 @@ $(document).ready(function(e){
             // .off("play").on("play",function(){
             //     console.log(monitorId,'play')
             // })
+            .off("loadedmetadata").on("loadedmetadata",function(){
+                resetWidthForActiveVideoPlayers()
+            })
+            .off("pause").on("pause",function(){
+                resetWidthForActiveVideoPlayers()
+            })
+            .off("play").on("play",function(){
+                resetWidthForActiveVideoPlayers()
+            })
             .off("timeupdate").on("timeupdate",function(){
                 try{
                     var event = eventsLabeledByTime[monitorId][video.time][parseInt(this.currentTime)]
@@ -438,6 +453,14 @@ $(document).ready(function(e){
         streamObjectsContainer.empty()
         motionMeterProgressBar.css('width','0')
         motionMeterProgressBarTextBox.text('0')
+    }
+    function resetWidthForActiveVideoPlayers(){
+        var numberOfMonitors = 0
+        powerVideoMonitorViewsElement.find(`.videoPlayer .videoNow`).each(function(n,videoEl){
+            if(videoEl.currentTime > 0)numberOfMonitors += 1
+        })
+        var widthOfBlock = 100 / numberOfMonitors
+        powerVideoMonitorViewsElement.find('.videoPlayer').css('width',`${widthOfBlock}%`)
     }
     function loadVideoIntoMonitorSlot(video,selectedTime){
         if(!video)return
@@ -529,8 +552,15 @@ $(document).ready(function(e){
         videoNow.setAttribute('preload',true)
         videoNow.muted = true
         videoNow.playbackRate = monitorSlotPlaySpeeds[video.mid] || 1
-        videoNow.currentTime = timeToStartAt / 1000
+        try{
+            videoNow.currentTime = timeToStartAt / 1000
+        }catch(err){
+            console.log(err)
+        }
         videoNow.play()
+        setTimeout(function(){
+            resetWidthForActiveVideoPlayers()
+        },1400)
         extenders.onVideoPlayerCreateExtensions.forEach(function(extender){
             extender(videoElement,watchPoint)
         })
@@ -678,9 +708,11 @@ $(document).ready(function(e){
                     toggleZoomAllSlots()
                 break;
                 case'playAll':
+                    powerVideoCanAutoPlay = true
                     playAllSlots()
                 break;
                 case'pauseAll':
+                    powerVideoCanAutoPlay = false
                     pauseAllSlots()
                 break;
                 case'playSpeedAll':
@@ -700,6 +732,27 @@ $(document).ready(function(e){
 
     addOnTabOpen('powerVideo', function () {
         drawMonitorsList()
+    })
+    addOnTabReopen('powerVideo', function () {
+        if(powerVideoCanAutoPlay){
+            powerVideoWindow.find('video').each(function(n,video){
+                try{
+                    video.play()
+                }catch(err){
+                    console.log(err)
+                }
+            })
+        }
+    })
+    addOnTabAway('powerVideo', function () {
+        powerVideoWindow.find('video').each(function(n,video){
+            console.log(video)
+            try{
+                video.pause()
+            }catch(err){
+                console.log(err)
+            }
+        })
     })
     // addOnTabReopen('powerVideo', function () {
     //     drawMonitorsList()

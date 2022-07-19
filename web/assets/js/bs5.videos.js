@@ -45,7 +45,7 @@ async function preloadAllTimelapseFramesToMemoryFromVideoList(framesSortedByDays
         console.log ('Loaded! ',frame.href)
     }
 }
-function createVideoLinks(video){
+function createVideoLinks(video,options){
     var details = safeJsonParse(video.details)
     var queryString = []
     // if(details.isUTC === true){
@@ -353,8 +353,8 @@ function getAllDays(videos,frames){
 function getStripStartAndEnd(videos,frames){
     var stripStartTimeByVideos = videos[0] ? new Date(videos[0].time) : null
     var stripEndTimeByVideos = videos[0] ? new Date(videos[videos.length - 1].end) : null
-    var stripStartTimeByFrames = new Date(frames[0].time) || stripStartTimeByVideos
-    var stripEndTimeByFrames = new Date(frames[frames.length - 1].time) || stripEndTimeByVideos
+    var stripStartTimeByFrames = frames[0] ? new Date(frames[0].time) : stripStartTimeByVideos
+    var stripEndTimeByFrames = frames[0] ? new Date(frames[frames.length - 1].time) : stripEndTimeByVideos
     var stripStartTime = stripStartTimeByVideos && stripStartTimeByVideos < stripStartTimeByFrames ? stripStartTimeByVideos : stripStartTimeByFrames
     var stripEndTime = stripEndTimeByVideos && stripEndTimeByVideos > stripEndTimeByFrames ? stripEndTimeByVideos : stripEndTimeByFrames
     return {
@@ -529,6 +529,9 @@ onWebSocketEvent(function(d){
             $('[data-file="'+d.filename+'"][data-mid="'+d.mid+'"]:not(.modal)').remove();
             $('[data-time-formed="'+(new Date(d.time))+'"][data-mid="'+d.mid+'"]:not(.modal)').remove();
             var videoPlayerId = getVideoPlayerTabId(d)
+            if(tabTree.name === videoPlayerId){
+                goBackOneTab()
+            }
             deleteTab(videoPlayerId)
             // if($.powerVideoWindow.currentDataObject&&$.powerVideoWindow.currentDataObject[d.filename]){
             //     delete($.timelapse.currentVideos[$.powerVideoWindow.currentDataObject[d.filename].position])

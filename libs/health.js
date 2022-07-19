@@ -55,6 +55,9 @@ module.exports = function(s,config,lang,io){
                      exec(k.cmd,{encoding:'utf8',detached: true},function(err,d){
                          if(s.isWin===true){
                              d=d.replace(/(\r\n|\n|\r)/gm,"").replace(/%/g,"")
+                         }else if(s.platform == 'darwin') {
+                             // on macos the cpu% is per core, so a 10 core machine can go up to 1000%
+                             d=parseFloat(d.trim()) / s.coreCount
                          }
                          resolve(d)
                          s.onGetCpuUsageExtensions.forEach(function(extender){
@@ -100,18 +103,31 @@ module.exports = function(s,config,lang,io){
                         k.cmd = "LANG=C free | grep Mem | awk '{print $7/$2 * 100.0}'";
                     break;
                 }
+                let percent = 0
+                let used = 0
                 if(k.cmd){
-                     exec(k.cmd,{encoding:'utf8',detached: true},function(err,d){
-                         if(s.isWin===true){
-                             d=(parseInt(d.split('=')[1])/(s.totalmem/1000))*100
-                         }
-                         resolve(d)
-                         s.onGetRamUsageExtensions.forEach(function(extender){
-                             extender(d)
-                         })
-                     })
+                    exec(k.cmd,{encoding:'utf8',detached: true},function(err,d){
+                        if(s.isWin===true){
+                            const freeMb = parseInt(d.split('=')[1].trim()) / 1024
+                            const totalMemInMb = s.totalmem/1024/1024
+                            used = totalMemInMb - freeMb
+                            percent=(used/totalMemInMb)*100
+                        } else {
+                            percent = d.trim()
+                        }
+                        resolve({
+                            used,
+                            percent
+                        })
+                        s.onGetRamUsageExtensions.forEach(function(extender){
+                            extender(percent)
+                        })
+                    })
                 }else{
-                    resolve(0)
+                    resolve({
+                        used,
+                        percent
+                    })
                 }
             })
         }

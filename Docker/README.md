@@ -4,7 +4,11 @@
 
 ## Docker Ninja Way
 
-> This method uses `docker-compose` and has the ability to quick install the TensorFlow Object Detection plugin.
+> This method uses `docker-compose` and has the ability to quick install the TensorFlow Object Detection plugin. This will build your container from the images hosted on Gitlab.
+
+> **We no longer use Docker Hub** and will not in the foreseeable future.
+
+Docker Image Used : `registry.gitlab.com/shinobi-systems/shinobi:dev`
 
 ```
 bash <(curl -s https://gitlab.com/Shinobi-Systems/Shinobi-Installer/raw/master/shinobi-docker.sh)
@@ -17,10 +21,11 @@ bash <(curl -s https://gitlab.com/Shinobi-Systems/Shinobi-Installer/raw/master/s
 > Please remember to check out the Environment Variables table further down this README.
 
 ```
-docker run -d --name='Shinobi' -p '8080:8080/tcp' -v "/dev/shm/Shinobi/streams":'/dev/shm/streams':'rw' -v "$HOME/Shinobi/config":'/config':'rw' -v "$HOME/Shinobi/customAutoLoad":'/home/Shinobi/libs/customAutoLoad':'rw' -v "$HOME/Shinobi/database":'/var/lib/mysql':'rw' -v "$HOME/Shinobi/videos":'/home/Shinobi/videos':'rw' -v "$HOME/Shinobi/plugins":'/home/Shinobi/plugins':'rw' -v '/etc/localtime':'/etc/localtime':'ro' shinobisystems/shinobi:dev
+docker run -d --name='Shinobi' -p '8080:8080/tcp' -v "/dev/shm/Shinobi/streams":'/dev/shm/streams':'rw' -v "$HOME/Shinobi/config":'/config':'rw' -v "$HOME/Shinobi/customAutoLoad":'/home/Shinobi/libs/customAutoLoad':'rw' -v "$HOME/Shinobi/database":'/var/lib/mysql':'rw' -v "$HOME/Shinobi/videos":'/home/Shinobi/videos':'rw' -v "$HOME/Shinobi/plugins":'/home/Shinobi/plugins':'rw' -v '/etc/localtime':'/etc/localtime':'ro' registry.gitlab.com/shinobi-systems/shinobi:dev
 ```
 
 #### Installing Object Detection (TensorFlow.js)
+**DEPRECATED, UPDATED IMAGE COMING SOON**
 
 > This requires that you add the plugin key to the Shinobi container. This key is generated and displayed in the startup logs of the Object Detection docker container.
 

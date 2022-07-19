@@ -42,17 +42,41 @@ representative at support@shinobi.systems.
 
 #### Commercial Uses
 - Selling usage of the software
+- Selling hardware with the software on it
 - Using the software in locations that engage in the buying and selling of goods and services
 
+As of 2022-07-12 the noted situations below are seen the same as "Commercial Use".
+
+- 25 Active Monitor Rule : Having at least 25 Active Monitors and not a Primary School or Secondary School. Does not apply to Personal Use.
+- 150 Active Monitor Rule : If you have more than 150 Active Monitors please contact support for an Enterprise License. The retail Shinobi Pro license will not be applicable for these installations.
+- Used on a Device that was part of a commercial transaction. This can be, but not limited to, being sold or provided additionally to a sale.
+
 #### Conditions for Free (Unpaid) use.
+If you fall under any conditions for "Commercial Use" none of the following can apply unless otherwise noted.
+
+- Personal use
 - Use in a non commercial area
 - Used for non commercial purposes
 - When used for research or educational purposes
 - Testing Purposes
-- Usage by Educational institutions
-- Use for Emergency Services and facilties associated like Search and Rescue Services or
-Ambulance Services
-- Use in Health Care facility like a hospital or walk-in clinic
+- Usage by Primary Education or Secondary Education Schools
+- Use for Emergency Services and facilities associated like Search and Rescue Services or
+Ambulance Services with less than 50 cameras
+- Use in Health Care facility like a hospital or walk-in clinic with less than 100 cameras
+- Schools and Organizations that have been given exemption
+
+As of 2022-07-12 If you are an organization that falls under one or more of these conditions for free use then you must display that you are using Shinobi Systems software as "shinobi.video". This can be physically on premise or on your organization's public web page.
+
+Falling under the conditions for Free use does not guarantee you a License Key. It simply means you are allowed to use it without paying or trading for that use.
+
+#### Unsure if your use is commercial or non-commercial
+
+Please contact us through the Live Chat of our website and we can negotiate or make exceptions based on the circumstances of your use case.
+
+#### Registration
+
+Schools and Resellers must register with Shinobi Systems at https://licenses.shinobi.video.
+In your account please fill out the "Apply for a School License" form or "Apply to be a Reseller" form.
 
 #### Support Services.
 The Maintenance and Support Service shall be contracted and provided as per selected plan
@@ -68,7 +92,7 @@ This software is property of Shinobi Systems. LICENSEE must keep all copyright n
 unchanged.
 
 #### Modification of this Software Product.
-LICENSEE may modify code for but must provide these changes upon request from 
+LICENSEE may modify code for but must provide these changes upon request from
 Shinobi Systems or an authorized Shinobi representative. LICENSEE may not alter or change
 copyright notices. All code changes by LICENSEE shall fall under the copyright of Shinobi
 Systems in the case code modified by LICENSEE is integrated into the official Shinobi code base.
@@ -102,29 +126,16 @@ Courthouse Vancouver Robson Square
 
 #### List of Included Software
 
-    This list is completed to best of our knowledge.
+    This list is completed to the best of our knowledge.
 
     Node.js - https://nodejs.org/en/
     MariaDB - https://mariadb.org/
     FFmpeg - https://www.ffmpeg.org/
-    request - https://www.npmjs.com/package/request
-    Express (npm) - https://expressjs.com/ https://www.npmjs.com/package/express
-    EJS (npm) - http://ejs.co/ https://www.npmjs.com/package/ejs
-    pam-diff (npm) (Motion Detector) - https://github.com/kevinGodell/pam-diff
-    pipe2pam (npm) (for pam-diff) - https://github.com/kevinGodell/pipe2pam
-    mp4frag (npm) (Poseidon's main engine) - https://github.com/kevinGodell/mp4frag
+    pam-diff (Motion Detector) - https://github.com/kevinGodell/pam-diff
+    pipe2pam (for pam-diff) - https://github.com/kevinGodell/pipe2pam
+    mp4frag (Poseidon's main engine) - https://github.com/kevinGodell/mp4frag
     mse-live-player (for mp4frag) - https://github.com/kevinGodell/mse-live-player
-    pipe2jpeg (npm) - https://github.com/kevinGodell/pipe2jpeg
-    webdav (npm) - https://www.npmjs.com/package/webdav
-    jsonfile (npm) - https://www.npmjs.com/package/jsonfile
-    connectionTester (npm) - https://www.npmjs.com/package/connectionTester
-    node-onvif (npm) - https://www.npmjs.com/package/node-onvif
-    knex (npm) - https://www.npmjs.com/package/knex
-    nodemailer (npm) - https://www.npmjs.com/package/nodemailer
-    mysql (npm) - https://www.npmjs.com/package/mysql
-    sqlite3 (npm) - https://www.npmjs.com/package/sqlite3
-    ldapauth-fork (npm) - https://www.npmjs.com/package/ldapauth-fork
-    http-proxy (npm) - https://www.npmjs.com/package/http-proxy
+    pipe2jpeg - https://github.com/kevinGodell/pipe2jpeg
     hls.js - https://github.com/video-dev/hls.js/
     flv.js - https://github.com/Bilibili/flv.js/
     Material Design Lite - https://getmdl.io/
@@ -142,3 +153,50 @@ Courthouse Vancouver Robson Square
     Moment.js - https://momentjs.com/
     Livestamp.js - https://mattbradley.github.io/livestampjs/
     Lodash - https://lodash.com/
+
+	**npmjs.com packages**
+
+	async - https://www.npmjs.com/package/async
+	aws-sdk - https://www.npmjs.com/package/aws-sdk
+	backblaze-b2 - https://www.npmjs.com/package/backblaze-b2
+	body-parser - https://www.npmjs.com/package/body-parser
+	bson - https://www.npmjs.com/package/bson
+	connection-tester - https://www.npmjs.com/package/connection-tester
+	cws - https://www.npmjs.com/package/cws
+	digest-fetch - https://www.npmjs.com/package/digest-fetch
+	discord.js - https://www.npmjs.com/package/discord.js
+	ejs - https://www.npmjs.com/package/ejs
+	express - https://www.npmjs.com/package/express
+	express-fileupload - https://www.npmjs.com/package/express-fileupload
+	fs-extra - https://www.npmjs.com/package/fs-extra
+	ftp-srv - https://www.npmjs.com/package/ftp-srv
+	googleapis - https://www.npmjs.com/package/googleapis
+	http-proxy - https://www.npmjs.com/package/http-proxy
+	jsonfile - https://www.npmjs.com/package/jsonfile
+	knex - https://www.npmjs.com/package/knex
+	ldapauth-fork - https://www.npmjs.com/package/ldapauth-fork
+	moment - https://www.npmjs.com/package/moment
+	mp4frag - https://www.npmjs.com/package/mp4frag
+	mqtt - https://www.npmjs.com/package/mqtt
+	mysql - https://www.npmjs.com/package/mysql
+	node-abort-controller - https://www.npmjs.com/package/node-abort-controller
+	node-fetch - https://www.npmjs.com/package/node-fetch
+	node-onvif-events - https://www.npmjs.com/package/node-onvif-events
+	node-ssh - https://www.npmjs.com/package/node-ssh
+	node-telegram-bot-api - https://www.npmjs.com/package/node-telegram-bot-api
+	nodemailer - https://www.npmjs.com/package/nodemailer
+	pam-diff - https://www.npmjs.com/package/pam-diff
+	path - https://www.npmjs.com/package/path
+	pipe2pam - https://www.npmjs.com/package/pipe2pam
+	pixel-change - https://www.npmjs.com/package/pixel-change
+	pushover-notifications - https://www.npmjs.com/package/pushover-notifications
+	sat - https://www.npmjs.com/package/sat
+	shinobi-onvif - https://www.npmjs.com/package/shinobi-onvif
+	shinobi-sound-detection - https://www.npmjs.com/package/shinobi-sound-detection
+	shinobi-zwave - https://www.npmjs.com/package/shinobi-zwave
+	smtp-server - https://www.npmjs.com/package/smtp-server
+	socket.io - https://www.npmjs.com/package/socket.io
+	socket.io-client - https://www.npmjs.com/package/socket.io-client
+	tree-kill - https://www.npmjs.com/package/tree-kill
+	unzipper - https://www.npmjs.com/package/unzipper
+	webdav-fs - https://www.npmjs.com/package/webdav-fs

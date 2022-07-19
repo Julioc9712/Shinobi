@@ -6,9 +6,9 @@
           </div>
           <div class="col-md-2 text-right">
               <select class="form-control form-control-sm <%- define.Theme.isDark ? 'btn-dark' : '' %> text-start" type="text" id="recentVideosRange">
-                  <option value="1"><%- `${lang.Last} 1 ${lang.hour}` %></option>
+                  <option value="1" selected><%- `${lang.Last} 1 ${lang.hour}` %></option>
                   <option value="24"><%- `${lang.Last} 24 ${lang.hours}` %></option>
-                  <option selected value="72"><%- `${lang.Last} 72 ${lang.hours}` %></option>
+                  <option value="72"><%- `${lang.Last} 72 ${lang.hours}` %></option>
                   <option value="168"><%- `${lang.Last} 7 ${lang.Days}` %></option>
                   <option value="720"><%- `${lang.Last} 30 ${lang.Days}` %></option>
               </select>

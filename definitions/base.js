@@ -977,7 +977,8 @@ module.exports = function(s,config,lang){
                       "description": lang["fieldTextStreamQuality"],
                       "default": "15",
                       "example": "1",
-                      "form-group-class": "h_st_input h_st_mjpeg h_st_b64 h_st_hls h_st_gif h_st_flv h_st_mp4 h_hls_v_input h_hls_v_libx264 h_hls_v_libx265 h_hls_v_h264_nvenc h_hls_v_hevc_nvenc h_hls_v_no",
+                      "form-group-class-pre-layer": "h_hls_v_input h_hls_v_libx264 h_hls_v_libx265 h_hls_v_h264_nvenc h_hls_v_hevc_nvenc h_hls_v_no",
+                      "form-group-class": "h_st_input h_st_mjpeg h_st_b64 h_st_hls h_st_gif h_st_flv h_st_mp4",
                       "possible": "1-23"
                    },
                    {
@@ -986,7 +987,8 @@ module.exports = function(s,config,lang){
                       "description": lang["fieldTextStreamFps"],
                       "default": "",
                       "example": "1",
-                      "form-group-class": "h_st_input h_st_mjpeg h_st_b64 h_st_hls h_st_gif h_st_flv h_st_mp4 h_hls_v_input h_hls_v_libx264 h_hls_v_libx265 h_hls_v_h264_nvenc h_hls_v_hevc_nvenc h_hls_v_no",
+                      "form-group-class-pre-layer": "h_hls_v_input h_hls_v_libx264 h_hls_v_libx265 h_hls_v_h264_nvenc h_hls_v_hevc_nvenc h_hls_v_no",
+                      "form-group-class": "h_st_input h_st_mjpeg h_st_b64 h_st_hls h_st_gif h_st_flv h_st_mp4",
                       "possible": ""
                    },
                    {
@@ -997,7 +999,8 @@ module.exports = function(s,config,lang){
                       "fieldType": "number",
                       "numberMin": "1",
                       "example": "640",
-                      "form-group-class": "h_st_input h_st_mjpeg h_st_b64 h_st_hls h_st_gif h_st_flv h_st_mp4 h_hls_v_input h_hls_v_libx264 h_hls_v_libx265 h_hls_v_h264_nvenc h_hls_v_hevc_nvenc h_hls_v_no",
+                      "form-group-class-pre-layer": "h_hls_v_input h_hls_v_libx264 h_hls_v_libx265 h_hls_v_h264_nvenc h_hls_v_hevc_nvenc h_hls_v_no",
+                      "form-group-class": "h_st_input h_st_mjpeg h_st_b64 h_st_hls h_st_gif h_st_flv h_st_mp4",
                       "possible": ""
                    },
                    {
@@ -1008,7 +1011,8 @@ module.exports = function(s,config,lang){
                       "fieldType": "number",
                       "numberMin": "1",
                       "example": "480",
-                      "form-group-class": "h_st_input h_st_mjpeg h_st_b64 h_st_hls h_st_gif h_st_flv h_st_mp4 h_hls_v_input h_hls_v_libx264 h_hls_v_libx265 h_hls_v_h264_nvenc h_hls_v_hevc_nvenc h_hls_v_no",
+                      "form-group-class-pre-layer": "h_hls_v_input h_hls_v_libx264 h_hls_v_libx265 h_hls_v_h264_nvenc h_hls_v_hevc_nvenc h_hls_v_no",
+                      "form-group-class": "h_st_input h_st_mjpeg h_st_b64 h_st_hls h_st_gif h_st_flv h_st_mp4",
                       "possible": ""
                    },
                    {
@@ -1018,7 +1022,8 @@ module.exports = function(s,config,lang){
                       "default": "",
                       "example": "",
                       "fieldType": "select",
-                      "form-group-class": "h_st_input h_st_mjpeg h_st_b64 h_st_hls h_st_gif h_st_flv h_st_mp4 h_hls_v_input h_hls_v_libx264 h_hls_v_libx265 h_hls_v_h264_nvenc h_hls_v_hevc_nvenc h_hls_v_no",
+                      "form-group-class-pre-layer": "h_hls_v_input h_hls_v_libx264 h_hls_v_libx265 h_hls_v_h264_nvenc h_hls_v_hevc_nvenc h_hls_v_no",
+                      "form-group-class": "h_st_input h_st_mjpeg h_st_b64 h_st_hls h_st_gif h_st_flv h_st_mp4",
                       "possible": [
                            {
                               "name": lang["No Rotation"],
@@ -1081,7 +1086,8 @@ module.exports = function(s,config,lang){
                       "description": lang["fieldTextStreamVf"],
                       "default": "",
                       "example": "",
-                      "form-group-class": "h_st_input h_st_mjpeg h_st_b64 h_st_hls h_st_gif h_st_flv h_st_mp4 h_hls_v_input h_hls_v_libx264 h_hls_v_libx265 h_hls_v_h264_nvenc h_hls_v_hevc_nvenc h_hls_v_no",
+                      "form-group-class-pre-layer": "h_hls_v_input h_hls_v_libx264 h_hls_v_libx265 h_hls_v_h264_nvenc h_hls_v_hevc_nvenc h_hls_v_no",
+                      "form-group-class": "h_st_input h_st_mjpeg h_st_b64 h_st_hls h_st_gif h_st_flv h_st_mp4",
                       "possible": ""
                    },
                    {
@@ -3055,6 +3061,31 @@ module.exports = function(s,config,lang){
                                     "value": "1"
                                  }
                               ]
+                           },
+                           {
+                              "name": "detail=detector_motion_tile_mode",
+                              "field": lang['Accuracy Mode'],
+                              "selector": "h_det_tile_mode",
+                              "default": "1",
+                              "example": "",
+                              "fieldType": "select",
+                              "possible": [
+                                 {
+                                    "name": lang.No,
+                                    "value": "0"
+                                 },
+                                 {
+                                    "name": lang.Yes,
+                                    "value": "1"
+                                 }
+                              ]
+                           },
+                           {
+                               "form-group-class": "h_det_tile_mode_input h_det_tile_mode_1",
+                              "name": "detail=detector_tile_size",
+                              "field": lang["Tile Size"],
+                              "description": lang.fieldTextTileSize,
+                              "default": "20",
                            },
                            {
                                isAdvanced: true,
@@ -5830,17 +5861,20 @@ module.exports = function(s,config,lang){
                 "color": "orange",
                 "section-pre-class": "col-md-6",
                 "section-class": "where",
+                "box-wrapper-class": "row",
                 "info": [
                     {
                        "field": lang["Monitor"],
                        "id": "region_editor_monitors",
                        "fieldType": "select",
+                       "form-group-class": "col-md-6",
                     },
                     {
                        "id": "regions_list",
                        "field": lang["Regions"],
                        "fieldType": "select",
-                       "possible": []
+                       "possible": [],
+                       "form-group-class": "col-md-6",
                    },
                     {
                        "name": "name",
@@ -5849,18 +5883,22 @@ module.exports = function(s,config,lang){
                     {
                        "name": "sensitivity",
                        "field": lang['Minimum Change'],
+                       "form-group-class": "col-md-6",
                     },
                     {
                        "name": "max_sensitivity",
                        "field": lang['Maximum Change'],
+                       "form-group-class": "col-md-6",
                     },
                     {
                        "name": "threshold",
                        "field": lang['Trigger Threshold'],
+                       "form-group-class": "col-md-6",
                     },
                     {
                        "name": "color_threshold",
                        "field": lang['Color Threshold'],
+                       "form-group-class": "col-md-6",
                     },
                     {
                         hidden: true,
@@ -5869,17 +5907,23 @@ module.exports = function(s,config,lang){
                         "class": 'table table-striped',
                     },
                     {
-                       "fieldType": "btn",
-                       attribute: "href=#",
-                       "class": `btn-info toggle-region-still-image`,
-                       "btnContent": `<i class="fa fa-retweet"></i> &nbsp; ${lang['Live Stream Toggle']}`,
-                    },
-                    {
-                       "fieldType": "btn",
-                       forForm: true,
-                       attribute: "href=#",
-                       "class": `btn-success`,
-                       "btnContent": `<i class="fa fa-check"></i> &nbsp; ${lang['Save']}`,
+                        "class": 'col-md-12',
+                        "fieldType": 'div',
+                        info: [
+                            {
+                               "fieldType": "btn",
+                               attribute: "href=#",
+                               "class": `btn-info toggle-region-still-image`,
+                               "btnContent": `<i class="fa fa-retweet"></i> &nbsp; ${lang['Live Stream Toggle']}`,
+                            },
+                            {
+                               "fieldType": "btn",
+                               forForm: true,
+                               attribute: "href=#",
+                               "class": `btn-success`,
+                               "btnContent": `<i class="fa fa-check"></i> &nbsp; ${lang['Save']}`,
+                            },
+                        ]
                     },
                 ]
             },
@@ -5887,6 +5931,7 @@ module.exports = function(s,config,lang){
                "name": lang["Points"],
                "color": "orange",
                "section-pre-class": "col-md-6",
+               "style": "overflow:auto",
                "blockquoteClass": "global_tip",
                "blockquote": lang.RegionNote,
                "info": [
@@ -5894,7 +5939,7 @@ module.exports = function(s,config,lang){
                        "fieldType": "div",
                        class: "canvas_holder",
                        divContent: `<div id="region_editor_live"><iframe></iframe><img></div>
-                       <textarea id="regions_canvas" rows=3 class="hidden canvas-area input-xxlarge" disabled></textarea>`,
+                       <div class="grid"></div><textarea id="regions_canvas" rows=3 class="hidden canvas-area input-xxlarge" disabled></textarea>`,
                    }
                ]
             }
@@ -6786,7 +6831,7 @@ module.exports = function(s,config,lang){
                      {
                          name:'map-detail=stream_loop',
                          field:lang['Loop Stream'],
-                         class:'h_i_$[TEMP_ID]_input h_i_$[TEMP_ID]_mp4 h_i_$[TEMP_ID]_raw',
+                         "form-group-class":'h_i_$[TEMP_ID]_input h_i_$[TEMP_ID]_mp4 h_i_$[TEMP_ID]_raw',
                          hidden:true,
                          default:'0',
                          "fieldType": "select",
@@ -6805,7 +6850,7 @@ module.exports = function(s,config,lang){
                      {
                          name:'map-detail=rtsp_transport',
                          field:lang['RTSP Transport'],
-                         class:'h_i_$[TEMP_ID]_input h_i_$[TEMP_ID]_h264',
+                         "form-group-class":'h_i_$[TEMP_ID]_input h_i_$[TEMP_ID]_h264',
                          default:'',
                          "fieldType": "select",
                          type:'selector',
@@ -6830,7 +6875,7 @@ module.exports = function(s,config,lang){
                      {
                          name:'map-detail=accelerator',
                          field:lang['Accelerator'],
-                         attribute:'selector="h_accel_$[TEMP_ID]"',
+                         selector:'h_accel_$[TEMP_ID]',
                          default:'0',
                          "fieldType": "select",
                          type:'selector',
@@ -6848,7 +6893,7 @@ module.exports = function(s,config,lang){
                      {
                          name:'map-detail=hwaccel',
                          field:lang['hwaccel'],
-                         class:'h_accel_$[TEMP_ID]_input h_accel_$[TEMP_ID]_1',
+                         "form-group-class":'h_accel_$[TEMP_ID]_input h_accel_$[TEMP_ID]_1',
                          hidden:true,
                          default:'',
                          "fieldType": "select",
@@ -6858,7 +6903,7 @@ module.exports = function(s,config,lang){
                      {
                          name:'map-detail=hwaccel_vcodec',
                          field:lang['hwaccel_vcodec'],
-                         class:'h_accel_$[TEMP_ID]_input h_accel_$[TEMP_ID]_1',
+                         "form-group-class":'h_accel_$[TEMP_ID]_input h_accel_$[TEMP_ID]_1',
                          hidden:true,
                          default:'auto',
                          "fieldType": "select",
@@ -6928,7 +6973,7 @@ module.exports = function(s,config,lang){
                      {
                          name:'map-detail=hwaccel_device',
                          field:lang['hwaccel_device'],
-                         class:'h_accel_$[TEMP_ID]_input h_accel_$[TEMP_ID]_1',
+                         "form-group-class":'h_accel_$[TEMP_ID]_input h_accel_$[TEMP_ID]_1',
                          hidden:true,
                          placeholder:'Example : /dev/dri/video0',
                          type:'text',
@@ -7302,6 +7347,7 @@ module.exports = function(s,config,lang){
                        <a title="${lang['Toggle Substream']}" class="btn btn-sm badge btn-secondary toggle-monitor-substream"><i class="fa fa-eye"></i></a>
                        <a title="${lang['Snapshot']}" class="btn btn-sm badge btn-warning snapshot-live-grid-monitor"><i class="fa fa-camera"></i></a>
                        <a title="${lang['Videos List']}" class="btn btn-sm badge btn-secondary open-videosTable"><i class="fa fa-film"></i></a>
+                       <a title="${lang['Reconnect Stream']}" class="btn btn-sm badge btn-success signal reconnect-live-grid-monitor"><i class="fa fa-plug"></i></a>
                        <a title="${lang['Show Logs']}" class="btn btn-sm badge btn-warning toggle-live-grid-monitor-logs"><i class="fa fa-exclamation-triangle"></i></a>
                        <a title="${lang['Close']}" class="btn btn-sm badge btn-danger close-live-grid-monitor"><i class="fa fa-times"></i></a>
                   </div>

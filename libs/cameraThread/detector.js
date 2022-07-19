@@ -1,30 +1,36 @@
 module.exports = function(jsonData,pamDiffResponder){
     const {
-        // see libs/detectorUtils.js for more parameters and functions
-        //
-        config,
+        completeMonitorConfig,
         groupKey,
         monitorId,
+        monitorName,
         monitorDetails,
-        completeMonitorConfig,
+    } = require('./libs/monitorUtils.js')(jsonData)
+    const {
+        convertRegionsToTiles,
+    } = require('./libs/tileCutter.js')
+    const loadDetectorUtils = require('./libs/detectorUtils.js')
+    let detectorUtils
+    let onMotionData = null
+    if(monitorDetails.detector_motion_tile_mode === '1'){
+        const {
+            originalCords,
+            newRegionsBySquares,
+        } = convertRegionsToTiles(monitorDetails)
+        jsonData.rawMonitorConfig.details.cords = newRegionsBySquares;
+        detectorUtils = loadDetectorUtils(jsonData,pamDiffResponder)
+        detectorUtils.originalCords = originalCords;
+        onMotionData = detectorUtils.getTileMotionEvent()
+    }else{
+        detectorUtils = loadDetectorUtils(jsonData,pamDiffResponder)
+    }
+    const {
         pamDetectorIsEnabled,
-        //
         attachPamPipeDrivers,
-        //
-        getAcceptedTriggers,
-        getRegionsWithMinimumChange,
-        getRegionsBelowMaximumChange,
-        getRegionsWithThresholdMet,
-        filterTheNoise,
-        filterTheNoiseFromMultipleRegions,
-        //
-        buildDetectorObject,
-        buildTriggerEvent,
-        sendDetectedData,
-    } = require('./libs/detectorUtils.js')(jsonData,pamDiffResponder)
+    } = detectorUtils;
     return function(cameraProcess){
         if(pamDetectorIsEnabled){
-            attachPamPipeDrivers(cameraProcess)
+            attachPamPipeDrivers(cameraProcess,onMotionData)
         }
     }
 }

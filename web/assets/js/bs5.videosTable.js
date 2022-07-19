@@ -7,6 +7,33 @@ $(document).ready(function(e){
     var objectTagSearchField = $('#videosTable_tag_search')
     var loadedVideosTable = [];
     var redrawTimeout;
+    var frameUrlCache = {}
+    var frameUrlCacheTimeouts = {}
+    async function getSnapshotFromVideoTimeFrame(monitorId,startDate,endDate){
+        const frameUrlCacheId = `${monitorId}${startDate}${endDate}`
+        if(frameUrlCache[frameUrlCacheId]){
+            return frameUrlCache[frameUrlCacheId]
+        }else{
+            const frame = (await getTimelapseFrames(monitorId,startDate,endDate,1))[0]
+            const href = frame && frame.href ? frame.href : ''
+            frameUrlCache[frameUrlCacheId] = `${href}`
+            frameUrlCacheTimeouts[frameUrlCacheId] = setTimeout(() => {
+                delete(frameUrlCache[frameUrlCacheId])
+                delete(frameUrlCacheTimeouts[frameUrlCacheId])
+            },1000 * 60 * 15)
+            return href
+        }
+    }
+    function loadFramesForVideosInView(){
+        videosTableDrawArea.find('.video-thumbnail').each(async (n,imgEl) => {
+            const el = $(imgEl)
+            const monitorId = el.attr('data-mid')
+            const startDate = el.attr('data-time')
+            const endDate = el.attr('data-end')
+            const href = await getSnapshotFromVideoTimeFrame(monitorId,startDate,endDate)
+            imgEl.innerHTML = href ? `<img class="pop-image cursor-pointer" src="${href}">` : ''
+        })
+    }
     function openVideosTableView(monitorId,startDate,endDate){
         drawVideosTableViewElements(monitorId,startDate,endDate)
     }
@@ -60,8 +87,19 @@ $(document).ready(function(e){
                 loadedVideosInMemory[`${monitorId}${v.time}`]
             })
         }
+        // for (let i = 0; i < loadedVideosTable.length; i++) {
+        //     const file = loadedVideosTable[i]
+        //     const frameUrl = await getSnapshotFromVideoTimeFrame(file.mid,file.time,file.end);
+        //     file.frameUrl = frameUrl
+        // }
         videosTableDrawArea.bootstrapTable('destroy')
         videosTableDrawArea.bootstrapTable({
+            onPostBody: loadFramesForVideosInView,
+            onPageChange: () => {
+                setTimeout(() => {
+                    loadFramesForVideosInView()
+                },500)
+            },
             pagination: true,
             search: true,
             columns: [
@@ -74,6 +112,10 @@ $(document).ready(function(e){
                             checked: false
                         }
                     },
+                  },
+                  {
+                    field: 'image',
+                    title: '',
                   },
                   {
                     field: 'Monitor',
@@ -104,6 +146,7 @@ $(document).ready(function(e){
                 var href = getFullOrigin(true) + file.href
                 var loadedMonitor = loadedMonitors[file.mid]
                 return {
+                    image: `<div class="video-thumbnail" data-mid="${file.mid}" data-ke="${file.ke}" data-time="${file.time}" data-end="${file.end}"></div>`,
                     Monitor: loadedMonitor && loadedMonitor.name ? loadedMonitor.name : file.mid,
                     mid: file.mid,
                     time: formattedTime(file.time, 'DD-MM-YYYY hh:mm:ss AA'),
@@ -115,7 +158,6 @@ $(document).ready(function(e){
                         <a class="btn btn-sm btn-primary" href="${href}" download title="${lang.Download}"><i class="fa fa-download"></i></a>
                         <a class="btn btn-sm btn-primary preview-video" href="${href}" title="${lang.Play}"><i class="fa fa-play"></i></a>
                         <a class="btn btn-sm btn-default open-video" href="${href}" title="${lang.Play}"><i class="fa fa-play"></i></a>
-                        <a class="btn btn-sm btn-warning fix-video" href="${href}" title="${lang.Fix}"><i class="fa fa-wrench"></i></a>
                         <a class="btn btn-sm btn-danger delete-video" href="${href}" title="${lang.Delete}"><i class="fa fa-trash-o"></i></a>
                     </div>
                     `,
@@ -179,6 +221,23 @@ $(document).ready(function(e){
         return false;
     })
     .on('click','.download-selected-videos',function(e){
+        e.preventDefault()
+        var videos = getSelectedRows()
+        if(videos.length === 0)return;
+        $.confirm.create({
+            title: lang["Batch Download"],
+            body: `${lang.batchDownloadText}`,
+            clickOptions: {
+                title: '<i class="fa fa-check"></i> ' + lang.Yes,
+                class: 'btn-success btn-sm'
+            },
+            clickCallback: function(){
+                downloadVideos(videos)
+            }
+        });
+        return false;
+    })
+    .on('click','.pop-img',function(e){
         e.preventDefault()
         var videos = getSelectedRows()
         if(videos.length === 0)return;

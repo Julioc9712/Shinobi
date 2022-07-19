@@ -1439,7 +1439,7 @@ editorForm.find('[name="type"]').change(function(e){
         var monitorConfig = validation.monitorConfig
         if(loadedMonitors[monitorConfig.mid]){
             deleteMonitors([monitorConfig],function(){
-                resetMonitorEditor()
+                openMonitorEditorPage()
                 goBackOneTab()
             })
         }else{

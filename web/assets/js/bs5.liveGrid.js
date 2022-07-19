@@ -810,8 +810,9 @@ function signalCheckLiveStream(options){
 }
 $(document).ready(function(e){
     liveGrid
-    .on('dblclick','.stream-hud',function(){
-        $(this).parents('[data-mid]').find('[monitor="fullscreen"]').click();
+    .on('dblclick','.stream-block',function(){
+        var monitorItem = $(this).parents('[data-mid]');
+        fullScreenLiveGridStream(monitorItem)
     })
     $('body')
     .resize(function(){

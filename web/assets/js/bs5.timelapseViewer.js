@@ -1,3 +1,25 @@
+var apiBaseUrl = getApiPrefix()
+function getTimelapseFrames(monitorId,startDate,endDate,limit){
+    return new Promise((resolve,reject) => {
+        if(!monitorId || !startDate || !endDate){
+            console.log(new Error(`getTimelapseFrames error : Failed to get proper params`))
+            resolve([])
+            return
+        }
+        var queryString = [
+            'start=' + startDate,
+            'end=' + endDate,
+            limit === 'noLimit' ? `noLimit=1` : limit ? `limit=${limit}` : `limit=50`
+        ]
+        var apiURL = apiBaseUrl + '/timelapse/' + $user.ke + '/' + monitorId
+        $.getJSON(apiURL + '?' + queryString.join('&'),function(data){
+            $.each(data,function(n,fileInfo){
+                fileInfo.href = apiURL + '/' + fileInfo.filename.split('T')[0] + '/' + fileInfo.filename
+            })
+            resolve(data)
+        })
+    })
+}
 $(document).ready(function(e){
     //Timelapse JPEG Window
     var timelapseWindow = $('#tab-timelapseViewer')
@@ -14,7 +36,6 @@ $(document).ready(function(e){
     var liveStreamView = timelapseWindow.find('.liveStreamView')
     var monitorsList = timelapseWindow.find('.monitors_list')
     var downloadButton = timelapseWindow.find('.download_mp4')
-    var apiBaseUrl = getApiPrefix()
     var downloadRecheckTimers = {}
     var currentPlaylist = {}
     var frameSelected = null
@@ -64,27 +85,20 @@ $(document).ready(function(e){
         liveStreamView.find('iframe').width(playBackViewImage.width())
 
     }
-    var drawTimelapseWindowElements = function(selectedMonitor,startDate,endDate){
+    function drawTimelapseWindowElements(selectedMonitor,startDate,endDate){
         setDownloadButtonLabel(lang['Build Video'], 'database')
         var dateRange = getSelectedTime(false)
         if(!startDate)startDate = dateRange.startDate
         if(!endDate)endDate = dateRange.endDate
         if(!selectedMonitor)selectedMonitor = monitorsList.val()
-        var queryString = [
-            'start=' + startDate,
-            'end=' + endDate,
-            'noLimit=1'
-        ]
         var frameIconsHtml = ''
-        var apiURL = apiBaseUrl + '/timelapse/' + $user.ke + '/' + selectedMonitor
-        $.getJSON(apiURL + '?' + queryString.join('&'),function(data){
+        getTimelapseFrames(selectedMonitor,startDate,endDate,'noLimit').then((data) => {
             if(data && data[0]){
                 var firstFilename = data[0].filename
                 frameSelected = firstFilename
                 currentPlaylist = {}
                 currentPlaylistArray = []
                 $.each(data.reverse(),function(n,fileInfo){
-                    fileInfo.href = apiURL + '/' + fileInfo.filename.split('T')[0] + '/' + fileInfo.filename
                     fileInfo.number = n
                     frameIconsHtml += '<div class="col-md-4 frame-container"><div class="frame" data-filename="' + fileInfo.filename + '" frame-container-unloaded="' + fileInfo.href + '"><div class="button-strip"><button type="button" class="btn btn-sm btn-danger delete"><i class="fa fa-trash-o"></i></button></div><div class="shade">' + moment(fileInfo.time).format('YYYY-MM-DD HH:mm:ss') + '</div></div></div>'
                     currentPlaylist[fileInfo.filename] = fileInfo

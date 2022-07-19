@@ -87,12 +87,13 @@ module.exports = function(s,config,lang){
     s.onMonitorStart((monitorConfig) => {
         initializeOnvifEvents(monitorConfig)
     })
-    const connectionInfoArray = s.definitions["Monitor Settings"].blocks["Connection"].info
-    connectionInfoArray.splice(connectionInfoArray.length - 2, 0, {
+    const connectionInfoArray = s.definitions["Monitor Settings"].blocks["Detector"].info
+    connectionInfoArray.splice(2, 0, {
        "name": "detail=onvif_events",
        "field": lang['ONVIF Events'],
        "default": "0",
        "form-group-class": "h_onvif_input h_onvif_1",
+       "form-group-class-pre-layer": "h_det_input h_det_1",
        "fieldType": "select",
        "possible": [
            {

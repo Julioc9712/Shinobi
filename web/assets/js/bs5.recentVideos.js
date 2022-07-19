@@ -26,10 +26,13 @@ $(document).ready(function(){
             })
         })
     }
+    function drawListFiller(filler){
+        theList.html(`<div class="text-center ${definitions.Theme.isDark ? 'text-white' : ''} pt-4"><h3>${filler}</h3></div>`);
+    }
     function loadVideos(options,callback){
-        theList.html(`<div class="text-center ${definitions.Theme.isDark ? 'text-white' : ''} pt-4"><h3><i class="fa fa-spinner fa-pulse"></i></h3></div>`);
+        drawListFiller(`<i class="fa fa-spinner fa-pulse"></i>`)
         var currentDate = new Date()
-        var videoRange = parseInt(videoRangeEl.val()) || 72
+        var videoRange = parseInt(videoRangeEl.val()) || 1
         options.videoRange = videoRange
         options.startDate = moment(currentDate).subtract(videoRange, 'hours')._d;
         options.endDate = moment(currentDate)._d;
@@ -47,11 +50,8 @@ $(document).ready(function(){
         }
         getVideos(options,function(data){
             theList.empty()
-            if(data.videos.length === 0){
-                options.limit = 20
-                delete(options.startDate)
-                delete(options.endDate)
-                getVideos(options,drawVideoData)
+            if(data.videos.length === 0 && data.frames.length === 0){
+                drawListFiller(lang['No Data'])
             }else{
                 drawVideoData(data)
             }
