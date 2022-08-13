@@ -5,6 +5,9 @@ const https = require('https');
 const express = require('express');
 const { createWebSocketServer, createWebSocketClient } = require('./basic/websocketTools.js')
 module.exports = function(s,config,lang,app,io){
+    const {
+        roundToDigits
+    } = require('./basic/utils')(process.cwd(),config)
     //setup Master for childNodes
     if(
         config.childNodes.enabled === true &&
@@ -39,6 +42,134 @@ module.exports = function(s,config,lang,app,io){
                 socket.destroy();
             }
         });
+        const buildActiveMonitorDetails = function(monitor) {
+            return {
+                id: monitor.mid,
+                group: monitor.ke,
+                name: monitor.name,
+                details: {
+                    accelerator: monitor.details.accelerator,
+                    auto_host: monitor.details.auto_host,
+                }
+            }
+        }
+        const getMasterNodeInfo = async function(schedulableConfig) {
+            const masterActiveCameras = []
+
+            for (const groupId in s.group) {
+                const group = s.group[groupId]
+
+                for (const monitorId in group.activeMonitors) {
+                    const activeMonitor = group.activeMonitors[monitorId]
+
+                    // if there is a childNode property on the monitor means it's
+                    // running in a child node so skip it here
+                    if ('childNode' in activeMonitor) {
+                        continue;
+                    }
+
+                    masterActiveCameras.push(buildActiveMonitorDetails(activeMonitor))
+                }
+            }
+
+            let masterCpuUsage = -1
+            let masterMemUsage = {}
+
+            try {
+                [masterCpuUsage, masterMemUsage] = await Promise.all([s.cpuUsage(), s.ramUsage()])
+            } catch (e) {
+                s.log('Failed to get cpu and mem usage for master node', e)
+            }
+
+            const masterSchedulable = masterCpuUsage < schedulableConfig.maxCpuPercent &&
+                masterMemUsage.percent < schedulableConfig.maxRamPercent
+
+            return {
+                mode: 'master',
+                dead: false,
+                schedulable: masterSchedulable,
+                platform: s.platform || 'Unknown',
+                memory: {
+                    totalInMb: s.totalmem ? Math.floor(s.totalmem) : -1,
+                    percentUsed: masterMemUsage.percent ? roundToDigits(masterMemUsage.percent, 2) : -1
+                },
+                cpu: {
+                    total: s.coreCount || -1,
+                    percentUsed: masterCpuUsage
+                },
+                activeCameras: masterActiveCameras
+            }
+        }
+        const getChildNodeInfo = function(schedulableConfig, skipDead) {
+            const nodes = []
+
+            for (const childNodeIp in s.childNodes) {
+                const childNode = s.childNodes[childNodeIp]
+
+                if (childNode.dead === true && skipDead) {
+                    continue
+                }
+
+                const activeCameras = []
+                for (const cameraId in childNode.activeCameras) {
+                    const camera = childNode.activeCameras[cameraId]
+                    activeCameras.push(buildActiveMonitorDetails(camera))
+                }
+
+                const schedulable = !childNode.dead &&
+                    childNode.cpuPercent < schedulableConfig.maxCpuPercent &&
+                    childNode.ramPercent < schedulableConfig.maxRamPercent
+
+                nodes.push({
+                    id: childNode.cnid,
+                    ip: childNodeIp,
+                    mode: 'child',
+                    dead: childNode.dead,
+                    schedulable,
+                    platform: childNode.platform || 'Unknown',
+                    memory: {
+                        totalInMb: childNode.totalmem ? Math.floor(childNode.totalmem) : -1,
+                        percentUsed: childNode.ramPercent ? roundToDigits(childNode.ramPercent, 2) : -1
+                    },
+                    cpu: {
+                        total: childNode.coreCount || -1,
+                        percentUsed: childNode.cpuPercent ? roundToDigits(childNode.cpuPercent, 2) : -1
+                    },
+                    activeCameras
+                })
+            }
+
+            return nodes
+        }
+        /**
+         * Super API to get information about the children, where each stream is running and resource usage
+         */
+        app.get(config.webPaths.superApiPrefix+':auth/child-nodes', async function (req, res) {
+            s.superAuth(req.params,async function(resp){
+                const skipDead = req.query.skipDead === "true"
+
+                let schedulableConfig = {
+                    maxCpuPercent: config.childNodes.maxCpuPercent || 75,
+                    maxRamPercent: config.childNodes.maxRamPercent || 75
+                }
+
+                const nodes = [
+                    await getMasterNodeInfo(schedulableConfig),
+                    ...getChildNodeInfo(schedulableConfig, skipDead)
+                ]
+
+                s.closeJsonResponse(res, {
+                    ok: true,
+                    options: {
+                        port: config.childNodes.port,
+                        masterDoWorkToo: config.childNodes.masterDoWorkToo,
+                        maxCpuPercent: schedulableConfig.maxCpuPercent,
+                        maxRamPercent: schedulableConfig.maxRamPercent
+                    },
+                    nodes
+                })
+            }, res, req);
+        })
         const childNodeBindIP = config.childNodes.ip || config.bindip;
         childNodeServer.listen(config.childNodes.port,childNodeBindIP,function(){
             console.log(lang.Shinobi+' - CHILD NODE SERVER : ' + config.childNodes.port);

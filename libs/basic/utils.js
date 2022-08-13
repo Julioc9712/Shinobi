@@ -193,6 +193,24 @@ module.exports = (processCwd,config) => {
             },timeoutAmount)
         })
     }
+    function toFixedNumber(num, digits, base){
+        const pow = Math.pow(base||10, digits);
+        return Math.round(num*pow) / pow;
+    }
+    function roundToDigits(value, digits) {
+        if (!value) {
+            return value
+        }
+        digits = digits || 2
+        if (typeof(value) == 'number') {
+            return toFixedNumber(value, digits, 10)
+        }
+        try {
+            return toFixedNumber(parseFloat(value), digits, 10)
+        } catch (e) {
+            return value
+        }
+    }
     return {
         parseJSON: parseJSON,
         stringJSON: stringJSON,
@@ -211,5 +229,6 @@ module.exports = (processCwd,config) => {
         fetchDownloadAndWrite: fetchDownloadAndWrite,
         fetchWithAuthentication: fetchWithAuthentication,
         asyncSetTimeout: asyncSetTimeout,
+        roundToDigits: roundToDigits
     }
 }
