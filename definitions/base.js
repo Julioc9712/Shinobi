@@ -2784,7 +2784,7 @@ module.exports = function(s,config,lang){
                    {
                        hidden: true,
                       "name": "detail=det_trigger_tags",
-                      "field": lang['Trigger Group to Record'],
+                      "field": lang['Trigger Monitors with Tags'],
                       "form-group-class": "h_det_input h_det_1",
                    },
                    {
@@ -4019,25 +4019,6 @@ module.exports = function(s,config,lang){
                        ]
                     },
                 ]
-             },
-             "Grouping": {
-                id: "monSectionGrouping",
-               "name": lang.Grouping,
-               "headerTitle": lang['Grouping'] + ' <small>Add groups in <b>Settings</b></small>',
-               "color": "purple",
-                isSection: true,
-                isAdvanced: true,
-               "info": [
-                   {
-                       "fieldType": 'div',
-                       "id": "monitor_groups",
-                       "class": "mdl-list"
-                   },
-                   {
-                       hidden: true,
-                      "name": "detail=groups",
-                   },
-               ],
              },
              "Copy Settings": {
                 id: "monSectionCopying",

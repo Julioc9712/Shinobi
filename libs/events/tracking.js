@@ -1,5 +1,5 @@
 const movingThings = require('shinobi-node-moving-things-tracker').Tracker
-module.exports = (s,config,lang,app,io) => {
+module.exports = (s,config,lang) => {
     const objectTrackers = {}
     const objectTrackerTimeouts = {}
     function resetObjectTracker(trackerId,matrices){

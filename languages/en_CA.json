@@ -194,6 +194,7 @@
    "Global Detector Settings": "Global Detector Settings",
    "Detector Settings": "Detector Settings",
    "Trigger Group to Record": "Trigger Group to Record",
+   "Trigger Monitors with Tags": "Trigger Monitors with Tags",
    "triggerGroupRecordFieldText": "Add the names of an existing tag that was added to a Monitor previously or is pending to be added to this monitor that is currently being edited.",
    "Trigger Camera Groups": "Trigger Camera Groups",
    "Motion Detection": "Motion Detection",
