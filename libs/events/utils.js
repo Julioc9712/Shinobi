@@ -10,7 +10,7 @@ const V = SAT.Vector;
 const P = SAT.Polygon;
 const B = SAT.Box;
 // Matrix In Region Libs />
-module.exports = (s,config,lang,app,io) => {
+module.exports = (s,config,lang) => {
     // Event Filters >
     const acceptableOperators = ['indexOf','!indexOf','===','!==','>=','>','<','<=']
     // Event Filters />
@@ -330,8 +330,8 @@ module.exports = (s,config,lang,app,io) => {
         }
         return true
     }
-    const runMultiEventBasedRecord = (monitorConfig, triggerTags, eventTime) => {
-        triggerTags.forEach(function(monitorId){
+    const runMultiEventBasedRecord = (monitorConfig, monitorIdsToTrigger, eventTime) => {
+        monitorIdsToTrigger.forEach(function(monitorId){
             const groupKey = monitorConfig.ke
             const monitor = s.group[groupKey].rawMonitorConfigurations[monitorId]
             if(monitorId !== monitorConfig.mid && monitor){
@@ -347,7 +347,35 @@ module.exports = (s,config,lang,app,io) => {
             }
         })
     }
+    function bindTagLegendForMonitors(groupKey){
+        const newTagLegend = {}
+        const theGroup = s.group[groupKey]
+        const monitorIds = Object.keys(theGroup.rawMonitorConfigurations)
+        monitorIds.forEach((monitorId) => {
+            const monitorConfig = theGroup.rawMonitorConfigurations[monitorId]
+            const theTags = monitorConfig.tags || ''
+            theTags.split(',').forEach((tag) => {
+                if(!tag)return;
+                if(!newTagLegend[tag])newTagLegend[tag] = {}
+                newTagLegend[tag][monitorId] = {}
+            })
+            newTagLegend[tag] = Object.keys(newTagLegend[tag])
+        })
+        theGroup.tagLegend = newTagLegend
+    }
+    function findMonitorsAssociatedToTags(groupKey,triggerTags){
+        const monitorsToTrigger = []
+        const theGroup = s.group[groupKey]
+        triggerTags.forEach((tag) => {
+            const monitorIds = theGroup.tagLegend[tag]
+            monitorIds.forEach((monitorId) => {
+                if(monitorsToTrigger.indexOf(monitorId) === -1)monitorsToTrigger.push(monitorId)
+            })
+        })
+        return monitorsToTrigger
+    }
     const runEventExecutions = async (eventTime,monitorConfig,eventDetails,forceSave,filter,d, triggerEvent) => {
+        const groupKey = monitorConfig.ke
         const monitorDetails = monitorConfig.details
         const detailString = JSON.stringify(eventDetails)
         if(monitorDetails.detector_ptz_follow === '1'){
@@ -355,7 +383,8 @@ module.exports = (s,config,lang,app,io) => {
         }
         if(monitorDetails.det_trigger_tags){
             const triggerTags = monitorDetails.det_trigger_tags.split(',')
-            runMultiEventBasedRecord(monitorConfig, triggerTags, eventTime)
+            const monitorIds = findMonitorsAssociatedToTags(groupKey, triggerTags)
+            runMultiEventBasedRecord(monitorConfig, monitorIds, eventTime)
         }
         //save this detection result in SQL, only coords. not image.
         if(d.frame){
@@ -779,7 +808,8 @@ module.exports = (s,config,lang,app,io) => {
         hasMatrices: hasMatrices,
         checkEventFilters: checkEventFilters,
         checkMotionLock: checkMotionLock,
-        runMultiEventBasedRecord: runMultiEventBasedRecord,
+        bindTagLegendForMonitors,
+        runMultiEventBasedRecord,
         runEventExecutions: runEventExecutions,
         createEventBasedRecording: createEventBasedRecording,
         closeEventBasedRecording: closeEventBasedRecording,
