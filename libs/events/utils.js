@@ -29,7 +29,7 @@ module.exports = (s,config,lang) => {
         setLastTracked,
         trackObjectWithTimeout,
         getAllMatricesThatMoved,
-    } = require('./tracking.js')(s,config,lang,app,io)
+    } = require('./tracking.js')(s,config,lang)
     const {
         isEven,
         fetchTimeout,
@@ -353,13 +353,12 @@ module.exports = (s,config,lang) => {
         const monitorIds = Object.keys(theGroup.rawMonitorConfigurations)
         monitorIds.forEach((monitorId) => {
             const monitorConfig = theGroup.rawMonitorConfigurations[monitorId]
-            const theTags = monitorConfig.tags || ''
-            theTags.split(',').forEach((tag) => {
+            const theTags = (monitorConfig.tags || '').split(',')
+            theTags.forEach((tag) => {
                 if(!tag)return;
-                if(!newTagLegend[tag])newTagLegend[tag] = {}
-                newTagLegend[tag][monitorId] = {}
+                if(!newTagLegend[tag])newTagLegend[tag] = []
+                if(newTagLegend[tag].indexOf(monitorId) === -1)newTagLegend[tag].push(monitorId)
             })
-            newTagLegend[tag] = Object.keys(newTagLegend[tag])
         })
         theGroup.tagLegend = newTagLegend
     }
