@@ -464,8 +464,10 @@ module.exports = (s,config,lang) => {
         }
 
         if(
-            filter.command ||
-            (monitorDetails.detector_command_enable === '1' && !s.group[d.ke].activeMonitors[monitorId].detector_command)
+            filter.command || (
+                monitorDetails.detector_command_enable === '1' &&
+                !s.group[d.ke].activeMonitors[monitorId].detector_command
+            )
         ){
             s.group[d.ke].activeMonitors[monitorId].detector_command = s.createTimeout('detector_command',s.group[d.ke].activeMonitors[monitorId],monitorDetails.detector_command_timeout,10)
             var detector_command = addEventDetailsToString(d,monitorDetails.detector_command)

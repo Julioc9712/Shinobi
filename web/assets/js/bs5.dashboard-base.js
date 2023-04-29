@@ -1000,6 +1000,9 @@ function convertJsonToAccordionHtml(theJson){
     finalHtml = recurseJson(theJson,false)
     return finalHtml
 }
+function findCommonElements(array1, array2) {
+    return array2.filter(item => array1.includes(item));
+}
 // on page load
 var readyFunctions = []
 function onDashboardReady(theAction){

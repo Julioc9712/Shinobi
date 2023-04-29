@@ -7638,6 +7638,12 @@ module.exports = function(s,config,lang){
                                   color: 'grey',
                               },
                               {
+                                  label: lang['Cycle Monitors'],
+                                  class: 'cursor-pointer',
+                                  attributes: 'shinobi-switch="cycleLiveGrid" ui-change-target=".dot" on-class="dot-green" off-class="dot-grey"',
+                                  color: 'grey',
+                              },
+                              {
                                   label: lang['JPEG Mode'],
                                   class: 'cursor-pointer',
                                   attributes: 'shinobi-switch="jpegMode" ui-change-target=".dot" on-class="dot-green" off-class="dot-grey"',

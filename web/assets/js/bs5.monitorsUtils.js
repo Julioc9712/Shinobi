@@ -679,6 +679,13 @@ function muteMonitorAudio(monitorId,buttonEl){
     var volumeIcon = monitorMutes[monitorId] !== 1 ? 'volume-up' : 'volume-off'
     if(buttonEl)buttonEl.find('i').removeClass('fa-volume-up fa-volume-off').addClass('fa-' + volumeIcon)
 }
+function getMonitorsFromIds(monitorIds){
+    var foundMonitors = []
+    monitorIds.forEach((monitorId) => {
+        foundMonitors.push(loadedMonitors[monitorId])
+    })
+    return foundMonitors
+}
 function getListOfTagsFromMonitors(){
     var listOftags = {}
     $.each(loadedMonitors,function(monitorId,monitor){
@@ -690,6 +697,24 @@ function getListOfTagsFromMonitors(){
         }
     })
     return listOftags
+}
+function sanitizeTagList(tags){
+    var allTags = getListOfTagsFromMonitors()
+    return findCommonElements(allTags,tags)
+}
+function getMonitorsFromTags(tags){
+    var foundMonitors = {}
+    $.each(loadedMonitors,function(monitorId,monitor){
+        if(monitor.tags){
+            tags.forEach((tag) => {
+                if(monitor.tags.includes(tag)){
+                    if(!foundMonitors[monitorId])foundMonitors[monitorId] = monitor
+                }
+            })
+
+        }
+    })
+    return Object.values(foundMonitors)
 }
 function buildMonitorGroupListFromTags(){
     var html = ``
@@ -996,6 +1021,18 @@ function getRowsMonitorId(rowEl){
 }
 function getMonitorEmbedLink(monitorConfig){
     return `${getApiPrefix('embed')}/${monitorConfig.mid}/fullscreen|jquery|relative`
+}
+function getRunningMonitors(asArray){
+    const foundMonitors = {}
+    $.each(loadedMonitors,function(monitorId,monitor){
+        if(
+            monitor.mode === 'start' ||
+            monitor.mode === 'record'
+        ){
+            foundMonitors[monitorId] = monitor
+        }
+    })
+    return asArray ? Object.values(foundMonitors) : foundMonitors
 }
 $(document).ready(function(){
     $('body')
