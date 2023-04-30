@@ -1,5 +1,6 @@
 var liveGridCycleTimer = null;
-var currentCycleLoaded = []
+var currentCycleLoaded = [];
+var cycleOnLiveGridOptions = null;
 function getListOfMonitorsToCycleOnLiveGrid(chosenTags,useMonitorIds){
     var monitors = []
     if(useMonitorIds){
@@ -30,6 +31,7 @@ function displayCycleSetOnLiveGrid(monitorsList){
 // rotator
 function stopCycleOnLiveGrid(){
     clearInterval(liveGridCycleTimer)
+    liveGridCycleTimer = null
 }
 function beginCycleOnLiveGrid({
     chosenTags,
@@ -47,13 +49,44 @@ function beginCycleOnLiveGrid({
     },30000)
 }
 dashboardSwitchCallbacks.cycleLiveGrid = function(toggleState){
-    if(toggleState !== 1){
-        stopCycleOnLiveGrid()
-    }else{
-        beginCycleOnLiveGrid({
-            chosenTags: null,
-            useMonitorIds: null,
-            numberOfMonitors: 4
-        })
+    if(tabTree.name === 'liveGrid'){
+        if(toggleState !== 1){
+            cycleOnLiveGridOptions = null
+            stopCycleOnLiveGrid()
+        }else{
+            cycleOnLiveGridOptions = {
+                chosenTags: null,
+                useMonitorIds: null,
+                monitorsPerRow: 2,
+                numberOfMonitors: 4,
+            }
+            beginCycleOnLiveGrid(cycleOnLiveGridOptions)
+        }
     }
 }
+function keyShortcutsForCycleOnLiveGrid(enable) {
+    function handleSpacebar(event){
+        if(event.code === 'Space'){
+            event.preventDefault();
+            dashboardSwitch('cycleLiveGrid');
+        }
+    }
+    if(enable){
+        document.addEventListener('keydown', handleSpacebar);
+    }else{
+        document.removeEventListener('keydown', handleSpacebar);
+    }
+}
+addOnTabOpen('liveGrid', function () {
+    keyShortcutsForCycleOnLiveGrid(true)
+})
+addOnTabReopen('liveGrid', function () {
+    if(cycleOnLiveGridOptions){
+        beginCycleOnLiveGrid(cycleOnLiveGridOptions)
+    }
+    keyShortcutsForCycleOnLiveGrid(true)
+})
+addOnTabAway('liveGrid', function () {
+    stopCycleOnLiveGrid()
+    keyShortcutsForCycleOnLiveGrid(false)
+})

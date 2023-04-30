@@ -280,7 +280,7 @@ function isLiveGridLogStreamOpenBefore(monitorId){
     var liveGridLogStreams = dashboardOptions().liveGridLogStreams || {}
     return liveGridLogStreams[monitorId]
 }
-function drawLiveGridBlock(monitorConfig,subStreamChannel){
+function drawLiveGridBlock(monitorConfig,subStreamChannel,forcedMonitorsPerRow){
     var monitorId = monitorConfig.mid
     if($('#monitor_live_' + monitorId).length === 0){
         var x = null;
@@ -292,7 +292,18 @@ function drawLiveGridBlock(monitorConfig,subStreamChannel){
         var html = buildLiveGridBlock(monitorConfig)
         var monitorOrderEngaged = dashboardOptions().switches.monitorOrder === 1;
         var wasLiveGridLogStreamOpenBefore = isLiveGridLogStreamOpenBefore(monitorId)
-        if(monitorOrderEngaged && $user.details.monitorOrder && $user.details.monitorOrder[monitorConfig.ke+''+monitorId]){
+        if(forcedMonitorsPerRow){
+            var legend = {
+                "1": 12,
+                "2": {x: 6, y: 5},
+                "3": 4,
+                "4": 3,
+                "6": 2,
+            }
+            var dimensionsConverted = legend[`${forcedMonitorsPerRow}`] || legend["2"];
+            width = dimensionsConverted.x ? dimensionsConverted.x : dimensionsConverted;
+            height = dimensionsConverted.y ? dimensionsConverted.y : dimensionsConverted;
+        }else if(monitorOrderEngaged && $user.details.monitorOrder && $user.details.monitorOrder[monitorConfig.ke+''+monitorId]){
             var saved = $user.details.monitorOrder[monitorConfig.ke+''+monitorId];
             x = saved.x;
             y = saved.y;
@@ -1165,13 +1176,14 @@ $(document).ready(function(e){
                 var monitorId = d.mid || d.id
                 var loadedMonitor = loadedMonitors[monitorId]
                 var subStreamChannel = d.subStreamChannel
+                var monitorsPerRow = cycleOnLiveGridOptions ? cycleOnLiveGridOptions.monitorsPerRow : null;
                 if(!loadedMonitor.subStreamChannel && loadedMonitor.details.stream_type === 'useSubstream'){
                     toggleSubStream(monitorId,function(){
-                        drawLiveGridBlock(loadedMonitors[monitorId],subStreamChannel)
+                        drawLiveGridBlock(loadedMonitors[monitorId],subStreamChannel,monitorsPerRow)
                         saveLiveGridBlockOpenState(monitorId,$user.ke,1)
                     })
                 }else{
-                    drawLiveGridBlock(loadedMonitors[monitorId],subStreamChannel)
+                    drawLiveGridBlock(loadedMonitors[monitorId],subStreamChannel,monitorsPerRow)
                     saveLiveGridBlockOpenState(monitorId,$user.ke,1)
                 }
             break;
