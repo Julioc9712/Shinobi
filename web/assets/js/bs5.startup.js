@@ -229,7 +229,6 @@ onWebSocketEvent(function (d){
 })
 $(document).ready(function(){
     loadHiddenSectionsInForms()
-    loadSwitchStates()
     loadClassToggleStates()
     loadDropdownToggleStates()
     loadLocalStorageInputValues()
@@ -248,4 +247,7 @@ $(window).focus(function() {
     clearInterval(soundAlarmInterval)
 }).blur(function() {
     windowFocus = false
+})
+onDashboardReady(function(){
+    loadSwitchStates()
 })

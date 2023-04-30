@@ -11,7 +11,6 @@ function getListOfMonitorsToCycleOnLiveGrid(chosenTags,useMonitorIds){
     }else{
         monitors = getRunningMonitors(true)
     }
-
     return monitors;
 }
 function getPartForCycleOnLiveGrid(fullList, afterMonitorId, numberOfMonitors) {
@@ -49,11 +48,12 @@ function beginCycleOnLiveGrid({
     },30000)
 }
 dashboardSwitchCallbacks.cycleLiveGrid = function(toggleState){
-    if(tabTree.name === 'liveGrid'){
-        if(toggleState !== 1){
-            cycleOnLiveGridOptions = null
-            stopCycleOnLiveGrid()
-        }else{
+    if(toggleState !== 1){
+        cycleOnLiveGridOptions = null
+        stopCycleOnLiveGrid()
+    }else{
+        setTimeout(function(){
+            openTab('liveGrid')
             cycleOnLiveGridOptions = {
                 chosenTags: null,
                 useMonitorIds: null,
@@ -61,7 +61,7 @@ dashboardSwitchCallbacks.cycleLiveGrid = function(toggleState){
                 numberOfMonitors: 4,
             }
             beginCycleOnLiveGrid(cycleOnLiveGridOptions)
-        }
+        },1000)
     }
 }
 function keyShortcutsForCycleOnLiveGrid(enable) {

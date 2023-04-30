@@ -293,9 +293,10 @@ function drawLiveGridBlock(monitorConfig,subStreamChannel,forcedMonitorsPerRow){
         var monitorOrderEngaged = dashboardOptions().switches.monitorOrder === 1;
         var wasLiveGridLogStreamOpenBefore = isLiveGridLogStreamOpenBefore(monitorId)
         if(forcedMonitorsPerRow){
+            var windowHeight = $(window).height()
             var legend = {
                 "1": 12,
-                "2": {x: 6, y: 5},
+                "2": {x: 6, y: windowHeight >= 1260 ? 5 : 4},
                 "3": 4,
                 "4": 3,
                 "6": 2,
