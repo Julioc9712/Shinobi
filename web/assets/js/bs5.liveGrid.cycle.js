@@ -2,6 +2,7 @@ var liveGridCycleTimer = null;
 var cycleOnLiveGridOptionsBefore = null;
 var cycleOnLiveGridOptions = null;
 var cycleOnLiveGridMoveNext = function(){}
+var cycleOnLiveGridMovePrev = function(){}
 function getListOfMonitorsToCycleOnLiveGrid(chosenTags,useMonitorIds){
     var monitors = []
     if(useMonitorIds){
@@ -31,6 +32,12 @@ function displayCycleSetOnLiveGrid(monitorsList){
 function stopCycleOnLiveGrid(){
     clearTimeout(liveGridCycleTimer)
     liveGridCycleTimer = null
+    cycleOnLiveGridOptions = null
+    cycleOnLiveGridOptionsBefore = null
+}
+function pauseCycleOnLiveGrid(){
+    clearTimeout(liveGridCycleTimer)
+    liveGridCycleTimer = null
 }
 function beginCycleOnLiveGrid({
     chosenTags,
@@ -46,15 +53,26 @@ function beginCycleOnLiveGrid({
         var afterMonitorId = partForCycle.slice(-1)[0].mid;
         partForCycle = getPartForCycleOnLiveGrid(fullList,afterMonitorId,numberOfMonitors)
         displayCycleSetOnLiveGrid(partForCycle)
+        reset()
+    }
+    function prev(){
+        var firstInPart = partForCycle[0].mid;
+        var firstPartIndex = fullList.findIndex(monitor => monitor.mid === firstInPart)
+        var backedToIndex = (firstPartIndex - (numberOfMonitors + 1) + fullList.length) % fullList.length;
+        var beforeMonitorId = fullList[backedToIndex].mid
+        partForCycle = getPartForCycleOnLiveGrid(fullList,beforeMonitorId,numberOfMonitors, true)
+        displayCycleSetOnLiveGrid(partForCycle)
+        reset()
+    }
+    function reset(){
         clearTimeout(liveGridCycleTimer)
         liveGridCycleTimer = setTimeout(function(){
             next()
         },30000)
     }
-    liveGridCycleTimer = setTimeout(function(){
-        next()
-    },30000)
+    reset()
     cycleOnLiveGridMoveNext = next
+    cycleOnLiveGridMovePrev = prev
 }
 dashboardSwitchCallbacks.cycleLiveGrid = function(toggleState){
     if(toggleState !== 1){
@@ -97,13 +115,13 @@ function keyShortcutsForCycleOnLiveGrid(enable) {
                     isKeyPressed = true;
                     dashboardSwitch('cycleLiveGrid');
                 break;
-                // case 'ArrowLeft':
-                //     isKeyPressed = true;
-                //     if(cycleOnLiveGridOptions && cycleOnLiveGridOptionsBefore)beginCycleOnLiveGrid(cycleOnLiveGridOptionsBefore);
-                // break;
+                case 'ArrowLeft':
+                    isKeyPressed = true;
+                    cycleOnLiveGridMovePrev();
+                break;
                 case 'ArrowRight':
                     isKeyPressed = true;
-                    if(cycleOnLiveGridOptions)cycleOnLiveGridMoveNext();
+                    cycleOnLiveGridMoveNext();
                 break;
             }
         }
