@@ -1177,8 +1177,8 @@ $(document).ready(function(e){
                 var monitorId = d.mid || d.id
                 var loadedMonitor = loadedMonitors[monitorId]
                 var subStreamChannel = d.subStreamChannel
-                var monitorsPerRow = cycleOnLiveGridOptions ? cycleOnLiveGridOptions.monitorsPerRow : null;
-                var monitorHeight = cycleOnLiveGridOptions ? cycleOnLiveGridOptions.monitorHeight : null;
+                var monitorsPerRow = cycleLiveOptions ? cycleLiveOptions.monitorsPerRow : null;
+                var monitorHeight = cycleLiveOptions ? cycleLiveOptions.monitorHeight : null;
                 if(!loadedMonitor.subStreamChannel && loadedMonitor.details.stream_type === 'useSubstream'){
                     toggleSubStream(monitorId,function(){
                         drawLiveGridBlock(loadedMonitors[monitorId],subStreamChannel,monitorsPerRow,monitorHeight)
