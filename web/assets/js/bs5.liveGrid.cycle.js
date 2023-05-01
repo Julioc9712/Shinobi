@@ -61,22 +61,20 @@ dashboardSwitchCallbacks.cycleLiveGrid = function(toggleState){
         cycleOnLiveGridOptions = null
         stopCycleOnLiveGrid()
     }else{
-        setTimeout(function(){
-            openTab('liveGrid')
-            cycleOnLiveGridOptionsBefore = cycleOnLiveGridOptions ? Object.assign({},cycleOnLiveGridOptions) : null
-            const theLocalStorage = dashboardOptions()
-            const cycleLivePerRow = parseInt(theLocalStorage.cycleLivePerRow) || 2
-            const cycleLiveNumberOfMonitors = parseInt(theLocalStorage.cycleLiveNumberOfMonitors) || 4
-            const cycleLiveMonitorHeight = parseInt(theLocalStorage.cycleLiveMonitorHeight) || 4
-            cycleOnLiveGridOptions = {
-                chosenTags: null,
-                useMonitorIds: null,
-                monitorsPerRow: cycleLivePerRow,
-                numberOfMonitors: cycleLiveNumberOfMonitors,
-                monitorHeight: cycleLiveMonitorHeight,
-            }
-            beginCycleOnLiveGrid(cycleOnLiveGridOptions)
-        },1000)
+        openTab('liveGrid')
+        cycleOnLiveGridOptionsBefore = cycleOnLiveGridOptions ? Object.assign({},cycleOnLiveGridOptions) : null
+        const theLocalStorage = dashboardOptions()
+        const cycleLivePerRow = parseInt(theLocalStorage.cycleLivePerRow) || 2
+        const cycleLiveNumberOfMonitors = parseInt(theLocalStorage.cycleLiveNumberOfMonitors) || 4
+        const cycleLiveMonitorHeight = parseInt(theLocalStorage.cycleLiveMonitorHeight) || 4
+        cycleOnLiveGridOptions = {
+            chosenTags: null,
+            useMonitorIds: null,
+            monitorsPerRow: cycleLivePerRow,
+            numberOfMonitors: cycleLiveNumberOfMonitors,
+            monitorHeight: cycleLiveMonitorHeight,
+        }
+        beginCycleOnLiveGrid(cycleOnLiveGridOptions)
     }
 }
 function keyShortcutsForCycleOnLiveGrid(enable) {

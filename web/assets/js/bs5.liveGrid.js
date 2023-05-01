@@ -304,7 +304,6 @@ function drawLiveGridBlock(monitorConfig,subStreamChannel,forcedMonitorsPerRow,m
             var dimensionsConverted = legend[`${forcedMonitorsPerRow}`] || legend["2"];
             width = dimensionsConverted.w ? dimensionsConverted.w : dimensionsConverted;
             height = monitorHeight ? monitorHeight : dimensionsConverted.h ? dimensionsConverted.h : dimensionsConverted;
-            console.log('monitorHeight',height)
         }else if(monitorOrderEngaged && $user.details.monitorOrder && $user.details.monitorOrder[monitorConfig.ke+''+monitorId]){
             var saved = $user.details.monitorOrder[monitorConfig.ke+''+monitorId];
             x = saved.x;
