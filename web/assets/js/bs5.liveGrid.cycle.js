@@ -3,6 +3,8 @@ var cycleOnLiveGridOptionsBefore = null;
 var cycleOnLiveGridOptions = null;
 var cycleOnLiveGridMoveNext = function(){}
 var cycleOnLiveGridMovePrev = function(){}
+var cycleOnLiveGridFullList = null
+var cycleOnLiveGridCurrentPart = null
 function getListOfMonitorsToCycleOnLiveGrid(chosenTags,useMonitorIds){
     var monitors = []
     if(useMonitorIds){
@@ -25,30 +27,18 @@ function getPartForCycleOnLiveGrid(fullList, afterMonitorId, numberOfMonitors) {
     return result;
 }
 function displayCycleSetOnLiveGrid(monitorsList){
+    cycleOnLiveGridCurrentPart = [].concat(monitorsList)
     closeAllLiveGridPlayers()
     monitorsWatchOnLiveGrid(monitorsList.map(monitor => monitor.mid))
 }
 // rotator
 function stopCycleOnLiveGrid(){
-    clearTimeout(liveGridCycleTimer)
-    liveGridCycleTimer = null
-    cycleOnLiveGridOptions = null
-    cycleOnLiveGridOptionsBefore = null
-}
-function pauseCycleOnLiveGrid(){
+    console.error('STOP!!!!!',new Error)
     clearTimeout(liveGridCycleTimer)
     liveGridCycleTimer = null
 }
-function beginCycleOnLiveGrid({
-    chosenTags,
-    useMonitorIds,
-    numberOfMonitors,
-    monitorHeight,
-}){
-    var fullList = getListOfMonitorsToCycleOnLiveGrid(chosenTags,useMonitorIds)
-    var partForCycle = getPartForCycleOnLiveGrid(fullList,null,numberOfMonitors)
-    displayCycleSetOnLiveGrid(partForCycle)
-    stopCycleOnLiveGrid()
+function resumeCycleOnLiveGrid(fullList,partForCycle,numberOfMonitors){
+    console.error('RESUME!!!!!',new Error)
     function next(){
         var afterMonitorId = partForCycle.slice(-1)[0].mid;
         partForCycle = getPartForCycleOnLiveGrid(fullList,afterMonitorId,numberOfMonitors)
@@ -74,9 +64,23 @@ function beginCycleOnLiveGrid({
     cycleOnLiveGridMoveNext = next
     cycleOnLiveGridMovePrev = prev
 }
+function beginCycleOnLiveGrid({
+    chosenTags,
+    useMonitorIds,
+    numberOfMonitors,
+    monitorHeight,
+}){
+    var fullList = getListOfMonitorsToCycleOnLiveGrid(chosenTags,useMonitorIds)
+    var partForCycle = getPartForCycleOnLiveGrid(fullList,null,numberOfMonitors)
+    cycleOnLiveGridFullList = [].concat(fullList)
+    displayCycleSetOnLiveGrid(partForCycle)
+    stopCycleOnLiveGrid()
+    resumeCycleOnLiveGrid(fullList,partForCycle,numberOfMonitors)
+}
 dashboardSwitchCallbacks.cycleLiveGrid = function(toggleState){
     if(toggleState !== 1){
         cycleOnLiveGridOptions = null
+        cycleOnLiveGridOptionsBefore = null
         stopCycleOnLiveGrid()
     }else{
         openTab('liveGrid')
@@ -97,7 +101,6 @@ dashboardSwitchCallbacks.cycleLiveGrid = function(toggleState){
 }
 function keyShortcutsForCycleOnLiveGrid(enable) {
     function cleanup(){
-        console.error('REMOVE LISTENERS',keyShortcuts['cycleOnLiveGrid'])
         document.removeEventListener('keydown', keyShortcuts['cycleOnLiveGrid'].keydown);
         document.removeEventListener('keyup', keyShortcuts['cycleOnLiveGrid'].keyup);
         delete(keyShortcuts['cycleOnLiveGrid'])
@@ -108,12 +111,19 @@ function keyShortcutsForCycleOnLiveGrid(enable) {
             if (isKeyPressed) {
                 return;
             }
-            console.log('Key Press!',event.code)
             event.preventDefault();
             switch(event.code){
                 case 'Space':
                     isKeyPressed = true;
-                    dashboardSwitch('cycleLiveGrid');
+                    if(liveGridCycleTimer){
+                        stopCycleOnLiveGrid()
+                    }else{
+                        resumeCycleOnLiveGrid(
+                            cycleOnLiveGridFullList,
+                            cycleOnLiveGridCurrentPart,
+                            cycleOnLiveGridOptions.numberOfMonitors
+                        )
+                    }
                 break;
                 case 'ArrowLeft':
                     isKeyPressed = true;

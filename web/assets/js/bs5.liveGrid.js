@@ -1179,7 +1179,6 @@ $(document).ready(function(e){
                 var subStreamChannel = d.subStreamChannel
                 var monitorsPerRow = cycleOnLiveGridOptions ? cycleOnLiveGridOptions.monitorsPerRow : null;
                 var monitorHeight = cycleOnLiveGridOptions ? cycleOnLiveGridOptions.monitorHeight : null;
-                console.log(monitorHeight)
                 if(!loadedMonitor.subStreamChannel && loadedMonitor.details.stream_type === 'useSubstream'){
                     toggleSubStream(monitorId,function(){
                         drawLiveGridBlock(loadedMonitors[monitorId],subStreamChannel,monitorsPerRow,monitorHeight)
