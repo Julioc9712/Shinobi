@@ -280,7 +280,7 @@ function isLiveGridLogStreamOpenBefore(monitorId){
     var liveGridLogStreams = dashboardOptions().liveGridLogStreams || {}
     return liveGridLogStreams[monitorId]
 }
-function drawLiveGridBlock(monitorConfig,subStreamChannel,forcedMonitorsPerRow){
+function drawLiveGridBlock(monitorConfig,subStreamChannel,forcedMonitorsPerRow,monitorHeight){
     var monitorId = monitorConfig.mid
     if($('#monitor_live_' + monitorId).length === 0){
         var x = null;
@@ -296,14 +296,15 @@ function drawLiveGridBlock(monitorConfig,subStreamChannel,forcedMonitorsPerRow){
             var windowHeight = $(window).height()
             var legend = {
                 "1": 12,
-                "2": {x: 6, y: windowHeight >= 1260 ? 5 : 4},
+                "2": {w: 6, h: 4},
                 "3": 4,
                 "4": 3,
                 "6": 2,
             }
             var dimensionsConverted = legend[`${forcedMonitorsPerRow}`] || legend["2"];
-            width = dimensionsConverted.x ? dimensionsConverted.x : dimensionsConverted;
-            height = dimensionsConverted.y ? dimensionsConverted.y : dimensionsConverted;
+            width = dimensionsConverted.w ? dimensionsConverted.w : dimensionsConverted;
+            height = monitorHeight ? monitorHeight : dimensionsConverted.h ? dimensionsConverted.h : dimensionsConverted;
+            console.log('monitorHeight',height)
         }else if(monitorOrderEngaged && $user.details.monitorOrder && $user.details.monitorOrder[monitorConfig.ke+''+monitorId]){
             var saved = $user.details.monitorOrder[monitorConfig.ke+''+monitorId];
             x = saved.x;
@@ -315,7 +316,7 @@ function drawLiveGridBlock(monitorConfig,subStreamChannel,forcedMonitorsPerRow){
             x,
             y,
             h: isSmallMobile ? 1 :  height,
-            w: isSmallMobile ? 4 :  width,// !monitorOrderEngaged
+            w: isSmallMobile ? 4 :  width,
             content: html
         });
         if(isMobile)liveGridData.disable();
@@ -1178,13 +1179,15 @@ $(document).ready(function(e){
                 var loadedMonitor = loadedMonitors[monitorId]
                 var subStreamChannel = d.subStreamChannel
                 var monitorsPerRow = cycleOnLiveGridOptions ? cycleOnLiveGridOptions.monitorsPerRow : null;
+                var monitorHeight = cycleOnLiveGridOptions ? cycleOnLiveGridOptions.monitorHeight : null;
+                console.log(monitorHeight)
                 if(!loadedMonitor.subStreamChannel && loadedMonitor.details.stream_type === 'useSubstream'){
                     toggleSubStream(monitorId,function(){
-                        drawLiveGridBlock(loadedMonitors[monitorId],subStreamChannel,monitorsPerRow)
+                        drawLiveGridBlock(loadedMonitors[monitorId],subStreamChannel,monitorsPerRow,monitorHeight)
                         saveLiveGridBlockOpenState(monitorId,$user.ke,1)
                     })
                 }else{
-                    drawLiveGridBlock(loadedMonitors[monitorId],subStreamChannel,monitorsPerRow)
+                    drawLiveGridBlock(loadedMonitors[monitorId],subStreamChannel,monitorsPerRow,monitorHeight)
                     saveLiveGridBlockOpenState(monitorId,$user.ke,1)
                 }
             break;

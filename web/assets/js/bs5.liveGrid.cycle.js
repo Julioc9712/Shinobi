@@ -35,7 +35,8 @@ function stopCycleOnLiveGrid(){
 function beginCycleOnLiveGrid({
     chosenTags,
     useMonitorIds,
-    numberOfMonitors
+    numberOfMonitors,
+    monitorHeight,
 }){
     var fullList = getListOfMonitorsToCycleOnLiveGrid(chosenTags,useMonitorIds)
     var partForCycle = getPartForCycleOnLiveGrid(fullList,null,numberOfMonitors)
@@ -63,48 +64,62 @@ dashboardSwitchCallbacks.cycleLiveGrid = function(toggleState){
         setTimeout(function(){
             openTab('liveGrid')
             cycleOnLiveGridOptionsBefore = cycleOnLiveGridOptions ? Object.assign({},cycleOnLiveGridOptions) : null
+            const theLocalStorage = dashboardOptions()
+            const cycleLivePerRow = parseInt(theLocalStorage.cycleLivePerRow) || 2
+            const cycleLiveNumberOfMonitors = parseInt(theLocalStorage.cycleLiveNumberOfMonitors) || 4
+            const cycleLiveMonitorHeight = parseInt(theLocalStorage.cycleLiveMonitorHeight) || 4
             cycleOnLiveGridOptions = {
                 chosenTags: null,
                 useMonitorIds: null,
-                monitorsPerRow: 2,
-                numberOfMonitors: 4,
+                monitorsPerRow: cycleLivePerRow,
+                numberOfMonitors: cycleLiveNumberOfMonitors,
+                monitorHeight: cycleLiveMonitorHeight,
             }
             beginCycleOnLiveGrid(cycleOnLiveGridOptions)
         },1000)
     }
 }
 function keyShortcutsForCycleOnLiveGrid(enable) {
-    let isKeyPressed = false;
-    function handleKeyboard(event){
-        if (isKeyPressed) {
-            return;
-        }
-        console.log('Key Press!',event.code)
-        event.preventDefault();
-        switch(event.code){
-            case 'Space':
-                isKeyPressed = true;
-                dashboardSwitch('cycleLiveGrid');
-            break;
-            // case 'ArrowLeft':
-            //     isKeyPressed = true;
-            //     if(cycleOnLiveGridOptions && cycleOnLiveGridOptionsBefore)beginCycleOnLiveGrid(cycleOnLiveGridOptionsBefore);
-            // break;
-            case 'ArrowRight':
-                isKeyPressed = true;
-                if(cycleOnLiveGridOptions)cycleOnLiveGridMoveNext();
-            break;
-        }
-    }
-    function handleKeyup(event) {
-        isKeyPressed = false;
+    function cleanup(){
+        console.error('REMOVE LISTENERS',keyShortcuts['cycleOnLiveGrid'])
+        document.removeEventListener('keydown', keyShortcuts['cycleOnLiveGrid'].keydown);
+        document.removeEventListener('keyup', keyShortcuts['cycleOnLiveGrid'].keyup);
+        delete(keyShortcuts['cycleOnLiveGrid'])
     }
     if(enable){
-        document.addEventListener('keydown', handleKeyboard);
-        document.addEventListener('keyup', handleKeyup);
+        let isKeyPressed = false;
+        function handleKeyboard(event){
+            if (isKeyPressed) {
+                return;
+            }
+            console.log('Key Press!',event.code)
+            event.preventDefault();
+            switch(event.code){
+                case 'Space':
+                    isKeyPressed = true;
+                    dashboardSwitch('cycleLiveGrid');
+                break;
+                // case 'ArrowLeft':
+                //     isKeyPressed = true;
+                //     if(cycleOnLiveGridOptions && cycleOnLiveGridOptionsBefore)beginCycleOnLiveGrid(cycleOnLiveGridOptionsBefore);
+                // break;
+                case 'ArrowRight':
+                    isKeyPressed = true;
+                    if(cycleOnLiveGridOptions)cycleOnLiveGridMoveNext();
+                break;
+            }
+        }
+        function handleKeyup(event) {
+            isKeyPressed = false;
+        }
+        keyShortcuts['cycleOnLiveGrid'] = {
+            keydown: handleKeyboard,
+            keyup: handleKeyup,
+        }
+        document.addEventListener('keydown', keyShortcuts['cycleOnLiveGrid'].keydown);
+        document.addEventListener('keyup', keyShortcuts['cycleOnLiveGrid'].keyup);
     }else{
-        document.removeEventListener('keydown', handleKeyboard);
-        document.removeEventListener('keyup', handleKeyup);
+        cleanup()
     }
 }
 addOnTabOpen('liveGrid', function () {
