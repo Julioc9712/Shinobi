@@ -33,12 +33,11 @@ function displayCycleSetOnLiveGrid(monitorsList){
 }
 // rotator
 function stopCycleLive(){
-    console.error('STOP!!!!!',new Error)
     clearTimeout(liveGridCycleTimer)
     liveGridCycleTimer = null
 }
 function resumeCycleLive(fullList,partForCycle,numberOfMonitors){
-    console.error('RESUME!!!!!',new Error)
+    const cycleLiveTimerAmount = parseInt(theLocalStorage.cycleLiveTimerAmount) || 30000
     function next(){
         var afterMonitorId = partForCycle.slice(-1)[0].mid;
         partForCycle = getPartForCycleLive(fullList,afterMonitorId,numberOfMonitors)
@@ -58,7 +57,7 @@ function resumeCycleLive(fullList,partForCycle,numberOfMonitors){
         clearTimeout(liveGridCycleTimer)
         liveGridCycleTimer = setTimeout(function(){
             next()
-        },30000)
+        },cycleLiveTimerAmount)
     }
     reset()
     cycleLiveMoveNext = next

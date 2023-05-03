@@ -4893,6 +4893,11 @@ module.exports = function(s,config,lang){
                         "placeholder": "4",
                         attribute:'localStorage="cycleLiveMonitorHeight"',
                     },
+                    {
+                        "field": lang['Cycle Interval'],
+                        "placeholder": "30000",
+                        attribute:'localStorage="cycleLiveTimerAmount"',
+                    },
                 ]
             },
              "Preferences": {
