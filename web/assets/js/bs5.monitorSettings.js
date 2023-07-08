@@ -11,6 +11,7 @@ var monSectionPresets = $('#monSectionPresets')
 var copySettingsSelector = $('#copy_settings')
 var monitorPresetsSelection = $('#monitorPresetsSelection')
 var monitorPresetsNameField = $('#monitorPresetsName')
+var monitorSettingsMonitorMap = $('#monitor-settings-monitor-map')
 var monitorsList = monitorEditorWindow.find('.monitors_list')
 var editorForm = monitorEditorWindow.find('form')
 var tagsInput = monitorEditorWindow.find('[name="tags"]')
@@ -18,6 +19,8 @@ var triggerTagsInput = monitorEditorWindow.find('[detail=det_trigger_tags]')
 var fieldsLoaded = {}
 var sections = {}
 var loadedPresets = {}
+var loadedMap;
+var monitorMapMarker;
 function generateDefaultMonitorSettings(){
     var eventFilterId = generateId(5)
     return {
@@ -467,11 +470,15 @@ function getAdditionalStreamChannelFields(tempID,channelId){
 addOnTabOpen('monitorSettings', function () {
     setFieldVisibility()
     drawMonitorSettingsSubMenu()
+    loadMap(monitorEditorSelectedMonitor)
 })
-
 addOnTabReopen('monitorSettings', function () {
     setFieldVisibility()
     drawMonitorSettingsSubMenu()
+    loadMap(monitorEditorSelectedMonitor)
+})
+addOnTabAway('monitorSettings', function () {
+    unloadMap()
 })
 function drawInputMapHtml(options){
     var tmp = ''
@@ -688,6 +695,7 @@ function importIntoMonitorEditor(options){
     monitorsForCopy.find('optgroup').html(tmp)
     setFieldVisibility()
     drawMonitorSettingsSubMenu()
+    loadMap(monitorConfig)
 }
 //parse "Automatic" field in "Input" Section
 monitorEditorWindow.on('change','.auto_host_fill input,.auto_host_fill select',function(e){
@@ -976,6 +984,46 @@ function setFieldVisibilityOldWay(formElement){
 function setFieldVisibility(){
     setFieldVisibilityOldWay(editorForm)
     setFieldVisibilityNewWay()
+}
+function loadMap(monitor){
+    try{
+        unloadMap()
+    }catch(err){
+
+    }
+    console.log('MAP LOAD!!!',monitor)
+    try{
+        var {
+            lat,
+            lng,
+            zoom,
+        } = getGeolocationParts(monitor);
+    }catch(err){
+        console.log(err)
+        var lat = 49.2578298
+        var lng = -123.2634732
+        var zoom = 13
+    }
+    loadedMap = L.map('monitor-settings-monitor-map').setView([lat, lng], zoom);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+    }).addTo(loadedMap);
+    monitorMapMarker = L.marker([lat, lng], {
+        title: monitor ? `${monitor.name} (${monitor.host})` : null,
+        draggable: true,
+    }).addTo(loadedMap);
+    monitorMapMarker.on('dragend', function(e) {
+        editorForm.find(`[detail="geolocation"]`).val(getMapMarkerPosition()).change()
+    });
+}
+function unloadMap(){
+    loadedMap.remove();
+    loadedMap = null;
+}
+function getMapMarkerPosition(){
+    var pos = monitorMapMarker.getLatLng()
+    var zoom = loadedMap.getZoom();
+    return `${pos.lat},${pos.lng},${zoom}`
 }
 monitorStreamChannels.on('click','.delete',function(){
     $(this).parents('.stream-channel').remove()

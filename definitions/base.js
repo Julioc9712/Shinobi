@@ -140,7 +140,18 @@ module.exports = function(s,config,lang){
                             "value": "1"
                          }
                      ]
-                  }
+                 },
+                 {
+                    "name": "detail=geolocation",
+                    "field": lang["Geolocation"],
+                    "example": "49.2578298,-123.2634732",
+                    "description": lang["fieldTextGeolocation"],
+                 },
+                 {
+                     "id": "monitor-settings-monitor-map",
+                     "style": "width: 100%;height: 300px;border-radius:15px;",
+                     "fieldType": "div",
+                 },
                 ]
              },
              "Connection": {
@@ -7742,6 +7753,11 @@ module.exports = function(s,config,lang){
                           ]
                       },
                       {
+                          icon: 'map-marker',
+                          label: `${lang['Monitor Map']}`,
+                          pageOpen: 'monitorMap',
+                      },
+                      {
                           icon: 'file-o',
                           label: `${lang['FileBin']}`,
                           pageOpen: 'fileBinView',
@@ -9051,5 +9067,22 @@ module.exports = function(s,config,lang){
             },
         }
     },
+    "Monitor Map": {
+         "section": "Monitor Map",
+         "blocks": {
+             "Search Settings": {
+                "name": lang["Monitor Map"],
+                "color": "blue",
+                "noHeader": true,
+                "noDefaultSectionClasses": true,
+                "info": [
+                    {
+                        "fieldType": "div",
+                        "id": "monitor-map-canvas",
+                    }
+               ]
+           },
+        }
+      },
   })
 }

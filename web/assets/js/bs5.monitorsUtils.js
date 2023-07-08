@@ -289,6 +289,25 @@ function buildStreamUrl(monitorId){
     return streamURL
 }
 
+function buildEmbedUrl(monitor){
+    var monitorId = monitor.mid;
+    var streamURL = `${getApiPrefix(`embed`)}/${monitorId}/fullscreen|jquery|gui|relative?host=${location.pathname}`
+    return streamURL;
+}
+
+function getGeolocationParts(monitor){
+    var geolocation = monitor.details.geolocation
+    var parts = geolocation.split(',')
+    var lat = parseFloat(parts[0].trim().replace('@',''))
+    var lng = parseFloat(parts[1].trim())
+    var zoom = parseFloat(parts[2].trim().replace('v',''))
+    return {
+        lat,
+        lng,
+        zoom,
+    }
+}
+
 function getDbColumnsForMonitor(monitor){
     var acceptedFields = [
         'mid',
