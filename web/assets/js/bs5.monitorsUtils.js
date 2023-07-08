@@ -296,10 +296,20 @@ function buildEmbedUrl(monitor){
 }
 
 function getGeolocationParts(geolocation){
-    var parts = geolocation.split(',')
-    var lat = parseFloat(parts[0].trim().replace('@',''))
-    var lng = parseFloat(parts[1].trim())
-    var zoom = parseFloat(parts[2].trim().replace('v',''))
+    var defaultLat = 49.2578298
+    var defaultLng = -123.2634732
+    var defaultZoom = 13
+    try{
+        var parts = geolocation.split(',')
+        var lat = !parts[0] ? defaultLat : parseFloat(parts[0].trim().replace('@','')) || defaultLat
+        var lng = !parts[1] ? defaultLng : parseFloat(parts[1].trim()) || defaultLng
+        var zoom = !parts[2] ? defaultZoom : parseFloat(parts[2].trim().replace('v','')) || defaultZoom
+    }catch(err){
+        console.error(err)
+        var lat = defaultLat
+        var lng = defaultLng
+        var zoom = defaultZoom
+    }
     return {
         lat,
         lng,

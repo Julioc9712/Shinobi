@@ -993,18 +993,11 @@ function loadMap(monitor, geoString){
 
     }
     console.log('MAP LOAD!!!',monitor)
-    try{
-        var {
-            lat,
-            lng,
-            zoom,
-        } = getGeolocationParts(geoString || monitor.details.geolocation);
-    }catch(err){
-        console.error(err)
-        var lat = 49.2578298
-        var lng = -123.2634732
-        var zoom = 13
-    }
+    var {
+        lat,
+        lng,
+        zoom,
+    } = getGeolocationParts(geoString || monitor.details.geolocation);
     loadedMap = L.map('monitor-settings-monitor-map').setView([lat, lng], zoom);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -1027,7 +1020,12 @@ function getMapMarkerPosition(){
     return `${pos.lat},${pos.lng},${zoom}`
 }
 editorForm.find(`[detail="geolocation"]`).change(function(){
-    loadMap(monitorEditorSelectedMonitor, $(this).val())
+    var geoString = $(this).val();
+    var currentGeoString = monitorEditorSelectedMonitor.details.geolocation
+    if(!geoString && currentGeoString){
+        editorForm.find(`[detail="geolocation"]`).val(currentGeoString)
+    }
+    loadMap(monitorEditorSelectedMonitor, geoString)
 })
 monitorStreamChannels.on('click','.delete',function(){
     $(this).parents('.stream-channel').remove()
