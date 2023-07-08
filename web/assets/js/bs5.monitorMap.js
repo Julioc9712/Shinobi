@@ -9,25 +9,31 @@ $(document).ready(function(){
             monitorId: monitorId,
             limit: 10,
         },function(data){
-            var theVideoList = $(`#leaflet-monitor-videos`)
             var videos = data.videos
-            if(videos.length > 0){
-                var html = ''
-                $.each(videos,function(n,video){
-                    html += createVideoRow(video,`col-12 mb-2`)
-                })
+            var html = ''
+            setTimeout(function(){
+                var theVideoList = $(`#leaflet-monitor-videos`)
+                if(videos.length > 0){
+                    console.log(2,videos,videos.length)
+                    $.each(videos,function(n,video){
+                        html += createVideoRow(video,`col-12 mb-2`)
+                    })
+                }else{
+                    theVideoList.css('height','initial')
+                    html = `<div class="text-center text-light mb-2">${lang['No Videos Found']}</div>`
+                }
                 theVideoList.html(html)
-            }else{
-                theVideoList.slideUp()
-            }
+            },1000)
         })
     }
     function buildPinPopupHtml(monitor){
         var embedUrl = buildEmbedUrl(monitor)
         var html = `
         <div id="leaflet-monitor-block" data-mid="${monitor.mid}" data-ke="${monitor.ke}">
-            <div>${`<iframe src="${embedUrl}"></iframe>`}</div>
-            <div id="leaflet-monitor-videos"></div>
+            <div>${userHasSubscribed ? `<iframe src="${embedUrl}"></iframe>` : `<div class="text-center p-3 text-light">${lang.activateRequiredLiveStream}</div>`}</div>
+            <div id="leaflet-monitor-videos">
+                <div class="text-center text-light" style="padding-top: 75px"><i class="fa fa-3x fa-spinner fa-pulse"></i></div>
+            </div>
         </div>
         `
         return html
@@ -50,7 +56,7 @@ $(document).ready(function(){
                     lat,
                     lng,
                     zoom,
-                } = getGeolocationParts(monitor);
+                } = getGeolocationParts(monitor.details.geolocation);
                 // var zoom = parseFloat(parts[2].trim().replace('v',''))
                 point.coords = [lat, lng]
                 points.push(point)

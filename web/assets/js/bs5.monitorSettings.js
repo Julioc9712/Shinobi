@@ -437,7 +437,8 @@ window.getMonitorEditFormFields = function(){
     }
     if(monitorConfig.name == ''){errorsFound.push('Monitor Name cannot be blank')}
     //edit details
-    monitorConfig.details = safeJsonParse(monitorConfig.details)
+    monitorConfig.details = getDetailValues(editorForm)
+    // monitorConfig.details = safeJsonParse(monitorConfig.details)
     monitorConfig.details.substream = getSubStreamChannelFields()
     monitorConfig.details.input_map_choices = monitorSectionInputMapsave()
     // TODO : Input Maps and Stream Channels (does old way at the moment)
@@ -985,7 +986,7 @@ function setFieldVisibility(){
     setFieldVisibilityOldWay(editorForm)
     setFieldVisibilityNewWay()
 }
-function loadMap(monitor){
+function loadMap(monitor, geoString){
     try{
         unloadMap()
     }catch(err){
@@ -997,9 +998,9 @@ function loadMap(monitor){
             lat,
             lng,
             zoom,
-        } = getGeolocationParts(monitor);
+        } = getGeolocationParts(geoString || monitor.details.geolocation);
     }catch(err){
-        console.log(err)
+        console.error(err)
         var lat = 49.2578298
         var lng = -123.2634732
         var zoom = 13
@@ -1025,6 +1026,9 @@ function getMapMarkerPosition(){
     var zoom = loadedMap.getZoom();
     return `${pos.lat},${pos.lng},${zoom}`
 }
+editorForm.find(`[detail="geolocation"]`).change(function(){
+    loadMap(monitorEditorSelectedMonitor, $(this).val())
+})
 monitorStreamChannels.on('click','.delete',function(){
     $(this).parents('.stream-channel').remove()
     monitorStreamChannelsave()
@@ -1062,9 +1066,9 @@ editorForm.find('[name="type"]').change(function(e){
     var el = $(this);
     if(el.val()==='h264')editorForm.find('[name="protocol"]').val('rtsp').change()
 })
-editorForm.find('[detail]').change(function(){
-    onDetailFieldChange(this)
-})
+// editorForm.find('[detail]').change(function(){
+//     onDetailFieldChange(this)
+// })
 editorForm.on('change','[selector]',function(){
     var el = $(this);
     onSelectorChange(el,editorForm)

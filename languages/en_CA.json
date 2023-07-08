@@ -993,6 +993,7 @@
    "WebdavErrorTextCreatingDir": "Cannot create directory.",
    "File Not Exist": "File Not Exist",
    "No Videos Found": "No Videos Found",
+   "activateRequiredLiveStream": "Live Stream is only available here with an Activated installation.",
    "FileNotExistText": "Cannot save non existant file. Something went wrong.",
    "CameraNotRecordingText": "Settings may be incompatible. Check encoders. Restarting...",
    "Camera is not running": "Camera is not running",

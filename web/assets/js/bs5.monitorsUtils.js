@@ -295,8 +295,7 @@ function buildEmbedUrl(monitor){
     return streamURL;
 }
 
-function getGeolocationParts(monitor){
-    var geolocation = monitor.details.geolocation
+function getGeolocationParts(geolocation){
     var parts = geolocation.split(',')
     var lat = parseFloat(parts[0].trim().replace('@',''))
     var lng = parseFloat(parts[1].trim())
