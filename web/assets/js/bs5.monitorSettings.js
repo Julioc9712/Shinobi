@@ -1007,7 +1007,7 @@ function loadMap(monitor, geoString){
         draggable: true,
     }).addTo(loadedMap);
     monitorMapMarker.on('dragend', function(e) {
-        editorForm.find(`[detail="geolocation"]`).val(getMapMarkerPosition()).change()
+        editorForm.find(`[detail="geolocation"]`).val(getMapMarkerPosition())
     });
 }
 function unloadMap(){
