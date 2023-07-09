@@ -1006,9 +1006,11 @@ function loadMap(monitor, geoString){
         title: monitor ? `${monitor.name} (${monitor.host})` : null,
         draggable: true,
     }).addTo(loadedMap);
-    monitorMapMarker.on('dragend', function(e) {
+    function setGeolocationFieldValue(e) {
         editorForm.find(`[detail="geolocation"]`).val(getMapMarkerPosition())
-    });
+    }
+    monitorMapMarker.on('dragend', setGeolocationFieldValue);
+    loadedMap.on('zoomend', setGeolocationFieldValue);
 }
 function unloadMap(){
     loadedMap.remove();

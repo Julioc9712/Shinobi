@@ -30,7 +30,7 @@ $(document).ready(function(){
         var embedUrl = buildEmbedUrl(monitor)
         var html = `
         <div id="leaflet-monitor-block" data-mid="${monitor.mid}" data-ke="${monitor.ke}">
-            <div>${userHasSubscribed ? `<iframe src="${embedUrl}"></iframe>` : `<div class="text-center p-3 text-light">${lang.activateRequiredLiveStream}</div>`}</div>
+            <div>${userHasSubscribed ? `<iframe src="${embedUrl}"></iframe>` : `<div class="text-center p-3 text-light cursor-pointer" onclick="openTab('helpWindow')">${lang.activateRequiredLiveStream}</div>`}</div>
             <div id="leaflet-monitor-videos">
                 <div class="text-center text-light" style="padding-top: 75px"><i class="fa fa-3x fa-spinner fa-pulse"></i></div>
             </div>
