@@ -7729,7 +7729,7 @@ module.exports = function(s,config,lang){
                           ]
                       },
                       {
-                          icon: 'map-marker',
+                          icon: 'barcode',
                           label: `${lang['Power Viewer']}`,
                           pageOpen: 'powerVideo',
                       },
