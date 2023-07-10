@@ -1,4 +1,8 @@
 var monitorEditorSelectedMonitor = null
+onMonitorSettingsLoadedExtensions = []
+function onMonitorSettingsLoaded(theAction){
+    onMonitorSettingsLoadedExtensions.push(theAction)
+}
 $(document).ready(function(e){
 
 //Monitor Editor
@@ -11,7 +15,6 @@ var monSectionPresets = $('#monSectionPresets')
 var copySettingsSelector = $('#copy_settings')
 var monitorPresetsSelection = $('#monitorPresetsSelection')
 var monitorPresetsNameField = $('#monitorPresetsName')
-var monitorSettingsMonitorMap = $('#monitor-settings-monitor-map')
 var monitorsList = monitorEditorWindow.find('.monitors_list')
 var editorForm = monitorEditorWindow.find('form')
 var tagsInput = monitorEditorWindow.find('[name="tags"]')
@@ -19,8 +22,6 @@ var triggerTagsInput = monitorEditorWindow.find('[detail=det_trigger_tags]')
 var fieldsLoaded = {}
 var sections = {}
 var loadedPresets = {}
-var loadedMap;
-var monitorMapMarker;
 function generateDefaultMonitorSettings(){
     var eventFilterId = generateId(5)
     return {
@@ -467,19 +468,13 @@ function getAdditionalStreamChannelFields(tempID,channelId){
     var fieldInfo = monitorSettingsAdditionalStreamChannelFieldHtml.replaceAll('$[TEMP_ID]',tempID).replaceAll('$[NUMBER]',channelId)
     return fieldInfo
 }
-
 addOnTabOpen('monitorSettings', function () {
     setFieldVisibility()
     drawMonitorSettingsSubMenu()
-    loadMap(monitorEditorSelectedMonitor)
 })
 addOnTabReopen('monitorSettings', function () {
     setFieldVisibility()
     drawMonitorSettingsSubMenu()
-    loadMap(monitorEditorSelectedMonitor)
-})
-addOnTabAway('monitorSettings', function () {
-    unloadMap()
 })
 function drawInputMapHtml(options){
     var tmp = ''
@@ -696,7 +691,9 @@ function importIntoMonitorEditor(options){
     monitorsForCopy.find('optgroup').html(tmp)
     setFieldVisibility()
     drawMonitorSettingsSubMenu()
-    loadMap(monitorConfig)
+    onMonitorSettingsLoadedExtensions.forEach(function(theAction){
+        theAction(monitorConfig)
+    })
 }
 //parse "Automatic" field in "Input" Section
 monitorEditorWindow.on('change','.auto_host_fill input,.auto_host_fill select',function(e){
@@ -986,49 +983,6 @@ function setFieldVisibility(){
     setFieldVisibilityOldWay(editorForm)
     setFieldVisibilityNewWay()
 }
-function loadMap(monitor, geoString){
-    try{
-        unloadMap()
-    }catch(err){
-
-    }
-    console.log('MAP LOAD!!!',monitor)
-    var {
-        lat,
-        lng,
-        zoom,
-    } = getGeolocationParts(geoString || monitor.details.geolocation);
-    loadedMap = L.map('monitor-settings-monitor-map').setView([lat, lng], zoom);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-    }).addTo(loadedMap);
-    monitorMapMarker = L.marker([lat, lng], {
-        title: monitor ? `${monitor.name} (${monitor.host})` : null,
-        draggable: true,
-    }).addTo(loadedMap);
-    function setGeolocationFieldValue(e) {
-        editorForm.find(`[detail="geolocation"]`).val(getMapMarkerPosition())
-    }
-    monitorMapMarker.on('dragend', setGeolocationFieldValue);
-    loadedMap.on('zoomend', setGeolocationFieldValue);
-}
-function unloadMap(){
-    loadedMap.remove();
-    loadedMap = null;
-}
-function getMapMarkerPosition(){
-    var pos = monitorMapMarker.getLatLng()
-    var zoom = loadedMap.getZoom();
-    return `${pos.lat},${pos.lng},${zoom}`
-}
-editorForm.find(`[detail="geolocation"]`).change(function(){
-    var geoString = $(this).val();
-    var currentGeoString = monitorEditorSelectedMonitor.details.geolocation
-    if(!geoString && currentGeoString){
-        editorForm.find(`[detail="geolocation"]`).val(currentGeoString)
-    }
-    loadMap(monitorEditorSelectedMonitor, geoString)
-})
 monitorStreamChannels.on('click','.delete',function(){
     $(this).parents('.stream-channel').remove()
     monitorStreamChannelsave()
