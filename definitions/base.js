@@ -148,9 +148,25 @@ module.exports = function(s,config,lang){
                     "description": lang["fieldTextGeolocation"],
                  },
                  {
-                     "id": "monitor-settings-monitor-map",
-                     "style": "width: 100%;height: 300px;border-radius:15px;",
+                     "id": "monitor-settings-monitor-map-container",
+                     "style": "position: relative",
                      "fieldType": "div",
+                     divContent: `
+                     <div id="monitor-settings-geolocation-options" class="p-2" style="background: rgba(0,0,0,0.4);position: absolute; top: 0; right: 0; border-radius: 0 0 0 15px; z-index: 405;">
+                         <label for="direction">${lang.Direction} <span class="badge" map-option-value="direction"></span></label>
+                         <div class="slider-container">
+                             <input type="range" map-option="direction" class="slider" min="0" max="360" value="90">
+                         </div>
+                         <label for="fov">${lang['Field of View']} <span class="badge" map-option-value="fov"></span></label>
+                         <div class="slider-container">
+                             <input type="range" map-option="fov" class="slider" min="0" max="180" value="60">
+                         </div>
+                         <label for="range">${lang.Range} <span class="badge" map-option-value="range"></span></label>
+                         <div class="slider-container">
+                             <input type="range" map-option="range" class="slider" min="0" max="10" value="1" step="0.1">
+                         </div>
+                     </div>
+                     <div id="monitor-settings-monitor-map" style="width: 100%;height: 300px;border-radius:15px;"></div>`,
                  },
                 ]
              },
