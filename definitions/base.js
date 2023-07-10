@@ -157,11 +157,11 @@ module.exports = function(s,config,lang){
                          <div class="slider-container">
                              <input type="range" map-option="direction" class="slider" min="0" max="360" value="90">
                          </div>
-                         <label for="fov">${lang['Field of View']} <span class="badge" map-option-value="fov"></span></label>
+                         <label for="fov">${lang['Field of View']} <span class="badge"><span map-option-value="fov"></span>°</span></label>
                          <div class="slider-container">
                              <input type="range" map-option="fov" class="slider" min="0" max="180" value="60">
                          </div>
-                         <label for="range">${lang.Range} <span class="badge" map-option-value="range"></span></label>
+                         <label for="range">${lang.Range} <span class="badge"><span map-option-value="range"></span> km</span></label>
                          <div class="slider-container">
                              <input type="range" map-option="range" class="slider" min="0" max="10" value="1" step="0.1">
                          </div>

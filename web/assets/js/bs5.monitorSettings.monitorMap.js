@@ -64,6 +64,11 @@ $(document).ready(function(e){
             fov,
             range,
         })
+        setAdditionalControlsUI({
+            direction,
+            fov,
+            range,
+        })
     }
     function unloadMap(){
         loadedMap.remove();
@@ -109,7 +114,11 @@ $(document).ready(function(e){
     }
     function setAdditionalControlsUI(markerDetails){
         $.each(markerDetails,function(key,value){
-            monitorSettingsMapOptionsEl.find(`[map-option-value="${key}"]`).text(value)
+            var setValue = `${value}`
+            if(key === 'direction'){
+                setValue = `${value} (${getCardinalDirection(value)})`
+            }
+            monitorSettingsMapOptionsEl.find(`[map-option-value="${key}"]`).text(setValue)
         })
     }
     editorForm.find(`[detail="geolocation"]`).change(function(){
