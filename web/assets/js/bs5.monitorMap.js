@@ -14,6 +14,7 @@ $(document).ready(function(){
             setTimeout(function(){
                 var theVideoList = $(`#leaflet-monitor-videos`)
                 if(videos.length > 0){
+                    theVideoList.css('height','')
                     console.log(2,videos,videos.length)
                     $.each(videos,function(n,video){
                         html += createVideoRow(video,`col-12 mb-2`)
@@ -46,6 +47,9 @@ $(document).ready(function(){
             var modeIsOn = monitor.mode === 'record' || monitor.mode === 'start'
             var point = {
                 coords: [49.2578298 + n,-123.2634732 + n],
+                direction: 90,
+                fov: 60,
+                range: 1,
                 title: `${monitor.name} (${monitor.host})`,
                 html: buildPinPopupHtml(monitor)
             };
@@ -56,9 +60,15 @@ $(document).ready(function(){
                     lat,
                     lng,
                     zoom,
+                    direction,
+                    fov,
+                    range,
                 } = getGeolocationParts(monitor.details.geolocation);
-                // var zoom = parseFloat(parts[2].trim().replace('v',''))
+                point.direction = direction
+                point.fov = fov
+                point.range = range
                 point.coords = [lat, lng]
+                console.log(point)
                 points.push(point)
             }else{
                 n += 0.0001105;
@@ -74,6 +84,14 @@ $(document).ready(function(){
             var lng = pin.coords[1];
             var html = pin.html;
             L.marker([lat, lng], { title: pin.title }).bindPopup(html).addTo(loadedMap);
+            console.log(pin)
+            drawMapMarkerFov(loadedMap,{
+                lat,
+                lng,
+                direction: pin.direction,
+                fov: pin.fov,
+                range: pin.range,
+            });
         }
     }
     function loadMap(){
