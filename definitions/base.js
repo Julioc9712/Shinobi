@@ -3815,7 +3815,7 @@ module.exports = function(s,config,lang){
                     {
                         isAdvanced: true,
                        "name": "detail=control_axis_lock",
-                       "field": lang['Pan/Tilt Lock'],
+                       "field": lang['Pan/Tilt Only'],
                        "default": "",
                        "fieldType": "select",
                        "possible": [
