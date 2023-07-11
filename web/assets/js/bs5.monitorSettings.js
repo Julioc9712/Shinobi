@@ -233,6 +233,7 @@ function generateDefaultMonitorSettings(){
            "control_base_url": "",
            "control_url_method": null,
            "control_digest_auth": null,
+           "control_axis_lock": "",
            "control_stop": "0",
            "control_url_stop_timeout": "",
            "control_url_center": "",

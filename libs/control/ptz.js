@@ -259,6 +259,8 @@ module.exports = function(s,config,lang){
         const controlUrlMethod = monitorConfig.details.control_url_method || 'GET'
         const controlUrlStopTimeout = options.moveTimeout || parseInt(monitorConfig.details.control_url_stop_timeout) || 1000
         const stopCommandEnabled = monitorConfig.details.control_stop === '1' || monitorConfig.details.control_stop === '2';
+        const axisLock = monitorConfig.details.control_axis_lock
+        const direction = options.direction
         if(monitorConfig.details.control !== "1"){
             s.userLog(monitorConfig,{
                 type: lang['Control Error'],
@@ -270,14 +272,28 @@ module.exports = function(s,config,lang){
             }
         }
         let response = {
-            direction: options.direction,
+            direction,
+        }
+        if(axisLock){
+            const isHorizontalOnly = axisLock === '1'
+            const isVerticalOnly = axisLock === '2'
+            const moveIsHorizontal = direction === 'left' || direction === 'right'
+            const moveIsVertical = direction === 'up' || direction === 'down'
+            if(
+                isHorizontalOnly && moveIsVertical ||
+                isVerticalOnly && moveIsHorizontal
+            ){
+                response.ok = false
+                response.msg = isHorizontalOnly ? lang['Pan Only'] : lang['Tilt Only']
+                return response
+            }
         }
         if(controlUrlMethod === 'ONVIF'){
-            if(options.direction === 'center'){
+            if(direction === 'center'){
                 response.moveResponse = await moveOnvifCamera(options,true)
             }else if(stopCommandEnabled){
                 response.moveResponse = await moveOnvifCamera(options,true)
-                if(options.direction !== 'stopMove' && options.direction !== 'center'){
+                if(direction !== 'stopMove' && direction !== 'center'){
                     await asyncSetTimeout(controlUrlStopTimeout)
                     response.stopMoveResponse = await moveOnvifCamera(options,false)
                     response.ok = response.moveResponse.ok && response.stopMoveResponse.ok;
@@ -288,7 +304,7 @@ module.exports = function(s,config,lang){
                 response = await relativeMoveOnvif(options);
             }
         }else{
-            if(options.direction === 'stopMove'){
+            if(direction === 'stopMove'){
                 response = await moveGeneric(options,false)
             }else{
                 // left, right, up, down, center
