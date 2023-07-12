@@ -1,3 +1,4 @@
+const fs = require('fs').promises
 module.exports = function(s,config,lang){
     const {
         getPartsFromPath,
@@ -41,6 +42,33 @@ module.exports = function(s,config,lang){
             return newReportId
         }
     }
+    async function moveZipToFileBin({
+        ke,
+        mid,
+        zipName,
+        newReportId,
+        currentTime,
+        outputZipPath,
+        moveZipToPath,
+    }){
+        await copyFile(outputZipPath, moveZipToPath)
+        await fs.rm(outputZipPath)
+        const fileStats = await fs.stat(moveZipToPath)
+        const fileBinInsertQuery = {
+            ke,
+            mid,
+            name: zipName,
+            size: fileStats.size,
+            details: JSON.stringify({
+                reportId: newReportId
+            }),
+            archive: 1,
+            status: 1,
+            time: currentTime,
+            type: 'report'
+        }
+        await s.insertFileBinEntry(fileBinInsertQuery)
+    }
     async function saveReport(options){
         const {
             ke,
@@ -58,14 +86,23 @@ module.exports = function(s,config,lang){
         // save files to zip
         const zipName = `Report-${currentTime.getTime()}`
         const tempDirectory = `${getStreamDirectory({ke, mid})}${zipName}`
+        const moveZipToDirectory = `${s.getFileBinDirectory({ke, mid})}${zipName}`
         if(snapPaths)await copyFilesToReportFolder('images', tempDirectory,snapPaths);
         if(videoPaths)await copyFilesToReportFolder('videos', tempDirectory,videoPaths);
         if(fileBinPaths)await copyFilesToReportFolder('fileBin', tempDirectory,fileBinPaths);
-        // finish zip move!!!!!!
         const outputZipPath = `${tempDirectory}.zip`
-        const moveZipToPath = `${tempDirectory}.zip`
+        const moveZipToPath = `${moveZipToDirectory}.zip`
         await zipFolder(tempDirectory,outputZipPath)
-        await copyFile(outputZipPath, moveZipToPath)
+        await fs.rm(tempDirectory, { recursive: true })
+        await moveZipToFileBin({
+            ke,
+            mid,
+            zipName,
+            newReportId,
+            currentTime,
+            outputZipPath,
+            moveZipToPath,
+        })
         // put added information about video
         // - length of videos
         // - format of videos

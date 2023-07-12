@@ -51,6 +51,7 @@ module.exports = function(s,config){
             {name: 'status', type: 'integer', length: 1, defaultTo: 0},
             {name: 'archive', type: 'tinyint', length: 1, defaultTo: 0},
             {name: 'time', type: 'timestamp', defaultTo: currentTimestamp()},
+            {name: 'type', length: 20, type: 'string'},
         ]);
         await createTable('Videos',[
             isMySQL ? {name: 'utf8', type: 'charset'} : null,

@@ -17,4 +17,7 @@ module.exports = async function(s,config){
         {name: 'time', type: 'timestamp', defaultTo: currentTimestamp()},
         {name: 'incidentTime', type: 'timestamp', defaultTo: currentTimestamp()},
     ]);
+    await addColumn('Files',[
+        {name: 'type', length: 20, type: 'string'},
+    ]);
 }
