@@ -7774,6 +7774,11 @@ module.exports = function(s,config,lang){
                           pageOpen: 'monitorMap',
                       },
                       {
+                          icon: 'pencil-square-o',
+                          label: `${lang['Report Manager']}`,
+                          pageOpen: 'reportManager',
+                      },
+                      {
                           icon: 'file-o',
                           label: `${lang['FileBin']}`,
                           pageOpen: 'fileBinView',
@@ -9083,6 +9088,6 @@ module.exports = function(s,config,lang){
                ]
            },
         }
-      },
+      }
   })
 }

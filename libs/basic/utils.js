@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const spawn = require('child_process').spawn;
 const moment = require('moment');
 const fetch  = require('node-fetch');
 const FormData = require('form-data');
@@ -228,6 +229,31 @@ module.exports = (processCwd,config) => {
 
         return s;
     }
+    function zipFolder(targetFolder,outputZipFilePath){
+        return new Promise((resolve) => {
+            const zipProcess = spawn(`zip`,[`-r`,outputZipFilePath,targetFolder])
+            zipProcess.on('close', () => {
+                resolve()
+            })
+        })
+    }
+    function getFilenameFromPath(fullPath){
+        const filenameParts = fullPath.split('/')
+        const filename = filenameParts[filenameParts.length - 1]
+        return filename
+    }
+    function getPartsFromPath(fullPath){
+        const filenameParts = fullPath.split('/')
+        const fileNamePartsLength = filenameParts.length
+        const groupKey = filenameParts[fileNamePartsLength - 3]
+        const monitorId = filenameParts[fileNamePartsLength - 2]
+        const filename = filenameParts[fileNamePartsLength - 1]
+        return {
+            groupKey,
+            monitorId,
+            filename,
+        }
+    }
     return {
         parseJSON: parseJSON,
         stringJSON: stringJSON,
@@ -247,6 +273,9 @@ module.exports = (processCwd,config) => {
         fetchWithAuthentication: fetchWithAuthentication,
         asyncSetTimeout: asyncSetTimeout,
         copyFile: copyFile,
+        getFilenameFromPath,
+        getPartsFromPath,
         hmsToSeconds,
+        zipFolder,
     }
 }
