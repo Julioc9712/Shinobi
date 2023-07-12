@@ -77,13 +77,16 @@ module.exports = function(s,config,lang){
             tags,
             notes,
             details,
+            incidentTime,
             snapPaths,
             videoPaths,
             fileBinPaths,
         } = options;
+        const monitorConfig = s.groups[ke].rawMonitorConfigurations[mid]
+        const monitorLocation = monitorConfig.details.geolocation
         const currentTime = new Date()
         const newReportId = await getNewReportId(ke,mid)
-        // save files to zip
+        // move files to be zipped
         const zipName = `Report-${currentTime.getTime()}`
         const tempDirectory = `${getStreamDirectory({ke, mid})}${zipName}`
         const moveZipToDirectory = `${s.getFileBinDirectory({ke, mid})}${zipName}`
@@ -92,6 +95,7 @@ module.exports = function(s,config,lang){
         if(fileBinPaths)await copyFilesToReportFolder('fileBin', tempDirectory,fileBinPaths);
         const outputZipPath = `${tempDirectory}.zip`
         const moveZipToPath = `${moveZipToDirectory}.zip`
+        // save files to zip
         await zipFolder(tempDirectory,outputZipPath)
         await fs.rm(tempDirectory, { recursive: true })
         await moveZipToFileBin({
@@ -103,10 +107,11 @@ module.exports = function(s,config,lang){
             outputZipPath,
             moveZipToPath,
         })
-        // put added information about video
-        // - length of videos
-        // - format of videos
-        // - source of videos
+        // added info
+        details.videoSource = details.videoSource || `${lang.videoSourcePlaceholder}`
+        if(monitorLocation){
+            details.gps = monitorLocation
+        }
         // save database row
         const insertQuery = {
             id: newReportId,
@@ -117,6 +122,7 @@ module.exports = function(s,config,lang){
             notes,
             details: JSON.stringify(details),
             time: currentTime,
+            incidentTime: new Date(incidentTime),
         }
         const insertResponse = await s.knexQueryPromise({
             action: "insert",
@@ -414,80 +420,66 @@ module.exports = function(s,config,lang){
                "info": [
                    {
                        "name": "name",
-                       "field": "Name",
-                       "description": "A unique identifier for each report",
+                       "field": lang['Name'],
+                       "description": lang['fieldTextName'],
+                       "form-group-class-pre-layer": "col-md-6",
                        "fieldType": "text"
                    },
                    {
                        "name": "detail=submittedBy",
-                       "field": "Submitted By",
-                       "description": "The name and contact information of the person or organization submitting the report",
+                       "field": lang['Submitted By'],
+                       "description": lang['fieldTextSubmittedBy'],
+                       "form-group-class-pre-layer": "col-md-6",
                        "fieldType": "text"
                    },
                    {
                        "name": "detail=caseReferenceNumber",
-                       "field": "Case Reference Number",
-                       "description": "The case number for easy reference",
-                       "fieldType": "text"
-                   },
-                   {
-                       "name": "detail=videoTitle",
-                       "field": "Video Title",
-                       "description": "A brief title or description of the video",
+                       "field": lang['Case Reference Number'],
+                       "description": lang['fieldTextCaseReferenceNumber'],
+                       "form-group-class-pre-layer": "col-md-6",
                        "fieldType": "text"
                    },
                    {
                        "name": "detail=videoSource",
-                       "field": "Video Source",
-                       "description": "Information about where the video was sourced from",
+                       "field": lang['Video Source'],
+                       "description": lang['fieldTextVideoSource'],
+                       "form-group-class-pre-layer": "col-md-6",
+                       "placeholder": lang.videoSourcePlaceholder,
                        "fieldType": "textarea"
                    },
                    {
                        "name": "detail=locationOfIncident",
-                       "field": "Location of Incident",
-                       "description": "The specific location where the incident in the video took place",
+                       "field": lang['Location of Incident'],
+                       "description": lang['fieldTextLocationOfIncident'],
+                       "form-group-class-pre-layer": "col-md-6",
                        "fieldType": "text"
                    },
                    {
                        "name": "incidentTime",
-                       "field": "Date and Time of Incident",
-                       "description": "The exact date and time when the incident occurred",
+                       "field": lang['Date and Time of Incident'],
+                       "description": lang['fieldTextDateTimeOfIncident'],
+                       "form-group-class-pre-layer": "col-md-6",
                        "fieldType": "text"
                    },
                    {
                        "name": "detail=descriptionOfIncident",
-                       "field": "Description of Incident",
-                       "description": "A detailed description of the incident captured in the video",
+                       "field": lang['Description of Incident'],
+                       "description": lang['fieldTextDescriptionOfIncident'],
+                       "form-group-class-pre-layer": "col-md-6",
                        "fieldType": "textarea"
                    },
                    {
                        "name": "detail=involvedParties",
-                       "field": "Involved Parties",
-                       "description": "Information about the individuals or entities involved in the incident, if known",
+                       "field": lang['Involved Parties'],
+                       "description": lang['fieldTextInvolvedParties'],
+                       "form-group-class-pre-layer": "col-md-6",
                        "fieldType": "textarea"
-                   },
-                   {
-                       "name": "detail=keyTimestamps",
-                       "field": "Key Timestamps",
-                       "description": "Specific timestamps in the video where important events occur",
-                       "fieldType": "textarea"
-                   },
-                   {
-                       "name": "detail=attachedVideoFile",
-                       "field": "Attached Video File",
-                       "description": "The actual video file or a secure link to the video file",
-                       "fieldType": "text"
                    },
                    {
                        "name": "detail=additionalNotes",
-                       "field": "Additional Notes",
-                       "description": "Any additional information or context that might be relevant to the incident",
-                       "fieldType": "textarea"
-                   },
-                   {
-                       "name": "detail=verification",
-                       "field": "Verification",
-                       "description": "A statement by the person submitting the report that the information provided is accurate to the best of their knowledge",
+                       "field": lang['Additional Notes'],
+                       "description": lang['fieldTextAdditionalNotes'],
+                       "form-group-class-pre-layer": "col-md-6",
                        "fieldType": "textarea"
                    }
                ]
