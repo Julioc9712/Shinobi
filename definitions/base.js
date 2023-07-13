@@ -9088,6 +9088,155 @@ module.exports = function(s,config,lang){
                ]
            },
         }
-      }
+    },
+    "Report Manager": {
+         "section": "Report Manager",
+         "blocks": {
+             "Created Reports": {
+                "name": lang["Created Reports"],
+                "color": "green",
+                "info": [
+                    {
+                        "field": lang.Monitor,
+                        "fieldType": "select",
+                        "class": "monitors_list",
+                        "possible": [
+                            {
+                               "name": lang['All Monitors'],
+                               "value": ""
+                            },
+                        ]
+                    },
+                    {
+                        "fieldType": "div",
+                        "id": "report-manager-created-list",
+                    },
+                    {
+                       "fieldType": "btn",
+                       "class": `btn-success`,
+                       "attribute": `href="javascript:openTab('reportManagerForm')"`,
+                       "btnContent": `<i class="fa fa-refresh"></i> &nbsp; ${lang['Submission Form']}`,
+                    },
+               ]
+             },
+             "Report Display": {
+                "color": "green",
+                "noHeader": true,
+                "noDefaultSectionClasses": true,
+                "info": [
+                    {
+                        "fieldType": "div",
+                        "id": "report-manager-display",
+                    }
+               ]
+             }
+        }
+    },
+    "Report Manager Submission Form": {
+        "section": "Report Manager Submission Form",
+        blocks: {
+           "Form": {
+               "name": `${lang['Report Manager']} ${lang['Submission Form']}`,
+               "box-wrapper-class": "row",
+               "color": "grey",
+               "info": [
+                   {
+                       "name": "name",
+                       "field": lang['Name'],
+                       "description": lang['fieldTextName'],
+                       "form-group-class-pre-layer": "col-md-6",
+                       "fieldType": "text"
+                   },
+                   {
+                       "name": "detail=submittedBy",
+                       "field": lang['Submitted By'],
+                       "description": lang['fieldTextSubmittedBy'],
+                       "form-group-class-pre-layer": "col-md-6",
+                       "fieldType": "text"
+                   },
+                   {
+                       "name": "detail=caseReferenceNumber",
+                       "field": lang['Case Reference Number'],
+                       "description": lang['fieldTextCaseReferenceNumber'],
+                       "form-group-class-pre-layer": "col-md-6",
+                       "fieldType": "text"
+                   },
+                   {
+                       "name": "detail=videoSource",
+                       "field": lang['Video Source'],
+                       "description": lang['fieldTextVideoSource'],
+                       "form-group-class-pre-layer": "col-md-6",
+                       "placeholder": lang.videoSourcePlaceholder,
+                       "fieldType": "textarea"
+                   },
+                   {
+                       "name": "detail=locationOfIncident",
+                       "field": lang['Location of Incident'],
+                       "description": lang['fieldTextLocationOfIncident'],
+                       "form-group-class-pre-layer": "col-md-6",
+                       "fieldType": "text"
+                   },
+                   {
+                       "name": "incidentTime",
+                       "field": lang['Date and Time of Incident'],
+                       "description": lang['fieldTextDateTimeOfIncident'],
+                       "form-group-class-pre-layer": "col-md-6",
+                       "fieldType": "text"
+                   },
+                   {
+                       "name": "detail=descriptionOfIncident",
+                       "field": lang['Description of Incident'],
+                       "description": lang['fieldTextDescriptionOfIncident'],
+                       "form-group-class-pre-layer": "col-md-6",
+                       "fieldType": "textarea"
+                   },
+                   {
+                       "name": "detail=involvedParties",
+                       "field": lang['Involved Parties'],
+                       "description": lang['fieldTextInvolvedParties'],
+                       "form-group-class-pre-layer": "col-md-6",
+                       "fieldType": "textarea"
+                   },
+                   {
+                       "name": "detail=additionalNotes",
+                       "field": lang['Additional Notes'],
+                       "description": lang['fieldTextAdditionalNotes'],
+                       "form-group-class-pre-layer": "col-md-6",
+                       "fieldType": "textarea"
+                   }
+               ]
+           },
+           "Video Select": {
+              "color": "green",
+              "noHeader": true,
+              "noDefaultSectionClasses": true,
+              "box-wrapper-class": "row",
+              "info": [
+                  {
+                      "field": lang.Monitor,
+                      "fieldType": "select",
+                      "class": "monitors_list",
+                      "form-group-class": "col-md-12",
+                      "possible": [
+                          {
+                             "name": lang['All Monitors'],
+                             "value": ""
+                          },
+                      ]
+                  },
+                  {
+                      "fieldType": "div",
+                      "class": "col-md-6",
+                      "id": "report-manager-video-select",
+                  },
+                  {
+                      "fieldType": "div",
+                      "class": "col-md-6",
+                      "id": "report-manager-video-selected",
+                  }
+              ]
+           }
+        }
+    }
   })
 }

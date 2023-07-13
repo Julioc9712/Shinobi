@@ -1,7 +1,10 @@
 module.exports = async function(s,config){
     s.debugLog('Updating database to 2023-03-11')
     const {
-        alterColumn,
+        isMySQL,
+        createTable,
+        addColumn,
+        currentTimestamp,
     } = require('../utils.js')(s,config)
     await createTable('Reports',[
         isMySQL ? {name: 'utf8', type: 'charset'} : null,

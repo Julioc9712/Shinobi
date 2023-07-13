@@ -1,4 +1,5 @@
 function saveReport(){
+    // Icon : simple identifier with font awesome
     // Report ID: A unique identifier for each report.
     // Date and Time of Submission: The date and time when the report is submitted.
     // Submitted By: The name and contact information of the person or organization submitting the report.

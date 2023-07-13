@@ -1,12 +1,13 @@
+<%
+  var drawBlock
+  var buildOptions
+%>
+<%
+  include fieldBuilders.ejs
+%>
+<!-- Report Manager (Main) -->
 <main class="page-tab pt-3" id="tab-reportManager">
-   <form class="dark row">
-       <%
-         var drawBlock
-         var buildOptions
-       %>
-       <%
-         include fieldBuilders.ejs
-       %>
+   <form class="dark">
        <%
            var pageName = 'Report Manager';
            Object.keys(define[pageName].blocks).forEach(function(blockKey){
@@ -17,4 +18,16 @@
    </form>
    <link rel="stylesheet" href="<%-window.libURL%>assets/css/bs5.reportManager.css" />
    <script src="<%-window.libURL%>assets/js/bs5.reportManager.js"></script>
+</main>
+<!-- Report Manager Submission Form -->
+<main class="page-tab pt-3" id="tab-reportManagerForm">
+   <form class="dark">
+       <%
+           var pageName = 'Report Manager Submission Form';
+           Object.keys(define[pageName].blocks).forEach(function(blockKey){
+               var pageLayout = define[pageName].blocks[blockKey]
+               drawBlock(pageLayout)
+           })
+       %>
+   </form>
 </main>
