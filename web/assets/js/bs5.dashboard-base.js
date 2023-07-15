@@ -192,9 +192,19 @@ function getApiPrefix(path,isAdmin){
 function formattedTime(time,twelveHourClock,utcConvert){
     var theMoment = moment(time)
     if(utcConvert)theMoment = theMoment.clone().utc()
-    return theMoment.format(twelveHourClock ? 'hh:mm:ss A YYYY-MM-DD' : 'HH:mm:ss YYYY-MM-DD')
+    return theMoment.format(typeof twelveHourClock === 'string' ? twelveHourClock : twelveHourClock ? 'hh:mm:ss A YYYY-MM-DD' : 'HH:mm:ss YYYY-MM-DD')
 }
-
+function getDayPartsFromTime(theTime){
+    var dayParts = formattedTime(theTime).split(' ')[1].split('-')
+    var day = dayParts[2]
+    var month = dayParts[1]
+    var year = dayParts[0]
+    {
+        day,
+        month,
+        year,
+    }
+}
 function durationBetweenTimes(start,end){
     var duration = moment.duration(moment(end).diff(moment(start)));
     var hours = duration.asMinutes().toFixed(0);

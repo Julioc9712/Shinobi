@@ -344,10 +344,11 @@ function createDayCard(videos,frames,dayKey,monitorId,classOverride){
     var startTime = stripTimes.start
     var endTime = stripTimes.end
     var firstVideoTime = videos[0] ? videos[0].time : null
-    var dayParts = formattedTime(startTime).split(' ')[1].split('-')
-    var day = dayParts[2]
-    var month = dayParts[1]
-    var year = dayParts[0]
+    var {
+        day,
+        month,
+        year,
+    } = getDayPartsFromTime(startTime)
     $.each(videos,function(n,row){
         var nextRow = videos[n + 1]
         var marginRight = !!nextRow ? getVideoPercentWidthForDay({time: row.end, end: nextRow.time},videos,frames) : 0;
