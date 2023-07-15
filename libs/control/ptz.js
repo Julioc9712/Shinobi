@@ -408,7 +408,7 @@ module.exports = function(s,config,lang){
     const setHomePositionTimeout = (event) => {
         clearTimeout(ptzTimeoutsUntilResetToHome[event.ke + event.id])
         ptzTimeoutsUntilResetToHome[event.ke + event.id] = setTimeout(() => {
-            moveToPresetPosition({
+            moveToHomePosition({
                 ke: event.ke,
                 id: event.id,
             },(endData) => {
