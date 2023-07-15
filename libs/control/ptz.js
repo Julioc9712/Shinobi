@@ -201,7 +201,7 @@ module.exports = function(s,config,lang){
             switch(options.direction){
                 case'center':
                     moveLock[options.ke + options.id] = true
-                    moveToPresetPosition({
+                    moveToHomePosition({
                         ke: options.ke,
                         id: options.id,
                     },(endData) => {
@@ -375,6 +375,36 @@ module.exports = function(s,config,lang){
             },
         },callback)
     }
+    const moveToHomePosition = (options,callback) => {
+        const nonStandardOnvif = s.group[options.ke].rawMonitorConfigurations[options.id].details.onvif_non_standard === '1'
+        const profileToken = options.ProfileToken || "__CURRENT_TOKEN"
+        return s.runOnvifMethod({
+            auth: {
+                ke: options.ke,
+                id: options.id,
+                service: 'ptz',
+                action: 'gotoHomePosition',
+            },
+            options: {
+                ProfileToken: profileToken,
+            },
+        },callback)
+    }
+    const setHomePosition = (options,callback) => {
+        const nonStandardOnvif = s.group[options.ke].rawMonitorConfigurations[options.id].details.onvif_non_standard === '1'
+        const profileToken = options.ProfileToken || "__CURRENT_TOKEN"
+        return s.runOnvifMethod({
+            auth: {
+                ke: options.ke,
+                id: options.id,
+                service: 'ptz',
+                action: 'setHomePosition',
+            },
+            options: {
+                ProfileToken: profileToken,
+            },
+        },callback)
+    }
     const setHomePositionTimeout = (event) => {
         clearTimeout(ptzTimeoutsUntilResetToHome[event.ke + event.id])
         ptzTimeoutsUntilResetToHome[event.ke + event.id] = setTimeout(() => {
@@ -452,19 +482,19 @@ module.exports = function(s,config,lang){
         const monitorId = e.mid || e.id
         return new Promise((resolve) => {
             setTimeout(() => {
-                setPresetForCurrentPosition({
+                setHomePosition({
                     ke: e.ke,
                     id: monitorId
                 },(endData) => {
                     if(endData.ok === false){
                         setTimeout(() => {
-                            setPresetForCurrentPosition({
+                            setHomePosition({
                                 ke: e.ke,
                                 id: monitorId
                             },(endData) => {
                                 if(endData.ok === false){
                                     setTimeout(() => {
-                                        setPresetForCurrentPosition({
+                                        setHomePosition({
                                             ke: e.ke,
                                             id: monitorId
                                         },(endData) => {
