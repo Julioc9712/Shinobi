@@ -200,8 +200,10 @@ module.exports = function(s,config,lang){
             options.direction = doMove ? options.direction : 'stopMove';
             switch(options.direction){
                 case'center':
+                    const onvifHomeControlMethod = monitorConfig.details.onvif_non_standard
+                    const actionFunction = onvifHomeControlMethod === '2' ? moveToHomePosition : moveToPresetPosition
                     moveLock[options.ke + options.id] = true
-                    moveToHomePosition({
+                    actionFunction({
                         ke: options.ke,
                         id: options.id,
                     },(endData) => {
@@ -336,22 +338,25 @@ module.exports = function(s,config,lang){
         },callback)
     }
     const setPresetForCurrentPosition = (options,callback) => {
-        const nonStandardOnvif = s.group[options.ke].rawMonitorConfigurations[options.id].details.onvif_non_standard === '1'
-        const profileToken = options.ProfileToken || "__CURRENT_TOKEN"
-        s.runOnvifMethod({
-            auth: {
-                ke: options.ke,
-                id: options.id,
-                service: 'ptz',
-                action: 'setPreset',
-            },
-            options: {
-                ProfileToken: profileToken,
-                PresetToken: nonStandardOnvif ? '1' : options.PresetToken || profileToken,
-                PresetName: options.PresetName || nonStandardOnvif ? '1' : profileToken
-            },
-        },(endData) => {
-            callback(endData)
+        return new Promise((resolve) => {
+            const nonStandardOnvif = s.group[options.ke].rawMonitorConfigurations[options.id].details.onvif_non_standard === '1'
+            const profileToken = options.ProfileToken || "__CURRENT_TOKEN"
+            s.runOnvifMethod({
+                auth: {
+                    ke: options.ke,
+                    id: options.id,
+                    service: 'ptz',
+                    action: 'setPreset',
+                },
+                options: {
+                    ProfileToken: profileToken,
+                    PresetToken: nonStandardOnvif ? '1' : options.PresetToken || profileToken,
+                    PresetName: options.PresetName || nonStandardOnvif ? '1' : profileToken
+                },
+            },(response) => {
+                if(callback)callback(response)
+                resolve(response)
+            })
         })
     }
     const moveToPresetPosition = (options,callback) => {
@@ -391,24 +396,34 @@ module.exports = function(s,config,lang){
         },callback)
     }
     const setHomePosition = (options,callback) => {
-        const nonStandardOnvif = s.group[options.ke].rawMonitorConfigurations[options.id].details.onvif_non_standard === '1'
-        const profileToken = options.ProfileToken || "__CURRENT_TOKEN"
-        return s.runOnvifMethod({
-            auth: {
-                ke: options.ke,
-                id: options.id,
-                service: 'ptz',
-                action: 'setHomePosition',
-            },
-            options: {
-                ProfileToken: profileToken,
-            },
-        },callback)
+        return new Promise((resolve) => {
+            const nonStandardOnvif = s.group[options.ke].rawMonitorConfigurations[options.id].details.onvif_non_standard === '1'
+            const profileToken = options.ProfileToken || "__CURRENT_TOKEN"
+            s.runOnvifMethod({
+                auth: {
+                    ke: options.ke,
+                    id: options.id,
+                    service: 'ptz',
+                    action: 'setHomePosition',
+                },
+                options: {
+                    ProfileToken: profileToken,
+                },
+            },(response) => {
+                if(callback)callback(response)
+                resolve(response)
+            })
+        })
     }
-    const setHomePositionTimeout = (event) => {
+    const moveToHomePositionTimeout = (event) => {
+        const groupKey = event.ke
+        const monitorId = event.id
+        const monitorConfig = s.group[groupKey].rawMonitorConfigurations[monitorId]
+        const onvifHomeControlMethod = monitorConfig.details.onvif_non_standard
+        const actionFunction = onvifHomeControlMethod === '2' ? moveToHomePosition : moveToPresetPosition
         clearTimeout(ptzTimeoutsUntilResetToHome[event.ke + event.id])
         ptzTimeoutsUntilResetToHome[event.ke + event.id] = setTimeout(() => {
-            moveToHomePosition({
+            actionFunction({
                 ke: event.ke,
                 id: event.id,
             },(endData) => {
@@ -472,47 +487,35 @@ module.exports = function(s,config,lang){
             },(msg) => {
                 s.userLog(event,msg)
                 // console.log(msg)
-                setHomePositionTimeout(event)
+                moveToHomePositionTimeout(event)
             })
         }else{
-            setHomePositionTimeout(event)
+            moveToHomePositionTimeout(event)
         }
     }
-    function setHomePositionPreset(e){
+    async function setHomePositionPreset(e){
+        const groupKey = e.ke
         const monitorId = e.mid || e.id
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                setHomePosition({
-                    ke: e.ke,
-                    id: monitorId
-                },(endData) => {
-                    if(endData.ok === false){
-                        setTimeout(() => {
-                            setHomePosition({
-                                ke: e.ke,
-                                id: monitorId
-                            },(endData) => {
-                                if(endData.ok === false){
-                                    setTimeout(() => {
-                                        setHomePosition({
-                                            ke: e.ke,
-                                            id: monitorId
-                                        },(endData) => {
-                                            console.log(endData)
-                                            resolve()
-                                        })
-                                    },5000)
-                                }else{
-                                    resolve()
-                                }
-                            })
-                        },5000)
-                    }else{
-                        resolve()
-                    }
-                })
-            },5000)
-        })
+        const controlOptions = {
+            ke: groupKey,
+            id: monitorId
+        }
+        const waitTime = 5000
+        let response = {ok: false}
+        const monitorConfig = s.group[groupKey].rawMonitorConfigurations[monitorId]
+        const onvifHomeControlMethod = monitorConfig.details.onvif_non_standard
+        const actionFunction = onvifHomeControlMethod === '2' ? setHomePosition : setPresetForCurrentPosition
+        await asyncSetTimeout(waitTime)
+        response = await actionFunction(controlOptions)
+        if(response.ok === false){
+            await asyncSetTimeout(waitTime)
+            response = await actionFunction(controlOptions)
+            if(response.ok === false){
+                await asyncSetTimeout(waitTime)
+                response = await actionFunction(controlOptions)
+            }
+        }
+        return response
     }
     return {
         startMove,
