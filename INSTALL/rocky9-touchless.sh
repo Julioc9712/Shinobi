@@ -73,6 +73,7 @@ if ! [ -x "$(command -v mysql)" ]; then
     #Start mysql and enable on boot
     sudo systemctl start mariadb
     sudo systemctl enable mariadb
+	ln -s /usr/bin/mariadb /usr/bin/mysql
 fi
 
 echo "========================================================="
