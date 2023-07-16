@@ -199,7 +199,7 @@ function getDayPartsFromTime(theTime){
     var day = dayParts[2]
     var month = dayParts[1]
     var year = dayParts[0]
-    {
+    return {
         day,
         month,
         year,

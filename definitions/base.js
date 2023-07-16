@@ -9209,29 +9209,42 @@ module.exports = function(s,config,lang){
            "Video Select": {
               "color": "green",
               "noHeader": true,
-              "noDefaultSectionClasses": true,
               "box-wrapper-class": "row",
               "info": [
                   {
                       "field": lang.Monitor,
                       "fieldType": "select",
                       "class": "monitors_list",
-                      "form-group-class": "col-md-12",
+                      "form-group-class": "col-md-4",
                       "possible": [
                           {
                              "name": lang['All Monitors'],
                              "value": ""
                           },
+                          {
+                             "name": lang.Monitors,
+                             "optgroup": []
+                          },
                       ]
                   },
                   {
+                      "form-group-class": "col-md-4",
+                      "class": "date_selector",
+                      "field": lang.Date,
+                  },
+                  {
+                      "form-group-class": "col-md-4",
+                      "id": "report-manager-search-tag",
+                      "field": lang['Object Tag'],
+                  },
+                  {
                       "fieldType": "div",
-                      "class": "col-md-6",
+                      "class": "col-md-9 row",
                       "id": "report-manager-video-select",
                   },
                   {
                       "fieldType": "div",
-                      "class": "col-md-6",
+                      "class": "col-md-3 row",
                       "id": "report-manager-video-selected",
                   }
               ]
