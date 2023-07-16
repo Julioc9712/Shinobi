@@ -1,13 +1,13 @@
 const fs = require('fs').promises
-module.exports = function(s,config,lang){
+module.exports = function(s,config,lang,app,io){
     const {
         getPartsFromPath,
         zipFolder,
         copyFile,
-    } = require('../basic/utils.js')(process.cwd(), config)
+    } = require('./basic/utils.js')(process.cwd(), config)
     const {
         getStreamDirectory,
-    } = require('../../monitor/utils.js')(s,app,config,lang)
+    } = require('./monitor/utils.js')(s,config,lang)
     async function copyFilesToReportFolder(folder,targetDirectory,filePaths){
         for (let i = 0; i < filePaths.length; i++) {
             var filePath = filePaths[i]
