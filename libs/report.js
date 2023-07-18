@@ -14,9 +14,16 @@ module.exports = function(s,config,lang,app,io){
             const {
                 monitorId,
                 filename,
-            } = getPartsFromPath(videoPath)
-            const newPath = `${targetDirectory}/${folder}/${monitorId}-${filename}`
-            await copyFile(videoPath, newPath)
+            } = getPartsFromPath(filePath)
+            const parentFolder = `${targetDirectory}/${folder}`
+            const newPath = `${parentFolder}/${monitorId}-${filename}`
+            try{
+                await fs.mkdir(parentFolder,{recursive: true})
+            }catch(err){
+                s.debugLog(err)
+            }
+            s.debugLog(filePath, '---->', newPath)
+            await copyFile(filePath, newPath)
         }
     }
     async function getReports(groupKey, monitorId, reportId){
@@ -57,7 +64,7 @@ module.exports = function(s,config,lang,app,io){
         const fileBinInsertQuery = {
             ke,
             mid,
-            name: zipName,
+            name: `${zipName}.zip`,
             size: fileStats.size,
             details: JSON.stringify({
                 reportId: newReportId
@@ -72,7 +79,7 @@ module.exports = function(s,config,lang,app,io){
     async function saveReport(options){
         const {
             ke,
-            mid,
+            mid = '_USER',
             name,
             tags,
             notes,
@@ -80,59 +87,73 @@ module.exports = function(s,config,lang,app,io){
             incidentTime,
             snapPaths,
             videoPaths,
-            fileBinPaths,
+            videoSnapLegend,
         } = options;
-        const monitorConfig = s.groups[ke].rawMonitorConfigurations[mid]
-        const monitorLocation = monitorConfig.details.geolocation
-        const currentTime = new Date()
-        const newReportId = await getNewReportId(ke,mid)
-        // move files to be zipped
-        const zipName = `Report-${currentTime.getTime()}`
-        const tempDirectory = `${getStreamDirectory({ke, mid})}${zipName}`
-        const moveZipToDirectory = `${s.getFileBinDirectory({ke, mid})}${zipName}`
-        if(snapPaths)await copyFilesToReportFolder('images', tempDirectory,snapPaths);
-        if(videoPaths)await copyFilesToReportFolder('videos', tempDirectory,videoPaths);
-        if(fileBinPaths)await copyFilesToReportFolder('fileBin', tempDirectory,fileBinPaths);
-        const outputZipPath = `${tempDirectory}.zip`
-        const moveZipToPath = `${moveZipToDirectory}.zip`
-        // save files to zip
-        await zipFolder(tempDirectory,outputZipPath)
-        await fs.rm(tempDirectory, { recursive: true })
-        await moveZipToFileBin({
-            ke,
-            mid,
-            zipName,
-            newReportId,
-            currentTime,
-            outputZipPath,
-            moveZipToPath,
-        })
-        // added info
-        details.videoSource = details.videoSource || `${lang.videoSourcePlaceholder}`
-        if(monitorLocation){
-            details.gps = monitorLocation
-        }
-        // save database row
-        const insertQuery = {
-            id: newReportId,
-            ke,
-            mid,
-            name,
-            tags,
-            notes,
-            details: JSON.stringify(details),
-            time: currentTime,
-            incidentTime: new Date(incidentTime),
-        }
-        const insertResponse = await s.knexQueryPromise({
-            action: "insert",
-            table: "Reports",
-            insert: insertQuery
-        })
-        // toggle check for archiving associated videos
-        return {
-            insertQuery,
-            insertResponse,
+        try{
+            const currentTime = new Date()
+            s.debugLog(`Getting new ID...`,currentTime)
+            const newReportId = await getNewReportId(ke,mid)
+            s.debugLog(`New Report ID`,newReportId)
+            const zipName = `Report-${currentTime.getTime()}`
+            s.debugLog(`zipName`,zipName)
+            const tempDirectory = `${getStreamDirectory({ke})}${zipName}`
+            const moveZipToDirectory = `${await s.createFileBinDirectory({ke, mid})}${zipName}`
+            s.debugLog(`Copying Files...`)
+            try{
+                await fs.mkdir(tempDirectory, {recursive: true})
+            }catch(err){
+                s.debugLog('saveReport fs.mkdir error',err)
+            }
+            if(snapPaths)await copyFilesToReportFolder('images', tempDirectory,snapPaths);
+            if(videoPaths)await copyFilesToReportFolder('videos', tempDirectory,videoPaths);
+            s.debugLog(`Copied Files!`)
+            const outputZipPath = `${tempDirectory}.zip`
+            const moveZipToPath = `${moveZipToDirectory}.zip`
+            s.debugLog(`outputZipPath`,outputZipPath)
+            s.debugLog(`Zipping...`,moveZipToPath)
+            // save files to zip
+            await zipFolder(tempDirectory,outputZipPath)
+            s.debugLog(`Zipped! Cleaning up...`)
+            await fs.rm(tempDirectory, { recursive: true })
+            s.debugLog(`Archiving in FileBin...`)
+            await moveZipToFileBin({
+                ke,
+                mid,
+                zipName,
+                newReportId,
+                currentTime,
+                outputZipPath,
+                moveZipToPath,
+            })
+            s.debugLog(`Archived!`)
+            // added info
+            details.videoSource = details.videoSource || `${lang.videoSourcePlaceholder}`
+            // save database row
+            const insertQuery = {
+                id: newReportId,
+                ke,
+                mid,
+                name,
+                tags,
+                notes,
+                details: JSON.stringify(details),
+                time: currentTime,
+                incidentTime: new Date(incidentTime),
+            }
+            s.debugLog(`Inserting Report...`)
+            const insertResponse = await s.knexQueryPromise({
+                action: "insert",
+                table: "Reports",
+                insert: insertQuery
+            })
+            s.debugLog(`Inserted Report!`)
+            // toggle check for archiving associated videos
+            return {
+                insertQuery,
+                insertResponse,
+            }
+        }catch(err){
+            s.debugLog('saveReport error',err)
         }
     }
     async function updateReport(options){
@@ -217,6 +238,28 @@ module.exports = function(s,config,lang,app,io){
         }
         return true
     }
+    function getSnapPathsFromVideos(videos){
+        var videoPaths = []
+        var snapPaths = []
+        var videoSnapLegend = {}
+        videos.forEach((video) => {
+            var videoPath = s.getVideoDirectory(video) + video.filename
+            var frames = video.timelapseFrames || []
+            videoPaths.push(videoPath)
+            videoSnapLegend[`${videoPath}`] = []
+            frames.forEach((frame) => {
+                var selectedDate = frame.filename.split('T')[0]
+                var snapPath = `${s.getTimelapseFrameDirectory(frame)}${selectedDate}/${frame.filename}`
+                snapPaths.push(snapPath)
+                videoSnapLegend[`${videoPath}`].push(snapPath)
+            })
+        })
+        return {
+            videoPaths,
+            snapPaths,
+            videoSnapLegend,
+        }
+    }
     /**
     * API : Get Reports
      */
@@ -250,22 +293,20 @@ module.exports = function(s,config,lang,app,io){
     /**
     * API : Save/Update Report
      */
-    app.post(config.webPaths.apiPrefix+':auth/reports/:ke/:id', function (req,res){
+    app.post(config.webPaths.apiPrefix+':auth/reports/:ke', function (req,res){
         res.setHeader('Content-Type', 'application/json');
         s.auth(req.params, async function(user){
             const response = {ok: true}
-            const monitorId = req.params.id
+            const monitorId = req.body.mid
             const groupKey = req.params.ke
-            const reportId = req.body.id
-            const name = req.body.name
-            const tags = req.body.tags
-            const notes = req.body.notes
-            const details = s.getPostData(req, 'details', true) || {}
-            const snapPaths = s.getPostData(req, 'snapPaths', true) || []
-            const videoPaths = s.getPostData(req, 'videoPaths', true) || []
-            const fileBinPaths = s.getPostData(req, 'fileBinPaths', true) || []
-            const canDoAction = hasApiPermission(user,groupKey,monitorId)
-            if(canDoAction){
+            // const canDoAction = hasApiPermission(user,groupKey,monitorId)
+            // if(canDoAction){
+                const reportId = req.body.id
+                const name = req.body.name
+                const tags = req.body.tags
+                const notes = req.body.notes
+                const incidentTime = req.body.incidentTime
+                const details = s.getPostData(req, 'details', true) || {}
                 try{
                     if(reportId){
                         const updateResponse = await updateReport({
@@ -276,12 +317,18 @@ module.exports = function(s,config,lang,app,io){
                             tags,
                             notes,
                             details,
-                            snapPaths,
-                            videoPaths,
-                            fileBinPaths,
+                            incidentTime,
                         })
                         response.updateResponse = updateResponse
                     }else{
+                        const videosSelected = s.getPostData(req, 'videos', true) || []
+                        const {
+                            snapPaths,
+                            videoPaths,
+                            videoSnapLegend,
+                        } = getSnapPathsFromVideos(videosSelected)
+                        const fileBinPaths = []
+                        s.debugLog('saving report')
                         const saveResponse = await saveReport({
                             ke: groupKey,
                             mid: monitorId,
@@ -289,20 +336,22 @@ module.exports = function(s,config,lang,app,io){
                             tags,
                             notes,
                             details,
+                            incidentTime,
                             snapPaths,
                             videoPaths,
-                            fileBinPaths,
+                            videoSnapLegend,
                         })
+                        s.debugLog(`saveResponse`,saveResponse)
                         response.saveResponse = saveResponse
                     }
                 }catch(err){
                     response.ok = false
                     response.err = err
                 }
-            }else{
-                response.ok = false
-                response.msg = lang['Not Authorized']
-            }
+            // }else{
+            //     response.ok = false
+            //     response.msg = lang['Not Authorized']
+            // }
             s.closeJsonResponse(res,response)
         },res,req);
     });
@@ -321,48 +370,6 @@ module.exports = function(s,config,lang,app,io){
                 try{
                     const deleteResponse = await deleteReport(groupKey,monitorId,reportId)
                     response.deleteResponse = deleteResponse
-                }catch(err){
-                    response.ok = false
-                    response.err = err
-                }
-            }else{
-                response.ok = false
-                response.msg = lang['Not Authorized']
-            }
-            s.closeJsonResponse(res,response)
-        },res,req);
-    });
-    /**
-    * API : Save Report
-     */
-    app.post(config.webPaths.apiPrefix+':auth/reports/:ke/:id', function (req,res){
-        res.setHeader('Content-Type', 'application/json');
-        s.auth(req.params, async function(user){
-            const response = {ok: true}
-            const monitorId = req.params.id
-            const groupKey = req.params.ke
-            const name = req.body.name
-            const tags = req.body.tags
-            const notes = req.body.notes
-            const details = s.getPostData(req, 'details', true) || {}
-            const snapPaths = s.getPostData(req, 'snapPaths', true) || []
-            const videoPaths = s.getPostData(req, 'videoPaths', true) || []
-            const fileBinPaths = s.getPostData(req, 'fileBinPaths', true) || []
-            const canDoAction = hasApiPermission(user,groupKey,monitorId)
-            if(canDoAction){
-                try{
-                    const updateResponse = await updateReport({
-                        ke: groupKey,
-                        mid: monitorId,
-                        name,
-                        tags,
-                        notes,
-                        details,
-                        snapPaths,
-                        videoPaths,
-                        fileBinPaths,
-                    })
-                    response.updateResponse = updateResponse
                 }catch(err){
                     response.ok = false
                     response.err = err

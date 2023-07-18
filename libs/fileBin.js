@@ -1,8 +1,17 @@
 var fs = require('fs')
 var moment = require('moment')
 module.exports = function(s,config,lang,app,io){
+    async function createFileBinDirectory(monitor){
+        const thePath = getFileBinDirectory(monitor)
+        try{
+            await fs.promises.mkdir(thePath, {recursive: true})
+        }catch(err){
+            s.debugLog('getFileBinDirectory',err)
+        }
+        return thePath
+    }
     const getFileBinDirectory = function(monitor){
-        return s.dir.fileBin + monitor.ke + '/' + monitor.mid + '/'
+        return s.dir.fileBin + monitor.ke + '/' + (monitor.mid ? monitor.mid + '/' : '')
     }
     const getFileBinEntry = (options) => {
         return new Promise((resolve, reject) => {
@@ -192,6 +201,7 @@ module.exports = function(s,config,lang,app,io){
             })
         })
     }
+    s.createFileBinDirectory = createFileBinDirectory
     s.getFileBinDirectory = getFileBinDirectory
     s.getFileBinEntry = getFileBinEntry
     s.getFileBinBuffer = getFileBinBuffer

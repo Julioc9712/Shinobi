@@ -1752,7 +1752,7 @@ module.exports = (s,config,lang) => {
         return (!maxCamerasAllowed || Object.keys(theGroup.activeMonitors).length <= parseInt(maxCamerasAllowed))
     }
     function getStreamDirectory(options){
-        const streamDir = s.dir.streams + options.ke + '/' + options.mid + '/'
+        const streamDir = s.dir.streams + options.ke + '/' + (options.mid ? options.mid + '/' : '')
         return streamDir
     }
     return {
