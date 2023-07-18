@@ -159,6 +159,7 @@ module.exports = function(s,config,lang,app,io){
             const fileSize = options.size || fs.lstatSync(monitorFileBinDirectory + filename).size
             const details = options.details instanceof Object ? JSON.stringify(options.details) : options.details
             const status = options.status || 0
+            const archive = options.archive || 0
             const time = options.time || new Date()
             s.knexQuery({
                 action: "insert",
@@ -169,6 +170,7 @@ module.exports = function(s,config,lang,app,io){
                     name: filename,
                     size: fileSize,
                     details: details,
+                    archive: archive,
                     status: status,
                     time: time,
                 }

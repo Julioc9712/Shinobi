@@ -231,10 +231,12 @@ module.exports = (processCwd,config) => {
     }
     function zipFolder(targetFolder,outputZipFilePath){
         return new Promise((resolve) => {
-            const zipProcess = spawn(`zip`,[`-r`,outputZipFilePath,targetFolder])
+            const folderName = path.basename(targetFolder);
+            const parentDir = path.dirname(targetFolder);
+            const zipProcess = spawn('zip', ['-r', outputZipFilePath, folderName], { cwd: parentDir });
             zipProcess.on('close', () => {
-                resolve()
-            })
+                resolve();
+            });
         })
     }
     function getFilenameFromPath(fullPath){
