@@ -9220,12 +9220,18 @@ module.exports = function(s,config,lang){
                        "fieldType": "textarea"
                    },
                    {
-                       "name": "detail=additionalNotes",
+                       "name": "notes",
                        "field": lang['Additional Notes'],
                        "description": lang['fieldTextAdditionalNotes'],
                        "form-group-class-pre-layer": "col-md-6",
                        "fieldType": "textarea"
-                   }
+                   },
+                   {
+                       "name": "tags",
+                       "field": lang['Tags'],
+                       "form-group-class-pre-layer": "col-md-6",
+                       "fieldType": "text"
+                   },
                ]
            },
            "Video Select": {
