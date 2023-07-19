@@ -9117,6 +9117,7 @@ module.exports = function(s,config,lang){
              "Created Reports": {
                 "name": lang["Created Reports"],
                 "color": "green",
+                "section-pre-class": "col-md-3",
                 "info": [
                     {
                         "field": lang.Monitor,
@@ -9139,12 +9140,16 @@ module.exports = function(s,config,lang){
                        "attribute": `href="javascript:openTab('reportManagerForm')"`,
                        "btnContent": `<i class="fa fa-refresh"></i> &nbsp; ${lang['Submission Form']}`,
                     },
+                    {
+                        "fieldType": "div",
+                        "id": "report-manager-list",
+                    }
                ]
              },
              "Report Display": {
                 "color": "green",
                 "noHeader": true,
-                "noDefaultSectionClasses": true,
+                "section-pre-class": "col-md-9",
                 "info": [
                     {
                         "fieldType": "div",

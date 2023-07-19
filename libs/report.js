@@ -38,7 +38,10 @@ module.exports = function(s,config,lang,app,io){
             table: "Reports",
             where: whereQuery,
         })
-        return selectResponse
+        selectResponse.rows.forEach((row) => {
+            row.details = JSON.parse(row.details)
+        })
+        return selectResponse.rows
     }
     async function getNewReportId(groupKey, monitorId){
         const newReportId = s.gid(25)
@@ -109,6 +112,7 @@ module.exports = function(s,config,lang,app,io){
             s.debugLog(`Copied Files!`)
             const outputZipPath = `${tempDirectory}.zip`
             const moveZipToPath = `${moveZipToDirectory}.zip`
+            s.debugLog(`Path to Zip`,tempDirectory)
             s.debugLog(`outputZipPath`,outputZipPath)
             s.debugLog(`Zipping...`,moveZipToPath)
             // save files to zip
@@ -244,7 +248,7 @@ module.exports = function(s,config,lang,app,io){
         var videoSnapLegend = {}
         videos.forEach((video) => {
             var videoPath = s.getVideoDirectory(video) + video.filename
-            var frames = video.timelapseFrames || []
+            var frames = video.frames || []
             videoPaths.push(videoPath)
             videoSnapLegend[`${videoPath}`] = []
             frames.forEach((frame) => {
@@ -265,27 +269,20 @@ module.exports = function(s,config,lang,app,io){
      */
     app.get([
         config.webPaths.apiPrefix+':auth/reports/:ke',
-        config.webPaths.apiPrefix+':auth/reports/:ke/:id',
-        config.webPaths.apiPrefix+':auth/reports/:ke/:id/:reportId',
+        config.webPaths.apiPrefix+':auth/reports/:ke/:reportId',
     ], function (req,res){
         res.setHeader('Content-Type', 'application/json');
         s.auth(req.params, async function(user){
             const response = {ok: true}
-            const monitorId = req.params.id
+            const monitorId = req.query.id || '_USER'
             const groupKey = req.params.ke
             const reportId = req.params.reportId
-            const canDoAction = hasApiPermission(user,groupKey,monitorId)
-            if(canDoAction){
-                try{
-                    const reports = await getReports(groupKey,monitorId,reportId)
-                    response.reports = reports
-                }catch(err){
-                    response.ok = false
-                    response.err = err
-                }
-            }else{
+            try{
+                const reports = await getReports(groupKey,monitorId,reportId)
+                response.reports = reports
+            }catch(err){
                 response.ok = false
-                response.msg = lang['Not Authorized']
+                response.err = err
             }
             s.closeJsonResponse(res,response)
         },res,req);

@@ -7,7 +7,7 @@
 %>
 <!-- Report Manager (Main) -->
 <main class="page-tab pt-3" id="tab-reportManager">
-   <form class="dark">
+   <div class="dark row">
        <%
            var pageName = 'Report Manager';
            Object.keys(define[pageName].blocks).forEach(function(blockKey){
@@ -15,7 +15,7 @@
                drawBlock(pageLayout)
            })
        %>
-   </form>
+   </div>
    <link rel="stylesheet" href="<%-window.libURL%>assets/css/bs5.reportManager.css" />
    <script src="<%-window.libURL%>assets/js/bs5.reportManager.js"></script>
 </main>
@@ -33,4 +33,5 @@
          include stickySubmitBar.ejs
        %>
    </form>
+      <script src="<%-window.libURL%>assets/js/bs5.reportManager.form.js"></script>
 </main>
