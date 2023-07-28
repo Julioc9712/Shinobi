@@ -9106,5 +9106,26 @@ module.exports = function(s,config,lang){
            },
         }
       },
+      "Timeline": {
+           "section": "Timeline",
+           "blocks": {
+               "Search Settings": {
+                  "name": lang["Timeline"],
+                  "color": "blue",
+                  "noHeader": true,
+                  "noDefaultSectionClasses": true,
+                  "info": [
+                      {
+                          "fieldType": "div",
+                          "id": "timeline-video-canvas",
+                      },
+                      {
+                          "fieldType": "div",
+                          "id": "timeline-bottom-strip",
+                      }
+                 ]
+             },
+          }
+        },
   })
 }
