@@ -7796,6 +7796,11 @@ module.exports = function(s,config,lang){
                           pageOpen: 'monitorMap',
                       },
                       {
+                          icon: 'bardcode',
+                          label: `${lang['Timeline']}`,
+                          pageOpen: 'timeline',
+                      },
+                      {
                           icon: 'file-o',
                           label: `${lang['FileBin']}`,
                           pageOpen: 'fileBinView',
@@ -9114,6 +9119,7 @@ module.exports = function(s,config,lang){
                   "color": "blue",
                   "noHeader": true,
                   "noDefaultSectionClasses": true,
+                  "box-wrapper-class": "flex-direction-column",
                   "info": [
                       {
                           "fieldType": "div",

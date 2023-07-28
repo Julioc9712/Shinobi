@@ -1,0 +1,6 @@
+#timeline-video-canvas {
+    flex-grow: 1;
+}
+#timeline-bottom-strip {
+    background: rgba(0,0,0,0.8);
+}
