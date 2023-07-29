@@ -7796,7 +7796,7 @@ module.exports = function(s,config,lang){
                           pageOpen: 'monitorMap',
                       },
                       {
-                          icon: 'bardcode',
+                          icon: 'barcode',
                           label: `${lang['Timeline']}`,
                           pageOpen: 'timeline',
                       },
@@ -9123,7 +9123,13 @@ module.exports = function(s,config,lang){
                   "info": [
                       {
                           "fieldType": "div",
+                          "class": "row",
                           "id": "timeline-video-canvas",
+                      },
+                      {
+                          "fieldType": "div",
+                          "id": "timeline-controls",
+                          "divContent": `<a class="btn btn-sm btn-primary play-toggle"><i class="fa fa-play-circle-o"></i></a>`,
                       },
                       {
                           "fieldType": "div",

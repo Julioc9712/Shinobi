@@ -1,6 +1,21 @@
 #timeline-video-canvas {
+    background: rgba(0,0,0,0.9);
     flex-grow: 1;
+    overflow: auto;
+}
+#timeline-video-canvas .timeline-video {
+    height:350px;
+}
+#timeline-video-canvas .timeline-video.no-video{
+    background-color: #1f80f9;
+    border-bottom: 1px inset #fff;
 }
 #timeline-bottom-strip {
     background: rgba(0,0,0,0.8);
+}
+#timeline-bottom-strip * {
+    transition: none;
+}
+#timeline-bottom-strip .vis-timeline {
+    visibility: visible!important;
 }
