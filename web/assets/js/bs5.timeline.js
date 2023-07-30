@@ -10,10 +10,31 @@ $(document).ready(function(){
     var loadedVideosOnCanvas = {}
     var loadedVideoElsOnCanvas = {}
     var isPlaying = false
+    var earliestStart = null
+    var latestEnd = null
     async function getVideosByTime(addOrOverWrite){
         var stripDate = getTimestripDate()
         var startDate = stripDate.start
         var endDate = stripDate.end
+        if(!earliestStart || startDate < earliestStart){
+            earliestStart = startDate
+        }
+        if(!latestEnd || endDate > latestEnd){
+            latestEnd = endDate
+        }
+        if(latestEnd > endDate && earliestStart < startDate){
+            //inside a previously larger query, do nothing
+            // console.log(`Using data in memory`)
+            return [];
+        // }else{
+            // console.log(`New TimeFrame`)
+        }
+        // console.log(`earliestStart < startDate`,earliestStart < startDate)
+        // console.log(`latestEnd > endDate`,latestEnd > endDate)
+        // console.log(`earliestStart`,earliestStart)
+        // console.log(`startDate`,startDate)
+        // console.log(`latestEnd`,latestEnd)
+        // console.log(`endDate`,endDate)
         var videos = (await getVideos({
             startDate,
             endDate,
@@ -89,7 +110,6 @@ $(document).ready(function(){
     }
     function resetTimelineItems(videos){
         var newVideos = formatVideosForTimeline(videos)
-        console.log(newVideos)
         timeStripVisItems.clear();
         timeStripVisItems.add(newVideos);
     }
@@ -156,13 +176,13 @@ $(document).ready(function(){
         getAndDrawVideos(theTime,true)
     }
     async function getAndDrawVideos(theTime,redrawVideos){
-        var videos = await getVideosByTime()
-        var selectedVideosForTime = selectVideosForCanvas(theTime,videos)
+        await getVideosByTime()
+        var selectedVideosForTime = selectVideosForCanvas(theTime,loadedVideosOnTimeStrip)
         loadedVideosOnCanvas = selectedVideosForTime;
         if(redrawVideos){
             drawVideosToCanvas(selectedVideosForTime)
         }
-        resetTimelineItems(videos)
+        resetTimelineItems(loadedVideosOnTimeStrip)
     }
     function getVideoElInCanvas(video){
         return timeStripVideoCanvas.find(`[data-mid="${video.mid}"][data-ke="${video.ke}"][data-filename="${video.filename}"] video`)
