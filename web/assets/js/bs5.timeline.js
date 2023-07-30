@@ -4,14 +4,16 @@ $(document).ready(function(){
     var timeStripControls = $('#timeline-controls');
     var timeStripVis = null;
     var timeStripVisTick = null;
+    var timeStripVisItems = null;
     var timeStripVisTickMovementInterval = null;
     var loadedVideosOnTimeStrip = []
     var loadedVideosOnCanvas = {}
     var loadedVideoElsOnCanvas = {}
     var isPlaying = false
     async function getVideosByTime(addOrOverWrite){
-        var startDate = getTickDate()
-        var endDate = getTimestripDate().end
+        var stripDate = getTimestripDate()
+        var startDate = stripDate.start
+        var endDate = stripDate.end
         var videos = (await getVideos({
             startDate,
             endDate,
@@ -30,7 +32,7 @@ $(document).ready(function(){
         var filteredVideos = videos.filter(video => {
           var startTime = new Date(video.time);
           var endTime = new Date(video.end);
-          return date >= startTime && date <= endTime;
+          return time >= startTime && time <= endTime;
         });
         $.each(filteredVideos,function(n,video){
             selectedVideosByMonitorId[video.mid] = video;
@@ -53,19 +55,58 @@ $(document).ready(function(){
             loadedVideoElsOnCanvas[monitorId] = getVideoElInCanvas(video)
         })
     }
-    function createTimeline(){
-        var timeChanging = false
+    function destroyTimeline(){
         try{
             timeStripVis.destroy()
         }catch(err){
             console.log(err)
         }
-        //empty items
-        var items = new vis.DataSet([]);
-        // make chart
-        timeStripVis = new vis.Timeline(timeStripEl[0], items, {
-            showCurrentTime: false
+    }
+    function formatVideosForTimeline(videos){
+        var i = 0;
+        var formattedVideos = (videos || []).map((item) => {
+            ++i;
+            return {
+                id: i,
+                content: item.objectTags || '',
+                start: item.time,
+                end: item.end,
+                group: 1
+            }
         });
+        return formattedVideos
+    }
+    function createTimelineItems(videos){
+        var items = new vis.DataSet(formatVideosForTimeline(videos));
+        var groups = new vis.DataSet([
+          {id: 1, content: ''}
+        ]);
+        timeStripVisItems = items
+        return {
+            items,
+            groups,
+        }
+    }
+    function resetTimelineItems(videos){
+        var newVideos = formatVideosForTimeline(videos)
+        console.log(newVideos)
+        timeStripVisItems.clear();
+        timeStripVisItems.add(newVideos);
+    }
+    function createTimeline(videos){
+        var timeChanging = false
+        var timeChangingTimeout = null
+        destroyTimeline()
+        var {
+            items,
+            groups,
+        } = createTimelineItems(videos)
+        // make chart
+        timeStripVis = new vis.Timeline(timeStripEl[0], items, groups, {
+            showCurrentTime: false,
+            stack: false,
+        });
+        console.log(timeStripVis,items)
         // make tick
         timeStripVisTick = timeStripVis.addCustomTime(new Date(), `${lang.Time}`);
         timeStripVis.on('click', function(properties) {
@@ -83,8 +124,11 @@ $(document).ready(function(){
             timeChanging = true
         })
         timeStripVis.on('rangechanged', function(properties){
-            setTimeout(function(){
+            clearTimeout(timeChangingTimeout)
+            timeChangingTimeout = setTimeout(function(){
+                var clickTime = properties.time;
                 timeChanging = false
+                getAndDrawVideos(clickTime)
             },300)
         })
         setTimeout(function(){
@@ -100,9 +144,12 @@ $(document).ready(function(){
     }
     function getTimestripDate() {
         var visibleWindow = timeStripVis.getWindow();
-        var startDateInView = visibleWindow.start;
-        var endDateInView = visibleWindow.end;
-        return endDateInView;
+        var start = visibleWindow.start;
+        var end = visibleWindow.end;
+        return {
+            start,
+            end
+        };
     }
     function reloadTimeline(){
         var theTime = new Date()
@@ -112,30 +159,46 @@ $(document).ready(function(){
         var videos = await getVideosByTime()
         var selectedVideosForTime = selectVideosForCanvas(theTime,videos)
         loadedVideosOnCanvas = selectedVideosForTime;
-        if(redrawVideos)drawVideosToCanvas(selectedVideosForTime);
+        if(redrawVideos){
+            drawVideosToCanvas(selectedVideosForTime)
+        }
+        resetTimelineItems(videos)
     }
     function getVideoElInCanvas(video){
-        return timeStripVideoCanvas.find(`[data-mid="${video.mid}"][data-ke="${video.ke}"][data-filename="${video.filename}"]`)
+        return timeStripVideoCanvas.find(`[data-mid="${video.mid}"][data-ke="${video.ke}"][data-filename="${video.filename}"] video`)
     }
     function setTimeOfCanvasVideos(newTime){
         $.each(loadedVideosOnCanvas,function(n,video){
             if(!video)return;
+            var monitorId = video.mid
             var timeAfterStart = (newTime - new Date(video.time)) / 1000;
-            loadedVideoElsOnCanvas[monitorId][0].currentTime = timeAfterStart
+            var videoEl = loadedVideoElsOnCanvas[monitorId][0]
+            try{
+                videoEl.play()
+            }catch(err){
+                console.log(err,videoEl)
+            }
+            console.log(videoEl,timeAfterStart)
+            videoEl.currentTime = timeAfterStart
+            try{
+                videoEl.pause()
+            }catch(err){
+                console.log(err,videoEl)
+            }
         })
     }
     function timeStripPlay(){
         if(!isPlaying){
             isPlaying = true
             var currentDate = getTickDate().getTime();
-            var addition = 50
+            var numberOfAddition = 100
+            var addition = numberOfAddition + 0
             timeStripVisTickMovementInterval = setInterval(function() {
                 var newTime = new Date(currentDate + addition)
                 setTickDate(newTime);
                 setTimeOfCanvasVideos(newTime)
-                addition += 50;
-                console.log(newTime,addition)
-            }, 50)
+                addition += numberOfAddition;
+            }, numberOfAddition)
         }else{
             isPlaying = false
             clearInterval(timeStripVisTickMovementInterval)
@@ -149,9 +212,10 @@ $(document).ready(function(){
         reloadTimeline()
     })
     addOnTabReopen('timeline', function () {
-
+        createTimeline()
+        reloadTimeline()
     })
     addOnTabAway('timeline', function () {
-
+        destroyTimeline()
     })
 })

@@ -3,6 +3,10 @@
     flex-grow: 1;
     overflow: auto;
 }
+#timeline-video-canvas video {
+    width: 100%;
+    height: 100%;
+}
 #timeline-video-canvas .timeline-video {
     height:350px;
 }
@@ -12,6 +16,7 @@
 }
 #timeline-bottom-strip {
     background: rgba(0,0,0,0.8);
+    height: 93px;
 }
 #timeline-bottom-strip * {
     transition: none;

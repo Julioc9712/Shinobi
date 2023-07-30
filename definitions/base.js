@@ -9128,6 +9128,7 @@ module.exports = function(s,config,lang){
                       },
                       {
                           "fieldType": "div",
+                          "class": "p-2",
                           "id": "timeline-controls",
                           "divContent": `<a class="btn btn-sm btn-primary play-toggle"><i class="fa fa-play-circle-o"></i></a>`,
                       },
