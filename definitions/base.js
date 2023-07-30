@@ -9130,7 +9130,10 @@ module.exports = function(s,config,lang){
                           "fieldType": "div",
                           "class": "p-2",
                           "id": "timeline-controls",
-                          "divContent": `<a class="btn btn-sm btn-primary play-toggle"><i class="fa fa-play-circle-o"></i></a>`,
+                          "divContent": `
+                              <a class="btn btn-sm btn-primary play-toggle"><i class="fa fa-play-circle-o"></i> ${lang.Play}</a>
+                              <a class="btn btn-sm btn-default" class_toggle="show-only-playing" data-target="#timeline-video-canvas" icon-toggle="fa-eye fa-eye-slash" icon-child="i"><i class="fa fa-eye"></i> ${lang['Show Only Playing']}</a>
+                          `,
                       },
                       {
                           "fieldType": "div",

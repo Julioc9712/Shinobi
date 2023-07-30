@@ -14,6 +14,9 @@
     background-color: #1f80f9;
     border-bottom: 1px inset #fff;
 }
+#timeline-video-canvas.show-only-playing .timeline-video.no-video{
+    display: none;
+}
 #timeline-bottom-strip {
     background: rgba(0,0,0,0.8);
     height: 93px;
