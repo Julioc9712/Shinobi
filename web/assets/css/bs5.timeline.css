@@ -1,6 +1,6 @@
 #timeline-video-canvas {
     background: rgba(0,0,0,0.9);
-    flex-grow: 0.979;
+    flex-grow: 1;
     overflow: auto;
 }
 #timeline-video-canvas video {
@@ -20,6 +20,7 @@
 #timeline-bottom-strip {
     background: rgba(0,0,0,0.8);
     height: 93px;
+    overflow: hidden;
 }
 #timeline-bottom-strip * {
     transition: none;

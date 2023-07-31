@@ -6,6 +6,7 @@ $(document).ready(function(){
     var timeStripVisTick = null;
     var timeStripVisItems = null;
     var timeStripVisTickMovementInterval = null;
+    var timeStripHollowClickQueue = {}
     var loadedVideosOnTimeStrip = []
     var loadedVideosOnCanvas = {}
     var loadedVideoElsOnCanvas = {}
@@ -85,18 +86,20 @@ $(document).ready(function(){
     }
     function drawVideosToCanvas(selectedVideosByMonitorId){
         var html = ''
-        $.each(selectedVideosByMonitorId,function(monitorId,video){
+        $.each(loadedMonitors,function(monitorId,monitor){
+            var video = selectedVideosByMonitorId[monitorId]
             if(video){
                 var href = video.href;
-                html += `<div class="timeline-video col-md-6 p-0 m-0" data-mid="${monitorId}" data-ke="${video.ke}"><video src="${href}"></video></div>`
+                html += `<div class="timeline-video col-md-6 p-0 m-0" data-mid="${monitorId}" data-ke="${monitor.ke}"><video src="${href}"></video></div>`
             }else{
-                html += `<div class="timeline-video col-md-6 p-0 m-0 no-video"></div>`
+                html += `<div class="timeline-video col-md-6 p-0 m-0 no-video" data-mid="${monitorId}" data-ke="${monitor.ke}"></div>`
             }
         })
         timeStripVideoCanvas.html(html)
         $.each(selectedVideosByMonitorId,function(monitorId,video){
             if(!video)return;
             loadedVideoElsOnCanvas[monitorId] = getVideoElInCanvas(video)
+            queueNextVideo(video)
         })
     }
     function destroyTimeline(){
@@ -157,6 +160,8 @@ $(document).ready(function(){
                 await getAndDrawVideosToTimeline(clickTime,true)
                 setTickDate(clickTime)
                 setTimeOfCanvasVideos(clickTime)
+                console.log('Hollow')
+                setHollowClickQueue()
             }
             if(isPlaying){
                 timeStripPlay()
@@ -223,7 +228,7 @@ $(document).ready(function(){
         if(!newVideo){
             loadedVideosOnCanvas[monitorId] = null
             loadedVideoElsOnCanvas[monitorId] = null
-            var container = getVideoContainerInCanvas(oldVideo)
+            var container = getVideoContainerInCanvas(oldVideo).addClass('no-video')
             var videoEl = container.find('video')
             videoEl.attr('src','')
             try{
@@ -233,9 +238,10 @@ $(document).ready(function(){
             }
             container.empty()
         }else{
-            loadedVideosOnCanvas[monitorId] = newVideo
-            getVideoContainerInCanvas(oldVideo).html(`<video src="${newVideo.href}"></video>`)
+            getVideoContainerInCanvas(newVideo).removeClass('no-video').html(`<video ${isPlaying ? `autoplay` : ''} src="${newVideo.href}"></video>`)
             loadedVideoElsOnCanvas[monitorId] = getVideoElInCanvas(newVideo)
+            loadedVideosOnCanvas[monitorId] = newVideo
+            queueNextVideo(newVideo)
         }
     }
     function setTimeOfCanvasVideos(newTime){
@@ -246,16 +252,16 @@ $(document).ready(function(){
             var videoEl = loadedVideoElsOnCanvas[monitorId][0]
             var videoAfter = video.videoAfter
             videoEl.currentTime = timeAfterStart
-            try{
-                videoEl.play()
-            }catch(err){
-                console.log(err,videoEl)
-            }
-            try{
-                videoEl.pause()
-            }catch(err){
-                console.log(err,videoEl)
-            }
+            playVideo()
+            pauseVideo()
+        })
+    }
+    function queueNextVideo(video){
+        if(!video)return;
+        var monitorId = video.mid
+        var videoEl = loadedVideoElsOnCanvas[monitorId][0]
+        var videoAfter = video.videoAfter
+        videoEl.ontimeupdate = function(){
             if(videoEl.currentTime >= videoEl.duration){
                 replaceVideoInCanvas(video)
                 if(videoAfter){
@@ -266,10 +272,74 @@ $(document).ready(function(){
                     loadedVideoElsOnCanvasNextVideoTimeout[monitorId] = setTimeout(() => {
                         replaceVideoInCanvas(video,videoAfter)
                     },waitTimeTimeTillNext)
-                }else{
-                    console.log('End of Timeline for Monitor',loadedMonitors[monitorId].name)
+                // }else{
+                    // console.log('End of Timeline for Monitor',loadedMonitors[monitorId].name)
                 }
             }
+        }
+    }
+    function findVideoAfterTime(time, monitorId) {
+        let inputTime = new Date(time);
+        let matchingVideos = loadedVideosOnTimeStrip.filter(video => {
+            let videoTime = new Date(video.time);
+            return video.mid === monitorId && videoTime > inputTime;
+        });
+        matchingVideos.sort((a, b) => new Date(a.time) - new Date(b.time));
+        return matchingVideos.length > 0 ? matchingVideos[0] : null;
+    }
+    function setHollowClickQueue(){
+        $.each(loadedVideosOnCanvas,function(monitorId,video){
+            if(!video){
+                // console.log(`Add Hollow Action`, loadedMonitors[monitorId].name)
+                var tickTime = getTickDate()
+                var foundVideo = findVideoAfterTime(tickTime,monitorId)
+                if(foundVideo){
+                    var waitTimeTimeTillNext = getWaitTimeUntilNextVideo(tickTime,foundVideo.time)
+                    // console.log('Found Video',foundVideo)
+                    // console.log('Video Starts in ',waitTimeTimeTillNext / 1000, 'seconds after Play')
+                    timeStripHollowClickQueue[monitorId] = () => {
+                        // console.log('Hollow Start Point for',loadedMonitors[monitorId].name)
+                        loadedVideoElsOnCanvasNextVideoTimeout[monitorId] = setTimeout(() => {
+                            // console.log('Hollow Replace')
+                            replaceVideoInCanvas(foundVideo,foundVideo)
+                        },waitTimeTimeTillNext)
+                    }
+                }else{
+                    // console.log('End of Timeline for Monitor',loadedMonitors[monitorId].name)
+                    timeStripHollowClickQueue[monitorId] = () => {}
+                }
+            }else{
+                timeStripHollowClickQueue[monitorId] = () => {}
+            }
+        })
+    }
+    function runHollowClickQueues(){
+        $.each(timeStripHollowClickQueue,function(monitorId,theAction){
+            theAction()
+        })
+    }
+    function playVideo(videoEl){
+        try{
+            videoEl.play()
+        }catch(err){
+            console.log(err)
+        }
+    }
+    function pauseVideo(videoEl){
+        try{
+            videoEl.pause()
+        }catch(err){
+            console.log(err)
+        }
+    }
+    function playAllVideos(){
+        timeStripVideoCanvas.find('video').each(function(n,video){
+            playVideo(video)
+        })
+    }
+    function pauseAllVideos(){
+        timeStripVideoCanvas.find('video').each(function(n,video){
+            pauseVideo(video)
         })
     }
     function timeStripPlay(){
@@ -278,14 +348,17 @@ $(document).ready(function(){
             var currentDate = getTickDate().getTime();
             var msSpeed = 50
             var addition = msSpeed + 0
+            runHollowClickQueues()
+            playAllVideos()
             timeStripVisTickMovementInterval = setInterval(function() {
                 var newTime = new Date(currentDate + addition)
                 setTickDate(newTime);
-                setTimeOfCanvasVideos(newTime)
+                // setTimeOfCanvasVideos(newTime)
                 addition += msSpeed;
             }, msSpeed)
         }else{
             isPlaying = false
+            pauseAllVideos()
             clearInterval(timeStripVisTickMovementInterval)
             $.each(loadedVideoElsOnCanvasNextVideoTimeout,function(n,timeout){
                 clearTimeout(timeout)
