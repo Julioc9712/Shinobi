@@ -9,9 +9,31 @@ $(document).ready(function(){
     var loadedVideosOnTimeStrip = []
     var loadedVideosOnCanvas = {}
     var loadedVideoElsOnCanvas = {}
+    var loadedVideoElsOnCanvasNextVideoTimeout = {}
     var isPlaying = false
     var earliestStart = null
     var latestEnd = null
+    function addVideoBeforeAndAfter(videos) {
+        videos.sort((a, b) => {
+            if (a.mid === b.mid) {
+                return new Date(a.time) - new Date(b.time);
+            }
+            return a.mid.localeCompare(b.mid);
+        });
+        for (let i = 0; i < videos.length; i++) {
+            if (i > 0 && videos[i].mid === videos[i - 1].mid) {
+                videos[i].videoBefore = videos[i - 1];
+            } else {
+                videos[i].videoBefore = null;
+            }
+            if (i < videos.length - 1 && videos[i].mid === videos[i + 1].mid) {
+                videos[i].videoAfter = videos[i + 1];
+            } else {
+                videos[i].videoAfter = null;
+            }
+        }
+        return videos;
+    }
     async function getVideosByTime(addOrOverWrite){
         var stripDate = getTimestripDate()
         var startDate = stripDate.start
@@ -42,6 +64,7 @@ $(document).ready(function(){
             // archived: false,
             // customVideoSet: wantCloudVideo ? 'cloudVideos' : null,
         })).videos;
+        videos = addVideoBeforeAndAfter(videos);
         addOrOverWrite ? loadedVideosOnTimeStrip.push(...videos) : loadedVideosOnTimeStrip = videos;
         return loadedVideosOnTimeStrip
     }
@@ -65,7 +88,7 @@ $(document).ready(function(){
         $.each(selectedVideosByMonitorId,function(monitorId,video){
             if(video){
                 var href = video.href;
-                html += `<div class="timeline-video col-md-6 p-0 m-0" data-mid="${monitorId}" data-ke="${video.ke}" data-filename="${video.filename}"><video src="${href}"></video></div>`
+                html += `<div class="timeline-video col-md-6 p-0 m-0" data-mid="${monitorId}" data-ke="${video.ke}"><video src="${href}"></video></div>`
             }else{
                 html += `<div class="timeline-video col-md-6 p-0 m-0 no-video"></div>`
             }
@@ -126,13 +149,12 @@ $(document).ready(function(){
             showCurrentTime: false,
             stack: false,
         });
-        console.log(timeStripVis,items)
         // make tick
         timeStripVisTick = timeStripVis.addCustomTime(new Date(), `${lang.Time}`);
-        timeStripVis.on('click', function(properties) {
+        timeStripVis.on('click', async function(properties) {
             if(!timeChanging){
                 var clickTime = properties.time;
-                getAndDrawVideos(clickTime,true)
+                await getAndDrawVideosToTimeline(clickTime,true)
                 setTickDate(clickTime)
                 setTimeOfCanvasVideos(clickTime)
             }
@@ -148,7 +170,7 @@ $(document).ready(function(){
             timeChangingTimeout = setTimeout(function(){
                 var clickTime = properties.time;
                 timeChanging = false
-                getAndDrawVideos(clickTime)
+                getAndDrawVideosToTimeline(clickTime)
             },300)
         })
         setTimeout(function(){
@@ -156,7 +178,7 @@ $(document).ready(function(){
         },2000)
     }
     function setTickDate(newDate){
-        console.log(newDate)
+        // console.log(newDate)
         return timeStripVis.setCustomTime(newDate, timeStripVisTick);
     }
     function getTickDate() {
@@ -173,19 +195,48 @@ $(document).ready(function(){
     }
     function reloadTimeline(){
         var theTime = new Date()
-        getAndDrawVideos(theTime,true)
+        getAndDrawVideosToTimeline(theTime,true)
     }
-    async function getAndDrawVideos(theTime,redrawVideos){
-        await getVideosByTime()
+    function selectAndDrawVideosToCanvas(theTime,redrawVideos){
         var selectedVideosForTime = selectVideosForCanvas(theTime,loadedVideosOnTimeStrip)
         loadedVideosOnCanvas = selectedVideosForTime;
         if(redrawVideos){
             drawVideosToCanvas(selectedVideosForTime)
         }
+    }
+    async function getAndDrawVideosToTimeline(theTime,redrawVideos){
+        await getVideosByTime()
         resetTimelineItems(loadedVideosOnTimeStrip)
+        selectAndDrawVideosToCanvas(theTime,redrawVideos)
+    }
+    function getVideoContainerInCanvas(video){
+        return timeStripVideoCanvas.find(`[data-mid="${video.mid}"][data-ke="${video.ke}"]`)
     }
     function getVideoElInCanvas(video){
-        return timeStripVideoCanvas.find(`[data-mid="${video.mid}"][data-ke="${video.ke}"][data-filename="${video.filename}"] video`)
+        return getVideoContainerInCanvas(video).find('video')
+    }
+    function getWaitTimeUntilNextVideo(endTimeOfFirstVideo,startTimeOfNextVideo){
+        return new Date(startTimeOfNextVideo).getTime() - new Date(endTimeOfFirstVideo).getTime()
+    }
+    function replaceVideoInCanvas(oldVideo,newVideo){
+        var monitorId = oldVideo.mid
+        if(!newVideo){
+            loadedVideosOnCanvas[monitorId] = null
+            loadedVideoElsOnCanvas[monitorId] = null
+            var container = getVideoContainerInCanvas(oldVideo)
+            var videoEl = container.find('video')
+            videoEl.attr('src','')
+            try{
+                videoEl.pause()
+            }catch(err){
+
+            }
+            container.empty()
+        }else{
+            loadedVideosOnCanvas[monitorId] = newVideo
+            getVideoContainerInCanvas(oldVideo).html(`<video src="${newVideo.href}"></video>`)
+            loadedVideoElsOnCanvas[monitorId] = getVideoElInCanvas(newVideo)
+        }
     }
     function setTimeOfCanvasVideos(newTime){
         $.each(loadedVideosOnCanvas,function(n,video){
@@ -193,17 +244,31 @@ $(document).ready(function(){
             var monitorId = video.mid
             var timeAfterStart = (newTime - new Date(video.time)) / 1000;
             var videoEl = loadedVideoElsOnCanvas[monitorId][0]
+            var videoAfter = video.videoAfter
+            videoEl.currentTime = timeAfterStart
             try{
                 videoEl.play()
             }catch(err){
                 console.log(err,videoEl)
             }
-            console.log(videoEl,timeAfterStart)
-            videoEl.currentTime = timeAfterStart
             try{
                 videoEl.pause()
             }catch(err){
                 console.log(err,videoEl)
+            }
+            if(videoEl.currentTime >= videoEl.duration){
+                replaceVideoInCanvas(video)
+                if(videoAfter){
+                    var waitTimeTimeTillNext = getWaitTimeUntilNextVideo(video.end,videoAfter.time)
+                    // console.log('End of Video',video)
+                    // console.log('Video After',videoAfter)
+                    // console.log('Starting in ',waitTimeTimeTillNext / 1000, 'seconds')
+                    loadedVideoElsOnCanvasNextVideoTimeout[monitorId] = setTimeout(() => {
+                        replaceVideoInCanvas(video,videoAfter)
+                    },waitTimeTimeTillNext)
+                }else{
+                    console.log('End of Timeline for Monitor',loadedMonitors[monitorId].name)
+                }
             }
         })
     }
@@ -211,17 +276,20 @@ $(document).ready(function(){
         if(!isPlaying){
             isPlaying = true
             var currentDate = getTickDate().getTime();
-            var numberOfAddition = 100
-            var addition = numberOfAddition + 0
+            var msSpeed = 50
+            var addition = msSpeed + 0
             timeStripVisTickMovementInterval = setInterval(function() {
                 var newTime = new Date(currentDate + addition)
                 setTickDate(newTime);
                 setTimeOfCanvasVideos(newTime)
-                addition += numberOfAddition;
-            }, numberOfAddition)
+                addition += msSpeed;
+            }, msSpeed)
         }else{
             isPlaying = false
             clearInterval(timeStripVisTickMovementInterval)
+            $.each(loadedVideoElsOnCanvasNextVideoTimeout,function(n,timeout){
+                clearTimeout(timeout)
+            })
         }
     }
     timeStripControls.find('.play-toggle').click(function(){
