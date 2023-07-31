@@ -2,6 +2,7 @@ $(document).ready(function(){
     var timeStripVideoCanvas = $('#timeline-video-canvas');
     var timeStripEl = $('#timeline-bottom-strip');
     var timeStripControls = $('#timeline-controls');
+    var playToggles = timeStripControls.find('.play-toggle')
     var timeStripVis = null;
     var timeStripVisTick = null;
     var timeStripVisItems = null;
@@ -66,7 +67,9 @@ $(document).ready(function(){
             // customVideoSet: wantCloudVideo ? 'cloudVideos' : null,
         })).videos;
         videos = addVideoBeforeAndAfter(videos);
-        addOrOverWrite ? loadedVideosOnTimeStrip.push(...videos) : loadedVideosOnTimeStrip = videos;
+        // addOrOverWrite ? loadedVideosOnTimeStrip.push(...videos) :
+        loadedVideosOnTimeStrip = videos;
+        resetTimelineItems(loadedVideosOnTimeStrip)
         return loadedVideosOnTimeStrip
     }
     function selectVideosForCanvas(time, videos){
@@ -176,7 +179,7 @@ $(document).ready(function(){
                 var clickTime = properties.time;
                 timeChanging = false
                 getAndDrawVideosToTimeline(clickTime)
-            },300)
+            },1000)
         })
         setTimeout(function(){
             timeStripEl.find('.vis-timeline').resize()
@@ -211,7 +214,6 @@ $(document).ready(function(){
     }
     async function getAndDrawVideosToTimeline(theTime,redrawVideos){
         await getVideosByTime()
-        resetTimelineItems(loadedVideosOnTimeStrip)
         selectAndDrawVideosToCanvas(theTime,redrawVideos)
     }
     function getVideoContainerInCanvas(video){
@@ -342,6 +344,9 @@ $(document).ready(function(){
             pauseVideo(video)
         })
     }
+    function setPlayToggleUI(icon,text){
+        playToggles.html(`<i class="fa fa-${icon}"></i> ${text}`)
+    }
     function timeStripPlay(){
         if(!isPlaying){
             isPlaying = true
@@ -356,6 +361,7 @@ $(document).ready(function(){
                 // setTimeOfCanvasVideos(newTime)
                 addition += msSpeed;
             }, msSpeed)
+            setPlayToggleUI(`pause-circle-o`,lang.Pause)
         }else{
             isPlaying = false
             pauseAllVideos()
@@ -363,9 +369,10 @@ $(document).ready(function(){
             $.each(loadedVideoElsOnCanvasNextVideoTimeout,function(n,timeout){
                 clearTimeout(timeout)
             })
+            setPlayToggleUI(`play-circle-o`,lang.Play)
         }
     }
-    timeStripControls.find('.play-toggle').click(function(){
+    playToggles.click(function(){
         timeStripPlay()
     })
     addOnTabOpen('timeline', function () {
@@ -373,10 +380,13 @@ $(document).ready(function(){
         reloadTimeline()
     })
     addOnTabReopen('timeline', function () {
-        createTimeline()
-        reloadTimeline()
+        // createTimeline()
+        // reloadTimeline()
     })
     addOnTabAway('timeline', function () {
-        destroyTimeline()
+        // destroyTimeline()
+        if(!isPlaying){
+            timeStripPlay()
+        }
     })
 })

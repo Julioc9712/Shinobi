@@ -18,7 +18,7 @@
     display: none;
 }
 #timeline-bottom-strip {
-    background: rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.6);
     height: 93px;
     overflow: hidden;
 }
@@ -27,4 +27,22 @@
 }
 #timeline-bottom-strip .vis-timeline {
     visibility: visible!important;
+    border: 1px solid #2a4cb5;
+    border-radius: 5px;
+}
+#timeline-bottom-strip .vis-item {
+    background: rgb(31 128 249 / 80%)!important;
+    border-color: #1f80f9!important;
+}
+
+#timeline-bottom-strip .vis-time-axis .vis-grid.vis-minor {
+    border-color: rgb(31 128 249 / 40%);
+}
+
+#timeline-bottom-strip .vis-panel.vis-bottom,
+#timeline-bottom-strip .vis-panel.vis-center,
+#timeline-bottom-strip .vis-panel.vis-left,
+#timeline-bottom-strip .vis-panel.vis-right,
+#timeline-bottom-strip .vis-panel.vis-top {
+    border-color: rgb(31 128 249 / 40%)!important;
 }
