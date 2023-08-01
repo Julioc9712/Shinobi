@@ -75,6 +75,18 @@ function base64ArrayBuffer(arrayBuffer) {
 
       return base64
 }
+function timeAgo(date) {
+    const now = new Date();
+    const secondsPast = (now.getTime() - date.getTime()) / 1000;
+
+    if(secondsPast < 60) {
+        return parseInt(secondsPast) + ' seconds ago';
+    }
+    if(secondsPast < 3600) {
+        return parseInt(secondsPast/60) + ' minutes ago';
+    }
+    return parseInt(secondsPast/3600) + ' hours ago';
+}
 function stringContains(find,string,toLowerCase){
     var newString = string + ''
     if(toLowerCase)newString = newString.toLowerCase()

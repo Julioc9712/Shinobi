@@ -14,10 +14,13 @@ $(document).ready(function(){
     var timeStripVis = null;
     var timeStripVisTick = null;
     var timeStripVisItems = null;
+    var timeStripCurrentStart = null;
+    var timeStripCurrentEnd = new Date();
     var timeStripVisTickMovementInterval = null;
     var timeStripHollowClickQueue = {}
     var timeStripTickPosition = new Date()
     var timeStripPreBuffersEls = {}
+    var timeStripListOfQueries = []
     var loadedVideosOnTimeStrip = []
     var loadedVideosOnCanvas = {}
     var loadedVideoElsOnCanvas = {}
@@ -46,39 +49,47 @@ $(document).ready(function(){
         }
         return videos;
     }
-    async function getVideosByTime(addOrOverWrite){
+    function findGapsInSearchRanges(timeRanges, range) {
+        timeRanges.sort((a, b) => a[0] - b[0]);
+        let gaps = [];
+        let currentEnd = new Date(range[0]);
+        for (let i = 0; i < timeRanges.length; i++) {
+            let [start, end] = timeRanges[i];
+            if (start > currentEnd) {
+                gaps.push([currentEnd, start]);
+            }
+            if (end > currentEnd) {
+                currentEnd = end;
+            }
+        }
+        if (currentEnd < range[1]) {
+            gaps.push([currentEnd, range[1]]);
+        }
+        return gaps;
+    }
+    async function getVideosInGaps(gaps){
+        var videos = []
+        for (let i = 0; i < gaps.length; i++) {
+            var range = gaps[i]
+            videos.push(...(await getVideos({
+                startDate: range[0],
+                endDate: range[1],
+                // searchQuery,
+                // archived: false,
+                // customVideoSet: wantCloudVideo ? 'cloudVideos' : null,
+            },null,true)).videos);
+        }
+        return videos;
+    }
+    async function getVideosByTimeStripRange(addOrOverWrite){
         var stripDate = getTimestripDate()
         var startDate = stripDate.start
         var endDate = stripDate.end
-        if(!earliestStart || startDate < earliestStart){
-            earliestStart = startDate
-        }
-        if(!latestEnd || endDate > latestEnd){
-            latestEnd = endDate
-        }
-        if(latestEnd > endDate && earliestStart < startDate){
-            //inside a previously larger query, do nothing
-            // console.log(`Using data in memory`)
-            return [];
-        // }else{
-            // console.log(`New TimeFrame`)
-        }
-        // console.log(`earliestStart < startDate`,earliestStart < startDate)
-        // console.log(`latestEnd > endDate`,latestEnd > endDate)
-        // console.log(`earliestStart`,earliestStart)
-        // console.log(`startDate`,startDate)
-        // console.log(`latestEnd`,latestEnd)
-        // console.log(`endDate`,endDate)
-        var videos = (await getVideos({
-            startDate,
-            endDate,
-            // searchQuery,
-            // archived: false,
-            // customVideoSet: wantCloudVideo ? 'cloudVideos' : null,
-        },null,true)).videos;
+        var gaps = findGapsInSearchRanges(timeStripListOfQueries, [startDate,endDate])
+        timeStripListOfQueries.push(...gaps)
+        var videos = await getVideosInGaps(gaps);
         videos = addVideoBeforeAndAfter(videos);
-        // addOrOverWrite ? loadedVideosOnTimeStrip.push(...videos) :
-        loadedVideosOnTimeStrip = videos;
+        loadedVideosOnTimeStrip.push(...videos)
         resetTimelineItems(loadedVideosOnTimeStrip)
         return loadedVideosOnTimeStrip
     }
@@ -157,6 +168,7 @@ $(document).ready(function(){
     function createTimeline(videos){
         var timeChanging = false
         var timeChangingTimeout = null
+        var dateNow = new Date()
         destroyTimeline()
         var {
             items,
@@ -168,7 +180,7 @@ $(document).ready(function(){
             stack: false,
         });
         // make tick
-        timeStripVisTick = timeStripVis.addCustomTime(new Date(), `${lang.Time}`);
+        timeStripVisTick = timeStripVis.addCustomTime(dateNow, `${lang.Time}`);
         timeStripVis.on('click', async function(properties) {
             var currentlyPlaying = !!isPlaying;
             timeStripPlay(true)
@@ -200,7 +212,7 @@ $(document).ready(function(){
     function setTickDate(newDate){
         // console.log(newDate)
         timeStripTickPosition = new Date(newDate)
-        currentTimeLabel.text(newDate)
+        currentTimeLabel.text(`${timeAgo(newDate)}, ${formattedTime(newDate)}`)
         return timeStripVis.setCustomTime(newDate, timeStripVisTick);
     }
     function getTickDate() {
@@ -227,7 +239,7 @@ $(document).ready(function(){
         }
     }
     async function getAndDrawVideosToTimeline(theTime,redrawVideos){
-        await getVideosByTime()
+        await getVideosByTimeStripRange()
         selectAndDrawVideosToCanvas(theTime,redrawVideos)
     }
     function getVideoContainerInCanvas(video){
@@ -441,6 +453,12 @@ $(document).ready(function(){
             return (className.match (/(^|\s)col-\S+/g) || []).join(' ');
         }).addClass(`col-${newCol}`)
     }
+    function refreshTimeline(){
+        timeStripListOfQueries = []
+        loadedVideosOnTimeStrip = []
+        createTimeline()
+        reloadTimeline()
+    }
     timelineActionButtons.click(function(){
         var el = $(this)
         var type = el.attr('timeline-action')
@@ -472,6 +490,9 @@ $(document).ready(function(){
                 adjustTimelineGridSize(size)
                 gridSizeButtons.removeClass('btn-success')
                 el.addClass('btn-success')
+            break;
+            case'refresh':
+                refreshTimeline()
             break;
         }
     })
