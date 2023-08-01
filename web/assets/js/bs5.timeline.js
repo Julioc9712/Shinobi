@@ -2,7 +2,11 @@ $(document).ready(function(){
     var timeStripVideoCanvas = $('#timeline-video-canvas');
     var timeStripEl = $('#timeline-bottom-strip');
     var timeStripControls = $('#timeline-controls');
-    var playToggles = timeStripControls.find('.play-toggle')
+    var timeStripInfo = $('#timeline-info');
+    var playToggles = timeStripControls.find('[timeline-action="playpause"]')
+    var currentTimeLabel = timeStripInfo.find('.current-time')
+    var timelineActionButtons = timeStripControls.find('[timeline-action]')
+    var timelineSpeed = 1;
     var timeStripVis = null;
     var timeStripVisTick = null;
     var timeStripVisItems = null;
@@ -142,6 +146,12 @@ $(document).ready(function(){
         timeStripVisItems.clear();
         timeStripVisItems.add(newVideos);
     }
+    async function resetTimeline(clickTime){
+        await getAndDrawVideosToTimeline(clickTime,true)
+        setTickDate(clickTime)
+        setTimeOfCanvasVideos(clickTime)
+        setHollowClickQueue()
+    }
     function createTimeline(videos){
         var timeChanging = false
         var timeChangingTimeout = null
@@ -160,11 +170,7 @@ $(document).ready(function(){
         timeStripVis.on('click', async function(properties) {
             if(!timeChanging){
                 var clickTime = properties.time;
-                await getAndDrawVideosToTimeline(clickTime,true)
-                setTickDate(clickTime)
-                setTimeOfCanvasVideos(clickTime)
-                console.log('Hollow')
-                setHollowClickQueue()
+                await resetTimeline(clickTime)
             }
             if(isPlaying){
                 timeStripPlay()
@@ -187,6 +193,7 @@ $(document).ready(function(){
     }
     function setTickDate(newDate){
         // console.log(newDate)
+        currentTimeLabel.text(newDate)
         return timeStripVis.setCustomTime(newDate, timeStripVisTick);
     }
     function getTickDate() {
@@ -320,6 +327,9 @@ $(document).ready(function(){
             theAction()
         })
     }
+    function getAllActiveVideosInSlots(){
+        return timeStripVideoCanvas.find('video')
+    }
     function playVideo(videoEl){
         try{
             videoEl.play()
@@ -335,17 +345,17 @@ $(document).ready(function(){
         }
     }
     function playAllVideos(){
-        timeStripVideoCanvas.find('video').each(function(n,video){
+        getAllActiveVideosInSlots().each(function(n,video){
             playVideo(video)
         })
     }
     function pauseAllVideos(){
-        timeStripVideoCanvas.find('video').each(function(n,video){
+        getAllActiveVideosInSlots().each(function(n,video){
             pauseVideo(video)
         })
     }
-    function setPlayToggleUI(icon,text){
-        playToggles.html(`<i class="fa fa-${icon}"></i> ${text}`)
+    function setPlayToggleUI(icon){
+        playToggles.html(`<i class="fa fa-${icon}"></i>`)
     }
     function timeStripPlay(){
         if(!isPlaying){
@@ -361,7 +371,7 @@ $(document).ready(function(){
                 // setTimeOfCanvasVideos(newTime)
                 addition += msSpeed;
             }, msSpeed)
-            setPlayToggleUI(`pause-circle-o`,lang.Pause)
+            setPlayToggleUI(`pause-circle-o`)
         }else{
             isPlaying = false
             pauseAllVideos()
@@ -369,11 +379,58 @@ $(document).ready(function(){
             $.each(loadedVideoElsOnCanvasNextVideoTimeout,function(n,timeout){
                 clearTimeout(timeout)
             })
-            setPlayToggleUI(`play-circle-o`,lang.Play)
+            setPlayToggleUI(`play-circle-o`)
         }
     }
-    playToggles.click(function(){
-        timeStripPlay()
+    function downloadPlayingVideo(video){
+        if(video.currentSrc){
+            var filename = getFilenameFromUrl(video.currentSrc)
+            downloadFile(video.currentSrc,filename)
+        }
+    }
+    function downloadAllPlayingVideos(){
+        getAllActiveVideosInSlots().each(function(n,video){
+            downloadPlayingVideo(video)
+        })
+    }
+    async function jumpTimeline(amountInMs,direction){
+        if(isPlaying){
+            timeStripPlay()
+        }
+        var tickTime = getTickDate().getTime()
+        var newTime = 0;
+        if(direction === 'right'){
+            newTime = tickTime + amountInMs
+        }else{
+            newTime = tickTime - amountInMs
+        }
+        newTime = new Date(newTime)
+        await resetTimeline(newTime)
+    }
+    function adjustTimelineSpeed(newSpeed){
+        timelineSpeed = newSpeed + 0
+    }
+    timelineActionButtons.click(function(){
+        var el = $(this)
+        var type = el.attr('timeline-action')
+        switch(type){
+            case'playpause':
+                timeStripPlay()
+            break;
+            case'downloadAll':
+                downloadAllPlayingVideos()
+            break;
+            case'jumpLeft':
+                jumpTimeline(5000,'left')
+            break;
+            case'jumpRight':
+                jumpTimeline(5000,'right')
+            break;
+            case'speed':
+                var speed = parseInt(el.attr('speed'))
+                adjustTimelineSpeed(speed)
+            break;
+        }
     })
     addOnTabOpen('timeline', function () {
         createTimeline()

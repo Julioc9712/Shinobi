@@ -9128,11 +9128,40 @@ module.exports = function(s,config,lang){
                       },
                       {
                           "fieldType": "div",
+                          "class": "row",
+                          "id": "timeline-info",
+                          "divContent": `
+                          <div class="text-center">
+                            <span class="current-time font-monospace ${textWhiteOnBgDark}"></span>
+                          </div>`
+                      },
+                      {
+                          "fieldType": "div",
                           "class": "p-2",
                           "id": "timeline-controls",
                           "divContent": `
-                              <a class="btn btn-sm btn-primary play-toggle"><i class="fa fa-play-circle-o"></i> ${lang.Play}</a>
-                              <a class="btn btn-sm btn-default" class_toggle="show-only-playing" data-target="#timeline-video-canvas" icon-toggle="fa-eye fa-eye-slash" icon-child="i"><i class="fa fa-eye"></i> ${lang['Show Only Playing']}</a>
+                            <div class="d-flex flex-row">
+                                <div class="flex-grow-1">
+                                    <div class="btn-group">
+                                        <a class="btn btn-sm btn-default" timeline-action="jumpLeft"><i class="fa fa-arrow-circle-left"></i></a>
+                                        <a class="btn btn-sm btn-primary" timeline-action="playpause"><i class="fa fa-play-circle-o"></i></a>
+                                        <a class="btn btn-sm btn-default" timeline-action="jumpRight"><i class="fa fa-arrow-circle-right"></i></a>
+                                    </div>
+                                    <div class="btn-group">
+                                        <a class="btn btn-sm btn-default" timeline-action="speed" speed="1">1</a>
+                                        <a class="btn btn-sm btn-default" timeline-action="speed" speed="5">5</a>
+                                        <a class="btn btn-sm btn-default" timeline-action="speed" speed="10">10</a>
+                                        <a class="btn btn-sm btn-default" timeline-action="speed" speed="15">15</a>
+                                    </div>
+
+                                </div>
+                                <div>
+                                    <div class="btn-group">
+                                        <a class="btn btn-sm btn-success" timeline-action="downloadAll" title="${lang.Download}"><i class="fa fa-download"></i></a>
+                                        <a class="btn btn-sm btn-default" class_toggle="show-only-playing" data-target="#timeline-video-canvas" icon-toggle="fa-eye fa-eye-slash" icon-child="i" title="${lang['Show Only Playing']}"><i class="fa fa-eye"></i></a>
+                                    </div>
+                                </div>
+                            </div>
                           `,
                       },
                       {
