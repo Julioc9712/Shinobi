@@ -169,6 +169,7 @@ $(document).ready(function(){
         var timeChanging = false
         var timeChangingTimeout = null
         var dateNow = new Date()
+        var startTimeForLoad = new Date(dateNow.getTime() - 1000 * 60 * 60 * 24)
         destroyTimeline()
         var {
             items,
@@ -178,6 +179,8 @@ $(document).ready(function(){
         timeStripVis = new vis.Timeline(timeStripEl[0], items, groups, {
             showCurrentTime: false,
             stack: false,
+            start: startTimeForLoad,
+            end: dateNow,
         });
         // make tick
         timeStripVisTick = timeStripVis.addCustomTime(dateNow, `${lang.Time}`);
@@ -396,14 +399,14 @@ $(document).ready(function(){
             isPlaying = true
             var currentDate = getTickDate().getTime();
             var msSpeed = 50
-            var addition = (msSpeed * timelineSpeed) + 0
+            var addition = 0
             runHollowClickQueues()
             playAllVideos()
             timeStripVisTickMovementInterval = setInterval(function() {
+                addition += (msSpeed * timelineSpeed);
                 var newTime = new Date(currentDate + addition)
                 setTickDate(newTime);
                 // setTimeOfCanvasVideos(newTime)
-                addition += (msSpeed * timelineSpeed);
             }, msSpeed)
             setPlayToggleUI(`pause-circle-o`)
         }else{
