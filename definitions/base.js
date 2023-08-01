@@ -9148,7 +9148,7 @@ module.exports = function(s,config,lang){
                                         <a class="btn btn-sm btn-default" timeline-action="jumpRight"><i class="fa fa-arrow-circle-right"></i></a>
                                     </div>
                                     <div class="btn-group">
-                                        <a class="btn btn-sm btn-default" timeline-action="speed" speed="1">1</a>
+                                        <a class="btn btn-sm btn-default btn-success" timeline-action="speed" speed="1">1</a>
                                         <a class="btn btn-sm btn-default" timeline-action="speed" speed="5">5</a>
                                         <a class="btn btn-sm btn-default" timeline-action="speed" speed="10">10</a>
                                         <a class="btn btn-sm btn-default" timeline-action="speed" speed="15">15</a>

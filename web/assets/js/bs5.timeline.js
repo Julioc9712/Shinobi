@@ -4,6 +4,7 @@ $(document).ready(function(){
     var timeStripControls = $('#timeline-controls');
     var timeStripInfo = $('#timeline-info');
     var playToggles = timeStripControls.find('[timeline-action="playpause"]')
+    var speedButtons = timeStripControls.find('[timeline-action="speed"]')
     var currentTimeLabel = timeStripInfo.find('.current-time')
     var timelineActionButtons = timeStripControls.find('[timeline-action]')
     var timelineSpeed = 1;
@@ -172,9 +173,7 @@ $(document).ready(function(){
                 var clickTime = properties.time;
                 await resetTimeline(clickTime)
             }
-            if(isPlaying){
-                timeStripPlay()
-            }
+            timeStripPlay(true)
         });
         timeStripVis.on('rangechange', function(properties){
             timeChanging = true
@@ -227,10 +226,10 @@ $(document).ready(function(){
         return timeStripVideoCanvas.find(`[data-mid="${video.mid}"][data-ke="${video.ke}"]`)
     }
     function getVideoElInCanvas(video){
-        return getVideoContainerInCanvas(video).find('video')
+        return getVideoContainerInCanvas(video).find('video')[0]
     }
     function getWaitTimeUntilNextVideo(endTimeOfFirstVideo,startTimeOfNextVideo){
-        return new Date(startTimeOfNextVideo).getTime() - new Date(endTimeOfFirstVideo).getTime()
+        return (new Date(startTimeOfNextVideo).getTime() - new Date(endTimeOfFirstVideo).getTime()) / timelineSpeed
     }
     function replaceVideoInCanvas(oldVideo,newVideo){
         var monitorId = oldVideo.mid
@@ -247,8 +246,11 @@ $(document).ready(function(){
             }
             container.empty()
         }else{
-            getVideoContainerInCanvas(newVideo).removeClass('no-video').html(`<video ${isPlaying ? `autoplay` : ''} src="${newVideo.href}"></video>`)
-            loadedVideoElsOnCanvas[monitorId] = getVideoElInCanvas(newVideo)
+            getVideoContainerInCanvas(newVideo).removeClass('no-video').html(`<video src="${newVideo.href}"></video>`)
+            var vidEl = getVideoElInCanvas(newVideo)
+            vidEl.playbackRate = timelineSpeed
+            if(isPlaying)playVideo(vidEl)
+            loadedVideoElsOnCanvas[monitorId] = vidEl
             loadedVideosOnCanvas[monitorId] = newVideo
             queueNextVideo(newVideo)
         }
@@ -258,17 +260,17 @@ $(document).ready(function(){
             if(!video)return;
             var monitorId = video.mid
             var timeAfterStart = (newTime - new Date(video.time)) / 1000;
-            var videoEl = loadedVideoElsOnCanvas[monitorId][0]
+            var videoEl = loadedVideoElsOnCanvas[monitorId]
             var videoAfter = video.videoAfter
             videoEl.currentTime = timeAfterStart
-            playVideo()
-            pauseVideo()
+            // playVideo(videoEl)
+            // pauseVideo(videoEl)
         })
     }
     function queueNextVideo(video){
         if(!video)return;
         var monitorId = video.mid
-        var videoEl = loadedVideoElsOnCanvas[monitorId][0]
+        var videoEl = loadedVideoElsOnCanvas[monitorId]
         var videoAfter = video.videoAfter
         videoEl.ontimeupdate = function(){
             if(videoEl.currentTime >= videoEl.duration){
@@ -302,6 +304,7 @@ $(document).ready(function(){
                 // console.log(`Add Hollow Action`, loadedMonitors[monitorId].name)
                 var tickTime = getTickDate()
                 var foundVideo = findVideoAfterTime(tickTime,monitorId)
+                clearTimeout(loadedVideoElsOnCanvasNextVideoTimeout[monitorId])
                 if(foundVideo){
                     var waitTimeTimeTillNext = getWaitTimeUntilNextVideo(tickTime,foundVideo.time)
                     // console.log('Found Video',foundVideo)
@@ -332,6 +335,7 @@ $(document).ready(function(){
     }
     function playVideo(videoEl){
         try{
+            videoEl.playbackRate = timelineSpeed
             videoEl.play()
         }catch(err){
             console.log(err)
@@ -357,19 +361,19 @@ $(document).ready(function(){
     function setPlayToggleUI(icon){
         playToggles.html(`<i class="fa fa-${icon}"></i>`)
     }
-    function timeStripPlay(){
-        if(!isPlaying){
+    function timeStripPlay(forcePause){
+        if(!forcePause && !isPlaying){
             isPlaying = true
             var currentDate = getTickDate().getTime();
             var msSpeed = 50
-            var addition = msSpeed + 0
+            var addition = (msSpeed * timelineSpeed) + 0
             runHollowClickQueues()
             playAllVideos()
             timeStripVisTickMovementInterval = setInterval(function() {
                 var newTime = new Date(currentDate + addition)
                 setTickDate(newTime);
                 // setTimeOfCanvasVideos(newTime)
-                addition += msSpeed;
+                addition += (msSpeed * timelineSpeed);
             }, msSpeed)
             setPlayToggleUI(`pause-circle-o`)
         }else{
@@ -394,9 +398,7 @@ $(document).ready(function(){
         })
     }
     async function jumpTimeline(amountInMs,direction){
-        if(isPlaying){
-            timeStripPlay()
-        }
+        timeStripPlay(true)
         var tickTime = getTickDate().getTime()
         var newTime = 0;
         if(direction === 'right'){
@@ -408,7 +410,11 @@ $(document).ready(function(){
         await resetTimeline(newTime)
     }
     function adjustTimelineSpeed(newSpeed){
+        var currentlyPlaying = !!isPlaying;
+        if(currentlyPlaying)timeStripPlay(true);
         timelineSpeed = newSpeed + 0
+        setHollowClickQueue()
+        if(currentlyPlaying)timeStripPlay();
     }
     timelineActionButtons.click(function(){
         var el = $(this)
@@ -429,6 +435,8 @@ $(document).ready(function(){
             case'speed':
                 var speed = parseInt(el.attr('speed'))
                 adjustTimelineSpeed(speed)
+                speedButtons.removeClass('btn-success')
+                el.addClass('btn-success')
             break;
         }
     })
@@ -442,8 +450,6 @@ $(document).ready(function(){
     })
     addOnTabAway('timeline', function () {
         // destroyTimeline()
-        if(!isPlaying){
-            timeStripPlay()
-        }
+        timeStripPlay(true)
     })
 })
