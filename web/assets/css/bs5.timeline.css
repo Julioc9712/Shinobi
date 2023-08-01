@@ -8,13 +8,13 @@
     height: 100%;
 }
 #timeline-video-canvas .timeline-video.col-md-4 {
-    height:33%;
+    height:33vh;
 }
 #timeline-video-canvas .timeline-video.col-md-6 {
-    height: 50%;
+    height: 50vh;
 }
 #timeline-video-canvas .timeline-video.col-md-12 {
-    height: 100%;
+    height: 80vh;
     margin-bottom: 0.5rem !important;
 }
 #timeline-video-canvas .timeline-video.no-video{
