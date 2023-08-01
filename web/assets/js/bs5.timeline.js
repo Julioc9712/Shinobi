@@ -71,7 +71,7 @@ $(document).ready(function(){
             // searchQuery,
             // archived: false,
             // customVideoSet: wantCloudVideo ? 'cloudVideos' : null,
-        })).videos;
+        },null,true)).videos;
         videos = addVideoBeforeAndAfter(videos);
         // addOrOverWrite ? loadedVideosOnTimeStrip.push(...videos) :
         loadedVideosOnTimeStrip = videos;
@@ -96,15 +96,7 @@ $(document).ready(function(){
     function drawVideosToCanvas(selectedVideosByMonitorId){
         var html = ''
         $.each(loadedMonitors,function(monitorId,monitor){
-            var video = selectedVideosByMonitorId[monitorId]
-            if(video){
-                var href = video.href;
-                html += `<div class="timeline-video col-md-6 p-0 m-0" data-mid="${monitorId}" data-ke="${monitor.ke}">
-                    <video src="${href}"></video>
-                </div>`
-            }else{
-                html += `<div class="timeline-video col-md-6 p-0 m-0 no-video" data-mid="${monitorId}" data-ke="${monitor.ke}"></div>`
-            }
+            html += `<div class="timeline-video col-md-6 p-0 m-0 no-video" data-mid="${monitorId}" data-ke="${monitor.ke}"></div>`
         })
         timeStripVideoCanvas.html(html)
         $.each(selectedVideosByMonitorId,function(monitorId,video){
@@ -250,7 +242,7 @@ $(document).ready(function(){
     }
     function setVideoInCanvas(newVideo){
         var monitorId = newVideo.mid
-        getVideoContainerInCanvas(newVideo).removeClass('no-video').html(`<video src="${newVideo.href}"></video>`)
+        getVideoContainerInCanvas(newVideo).removeClass('no-video').html(`<video muted src="${newVideo.href}"></video>`)
         var vidEl = getVideoElInCanvas(newVideo)
         vidEl.playbackRate = timelineSpeed
         if(isPlaying)playVideo(vidEl)
@@ -274,6 +266,11 @@ $(document).ready(function(){
         var monitorId = video.mid
         var videoEl = loadedVideoElsOnCanvas[monitorId]
         var videoAfter = video.videoAfter
+        videoEl.onerror = function(err){
+            err.preventDefault()
+            console.log(`queueNextVideo videoEl.onerror`)
+            console.log(err)
+        }
         videoEl.ontimeupdate = function(){
             if(videoEl.currentTime >= videoEl.duration){
                 clearVideoInCanvas(video)
