@@ -7,8 +7,15 @@
     width: 100%;
     height: 100%;
 }
-#timeline-video-canvas .timeline-video {
-    height:350px;
+#timeline-video-canvas .timeline-video.col-md-4 {
+    height:33%;
+}
+#timeline-video-canvas .timeline-video.col-md-6 {
+    height: 50%;
+}
+#timeline-video-canvas .timeline-video.col-md-12 {
+    height: 100%;
+    margin-bottom: 0.5rem !important;
 }
 #timeline-video-canvas .timeline-video.no-video{
     background-color: #1f80f9;
@@ -16,6 +23,9 @@
 }
 #timeline-video-canvas.show-only-playing .timeline-video.no-video{
     display: none;
+}
+#timeline-info {
+    background: #004e8e;
 }
 #timeline-bottom-strip {
     background: rgba(0,0,0,0.6);

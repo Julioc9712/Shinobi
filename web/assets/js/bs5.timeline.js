@@ -3,17 +3,21 @@ $(document).ready(function(){
     var timeStripEl = $('#timeline-bottom-strip');
     var timeStripControls = $('#timeline-controls');
     var timeStripInfo = $('#timeline-info');
+    var timeStripPreBuffers = $('#timeline-pre-buffers');
     var playToggles = timeStripControls.find('[timeline-action="playpause"]')
     var speedButtons = timeStripControls.find('[timeline-action="speed"]')
+    var gridSizeButtons = timeStripControls.find('[timeline-action="gridSize"]')
     var currentTimeLabel = timeStripInfo.find('.current-time')
     var timelineActionButtons = timeStripControls.find('[timeline-action]')
     var timelineSpeed = 1;
+    var timelineGridSizing = `md-6`;
     var timeStripVis = null;
     var timeStripVisTick = null;
     var timeStripVisItems = null;
     var timeStripVisTickMovementInterval = null;
     var timeStripHollowClickQueue = {}
     var timeStripTickPosition = new Date()
+    var timeStripPreBuffersEls = {}
     var loadedVideosOnTimeStrip = []
     var loadedVideosOnCanvas = {}
     var loadedVideoElsOnCanvas = {}
@@ -95,10 +99,13 @@ $(document).ready(function(){
     }
     function drawVideosToCanvas(selectedVideosByMonitorId){
         var html = ''
+        var preBufferHtml = ''
         $.each(loadedMonitors,function(monitorId,monitor){
-            html += `<div class="timeline-video col-md-6 p-0 m-0 no-video" data-mid="${monitorId}" data-ke="${monitor.ke}"></div>`
+            html += `<div class="timeline-video col-${timelineGridSizing} p-0 m-0 no-video" data-mid="${monitorId}" data-ke="${monitor.ke}"></div>`
+            preBufferHtml += `<div class="timeline-video-buffer" data-mid="${monitorId}" data-ke="${monitor.ke}"></div>`
         })
         timeStripVideoCanvas.html(html)
+        timeStripPreBuffers.html(preBufferHtml)
         $.each(selectedVideosByMonitorId,function(monitorId,video){
             if(!video)return;
             setVideoInCanvas(video)
@@ -163,11 +170,17 @@ $(document).ready(function(){
         // make tick
         timeStripVisTick = timeStripVis.addCustomTime(new Date(), `${lang.Time}`);
         timeStripVis.on('click', async function(properties) {
+            var currentlyPlaying = !!isPlaying;
+            timeStripPlay(true)
             if(!timeChanging){
                 var clickTime = properties.time;
                 await resetTimeline(clickTime)
             }
-            timeStripPlay(true)
+            if(currentlyPlaying){
+                setTimeout(() => {
+                    timeStripPlay()
+                },500)
+            }
         });
         timeStripVis.on('rangechange', function(properties){
             timeChanging = true
@@ -223,6 +236,9 @@ $(document).ready(function(){
     function getVideoElInCanvas(video){
         return getVideoContainerInCanvas(video).find('video')[0]
     }
+    function getVideoContainerPreBufferEl(video){
+        return timeStripPreBuffers.find(`[data-mid="${video.mid}"][data-ke="${video.ke}"]`)
+    }
     function getWaitTimeUntilNextVideo(endTimeOfFirstVideo,startTimeOfNextVideo){
         return (new Date(startTimeOfNextVideo).getTime() - new Date(endTimeOfFirstVideo).getTime()) / timelineSpeed
     }
@@ -248,6 +264,7 @@ $(document).ready(function(){
         if(isPlaying)playVideo(vidEl)
         loadedVideoElsOnCanvas[monitorId] = vidEl
         loadedVideosOnCanvas[monitorId] = newVideo
+        timeStripPreBuffersEls[monitorId] = getVideoContainerPreBufferEl(newVideo)
         queueNextVideo(newVideo)
     }
     function setTimeOfCanvasVideos(newTime){
@@ -268,8 +285,8 @@ $(document).ready(function(){
         var videoAfter = video.videoAfter
         videoEl.onerror = function(err){
             err.preventDefault()
-            console.log(`queueNextVideo videoEl.onerror`)
-            console.log(err)
+            console.error(`video error`)
+            console.error(err)
         }
         videoEl.ontimeupdate = function(){
             if(videoEl.currentTime >= videoEl.duration){
@@ -287,6 +304,8 @@ $(document).ready(function(){
                 }
             }
         }
+        // pre-buffer it
+        timeStripPreBuffersEls[monitorId].html(videoAfter ? `<video preload="auto" muted src="${videoAfter.href}"></video>` : '')
     }
     function findVideoAfterTime(time, monitorId) {
         let inputTime = new Date(time);
@@ -415,6 +434,13 @@ $(document).ready(function(){
         setHollowClickQueue()
         if(currentlyPlaying)timeStripPlay();
     }
+    function adjustTimelineGridSize(newCol){
+        timelineGridSizing = `${newCol}`
+        var containerEls = timeStripVideoCanvas.find('.timeline-video')
+        containerEls.removeClass (function (index, className) {
+            return (className.match (/(^|\s)col-\S+/g) || []).join(' ');
+        }).addClass(`col-${newCol}`)
+    }
     timelineActionButtons.click(function(){
         var el = $(this)
         var type = el.attr('timeline-action')
@@ -423,7 +449,9 @@ $(document).ready(function(){
                 timeStripPlay()
             break;
             case'downloadAll':
-                downloadAllPlayingVideos()
+                if(featureIsActivated(true)){
+                    downloadAllPlayingVideos()
+                }
             break;
             case'jumpLeft':
                 jumpTimeline(5000,'left')
@@ -433,8 +461,16 @@ $(document).ready(function(){
             break;
             case'speed':
                 var speed = parseInt(el.attr('speed'))
-                adjustTimelineSpeed(speed)
-                speedButtons.removeClass('btn-success')
+                if(featureIsActivated(true)){
+                    adjustTimelineSpeed(speed)
+                    speedButtons.removeClass('btn-success')
+                    el.addClass('btn-success')
+                }
+            break;
+            case'gridSize':
+                var size = `md-${parseInt(el.attr('size'))}`
+                adjustTimelineGridSize(size)
+                gridSizeButtons.removeClass('btn-success')
                 el.addClass('btn-success')
             break;
         }
@@ -451,4 +487,9 @@ $(document).ready(function(){
         // destroyTimeline()
         timeStripPlay(true)
     })
+    if(isChromiumBased){
+        [ 7, 10 ].forEach((speed) => {
+            timeStripControls.find(`[timeline-action="speed"][speed="${speed}"]`).remove()
+        });
+    }
 })

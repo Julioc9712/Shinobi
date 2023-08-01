@@ -9123,12 +9123,12 @@ module.exports = function(s,config,lang){
                   "info": [
                       {
                           "fieldType": "div",
-                          "class": "row",
+                          "class": "row m-0",
                           "id": "timeline-video-canvas",
                       },
                       {
                           "fieldType": "div",
-                          "class": "row",
+                          "class": "row p-1 m-0",
                           "id": "timeline-info",
                           "divContent": `
                           <div class="text-center">
@@ -9143,17 +9143,22 @@ module.exports = function(s,config,lang){
                             <div class="d-flex flex-row">
                                 <div class="flex-grow-1">
                                     <div class="btn-group">
-                                        <a class="btn btn-sm btn-default" timeline-action="jumpLeft"><i class="fa fa-arrow-circle-left"></i></a>
-                                        <a class="btn btn-sm btn-primary" timeline-action="playpause"><i class="fa fa-play-circle-o"></i></a>
-                                        <a class="btn btn-sm btn-default" timeline-action="jumpRight"><i class="fa fa-arrow-circle-right"></i></a>
+                                        <a class="btn btn-sm btn-default" timeline-action="jumpLeft" title="${lang.jumpFiveSeconds}"><i class="fa fa-arrow-circle-left"></i></a>
+                                        <a class="btn btn-sm btn-primary" timeline-action="playpause" title="${lang.Play}/${lang.Pause}"><i class="fa fa-play-circle-o"></i></a>
+                                        <a class="btn btn-sm btn-default" timeline-action="jumpRight" title="${lang.jumpFiveSeconds}"><i class="fa fa-arrow-circle-right"></i></a>
                                     </div>
                                     <div class="btn-group">
-                                        <a class="btn btn-sm btn-default btn-success" timeline-action="speed" speed="1">1</a>
-                                        <a class="btn btn-sm btn-default" timeline-action="speed" speed="5">5</a>
-                                        <a class="btn btn-sm btn-default" timeline-action="speed" speed="10">10</a>
-                                        <a class="btn btn-sm btn-default" timeline-action="speed" speed="15">15</a>
+                                        <a class="btn btn-sm btn-default btn-success" timeline-action="speed" speed="1" title="${lang.Speed} x1">x1</a>
+                                        <a class="btn btn-sm btn-default" timeline-action="speed" speed="2" title="${lang.Speed} x2">x2</a>
+                                        <a class="btn btn-sm btn-default" timeline-action="speed" speed="5" title="${lang.Speed} x5">x5</a>
+                                        <a class="btn btn-sm btn-default" timeline-action="speed" speed="7" title="${lang.Speed} x7">x7</a>
+                                        <a class="btn btn-sm btn-default" timeline-action="speed" speed="10" title="${lang.Speed} x10">x10</a>
                                     </div>
-
+                                    <div class="btn-group">
+                                        <a class="btn btn-sm btn-default" timeline-action="gridSize" size="12">1</a>
+                                        <a class="btn btn-sm btn-default btn-success" timeline-action="gridSize" size="6">2</a>
+                                        <a class="btn btn-sm btn-default" timeline-action="gridSize" size="4">3</a>
+                                    </div>
                                 </div>
                                 <div>
                                     <div class="btn-group">
@@ -9167,6 +9172,11 @@ module.exports = function(s,config,lang){
                       {
                           "fieldType": "div",
                           "id": "timeline-bottom-strip",
+                      },
+                      {
+                          "fieldType": "div",
+                          "id": "timeline-pre-buffers",
+                          "class": "hidden",
                       }
                  ]
              },
