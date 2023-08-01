@@ -2,6 +2,7 @@
     background: rgba(0,0,0,0.9);
     flex-grow: 1;
     overflow: auto;
+    flex: 1;
 }
 #timeline-video-canvas video {
     width: 100%;
