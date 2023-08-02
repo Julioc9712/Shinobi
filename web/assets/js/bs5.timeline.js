@@ -7,6 +7,7 @@ $(document).ready(function(){
     var playToggles = timeStripControls.find('[timeline-action="playpause"]')
     var speedButtons = timeStripControls.find('[timeline-action="speed"]')
     var gridSizeButtons = timeStripControls.find('[timeline-action="gridSize"]')
+    var autoGridSizerButtons = timeStripControls.find('[timeline-action="autoGridSizer"]')
     var currentTimeLabel = timeStripInfo.find('.current-time')
     var timelineActionButtons = timeStripControls.find('[timeline-action]')
     var timelineSpeed = 1;
@@ -21,6 +22,7 @@ $(document).ready(function(){
     var timeStripTickPosition = new Date()
     var timeStripPreBuffersEls = {}
     var timeStripItemColors = {}
+    var timeStripAutoGridSizer = false
     var timeStripListOfQueries = []
     var loadedVideosOnTimeStrip = []
     var loadedVideosOnCanvas = {}
@@ -275,6 +277,7 @@ $(document).ready(function(){
             console.log(err)
         }
         container.empty()
+        timeStripAutoGridResize()
     }
     function setVideoInCanvas(newVideo){
         var monitorId = newVideo.mid
@@ -286,6 +289,7 @@ $(document).ready(function(){
         loadedVideosOnCanvas[monitorId] = newVideo
         timeStripPreBuffersEls[monitorId] = getVideoContainerPreBufferEl(newVideo)
         queueNextVideo(newVideo)
+        timeStripAutoGridResize()
     }
     function setTimeOfCanvasVideos(newTime){
         $.each(loadedVideosOnCanvas,function(n,video){
@@ -424,14 +428,17 @@ $(document).ready(function(){
             setPlayToggleUI(`play-circle-o`)
         }
     }
-    function downloadPlayingVideo(video){
-        if(video.currentSrc){
-            var filename = getFilenameFromUrl(video.currentSrc)
-            downloadFile(video.currentSrc,filename)
-        }
+    // function downloadPlayingVideo(video){
+    //     if(video.currentSrc){
+    //         var filename = getFilenameFromUrl(video.currentSrc)
+    //         downloadFile(video.currentSrc,filename)
+    //     }
+    // }
+    function getLoadedVideosOnCanvas(){
+        return Object.values(loadedVideosOnCanvas).filter(item => !!item)
     }
     function downloadAllPlayingVideos(){
-        zipVideosAndDownloadWithConfirm(Object.values(loadedVideosOnCanvas).filter(item => !!item))
+        zipVideosAndDownloadWithConfirm(getLoadedVideosOnCanvas())
     }
     async function jumpTimeline(amountInMs,direction){
         timeStripPlay(true)
@@ -458,12 +465,36 @@ $(document).ready(function(){
         containerEls.removeClass (function (index, className) {
             return (className.match (/(^|\s)col-\S+/g) || []).join(' ');
         }).addClass(`col-${newCol}`)
+        gridSizeButtons.removeClass('btn-success')
+        timeStripControls.find(`[timeline-action="gridSize"][size="${newCol}"]`).addClass('btn-success')
     }
     function refreshTimeline(){
         timeStripListOfQueries = []
         loadedVideosOnTimeStrip = []
         createTimeline()
         reloadTimeline()
+    }
+    function timeStripAutoGridSizerToggle(){
+        if(timeStripAutoGridSizer){
+            timeStripAutoGridSizer = false
+            autoGridSizerButtons.removeClass('btn-success')
+            dashboardOptions('timeStripAutoGridSizer','0')
+        }else{
+            timeStripAutoGridSizer = true
+            autoGridSizerButtons.addClass('btn-success')
+            timeStripAutoGridResize()
+            dashboardOptions('timeStripAutoGridSizer','1')
+        }
+    }
+    function timeStripAutoGridResize(){
+        var numberOfBlocks = getLoadedVideosOnCanvas().length
+        if(numberOfBlocks <= 1){
+            adjustTimelineGridSize(`md-12`)
+        }else if(numberOfBlocks >= 2 && numberOfBlocks < 5){
+            adjustTimelineGridSize(`md-6`)
+        }else if(numberOfBlocks >= 5){
+            adjustTimelineGridSize(`md-4`)
+        }
     }
     timelineActionButtons.click(function(){
         var el = $(this)
@@ -492,13 +523,14 @@ $(document).ready(function(){
                 }
             break;
             case'gridSize':
-                var size = `md-${parseInt(el.attr('size'))}`
+                var size = el.attr('size')
                 adjustTimelineGridSize(size)
-                gridSizeButtons.removeClass('btn-success')
-                el.addClass('btn-success')
             break;
             case'refresh':
                 refreshTimeline()
+            break;
+            case'autoGridSizer':
+                timeStripAutoGridSizerToggle()
             break;
         }
     })
@@ -518,5 +550,8 @@ $(document).ready(function(){
         [ 7, 10 ].forEach((speed) => {
             timeStripControls.find(`[timeline-action="speed"][speed="${speed}"]`).remove()
         });
+    }
+    if(dashboardOptions().timeStripAutoGridSizer === '1'){
+        timeStripAutoGridSizerToggle()
     }
 })

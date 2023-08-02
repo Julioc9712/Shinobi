@@ -1017,6 +1017,7 @@
    "No Videos Found": "No Videos Found",
    "activateRequiredLiveStream": "Live Stream is only available here with an Activated installation.",
    "activationRequired": "Activation Required",
+   "autoResizeGrid": "Auto Resize Grid",
    "jumpFiveSeconds": "Jump 5 Seconds",
    "featureRequiresActivationText": "The feature you are trying to use requires that your installation be activated. Please see the Help tab for more information.",
    "FileNotExistText": "Cannot save non existant file. Something went wrong.",

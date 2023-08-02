@@ -9155,12 +9155,15 @@ module.exports = function(s,config,lang){
                                         <a class="btn btn-sm btn-default" timeline-action="speed" speed="10" title="${lang.Speed} x10">x10</a>
                                     </div>
                                     <div class="btn-group">
-                                        <a class="btn btn-sm btn-default" timeline-action="gridSize" size="12">1</a>
-                                        <a class="btn btn-sm btn-default btn-success" timeline-action="gridSize" size="6">2</a>
-                                        <a class="btn btn-sm btn-default" timeline-action="gridSize" size="4">3</a>
+                                        <a class="btn btn-sm btn-default" timeline-action="gridSize" size="md-12">1</a>
+                                        <a class="btn btn-sm btn-default btn-success" timeline-action="gridSize" size="md-6">2</a>
+                                        <a class="btn btn-sm btn-default" timeline-action="gridSize" size="md-4">3</a>
                                     </div>
                                 </div>
                                 <div>
+                                    <div class="btn-group">
+                                        <a class="btn btn-sm btn-primary" timeline-action="autoGridSizer" title="${lang.autoResizeGrid}"><i class="fa fa-expand"></i></a>
+                                    </div>
                                     <div class="btn-group">
                                         <a class="btn btn-sm btn-success" timeline-action="downloadAll" title="${lang.Download}"><i class="fa fa-download"></i></a>
                                         <a class="btn btn-sm btn-default" class_toggle="show-only-playing" data-target="#timeline-video-canvas" icon-toggle="fa-eye fa-eye-slash" icon-child="i" title="${lang['Show Only Playing']}"><i class="fa fa-eye"></i></a>
