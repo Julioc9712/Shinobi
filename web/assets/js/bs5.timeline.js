@@ -5,6 +5,7 @@ $(document).ready(function(){
     var timeStripControls = $('#timeline-controls');
     var timeStripInfo = $('#timeline-info');
     var timeStripPreBuffers = $('#timeline-pre-buffers');
+    var timeStripObjectSearchInput = $('#timeline-video-object-search');
     var playToggles = timeStripControls.find('[timeline-action="playpause"]')
     var speedButtons = timeStripControls.find('[timeline-action="speed"]')
     var gridSizeButtons = timeStripControls.find('[timeline-action="gridSize"]')
@@ -81,13 +82,14 @@ $(document).ready(function(){
         return gaps;
     }
     async function getVideosInGaps(gaps){
+        var searchQuery = timeStripObjectSearchInput.val()
         var videos = []
         for (let i = 0; i < gaps.length; i++) {
             var range = gaps[i]
             videos.push(...(await getVideos({
                 startDate: range[0],
                 endDate: range[1],
-                // searchQuery,
+                searchQuery,
                 // archived: false,
                 // customVideoSet: wantCloudVideo ? 'cloudVideos' : null,
             },null,true)).videos);
@@ -553,6 +555,9 @@ $(document).ready(function(){
                 timeStripAutoGridSizerToggle()
             break;
         }
+    })
+    timeStripObjectSearchInput.change(function(){
+        refreshTimeline()
     })
     addOnTabOpen('timeline', function () {
         createTimeline()
