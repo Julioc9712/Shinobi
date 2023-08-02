@@ -1,4 +1,5 @@
 $(document).ready(function(){
+    var theWindow = $('#tab-timeline')
     var timeStripVideoCanvas = $('#timeline-video-canvas');
     var timeStripEl = $('#timeline-bottom-strip');
     var timeStripControls = $('#timeline-controls');
@@ -31,6 +32,15 @@ $(document).ready(function(){
     var isPlaying = false
     var earliestStart = null
     var latestEnd = null
+    function setLoadingMask(turnOn){
+        if(turnOn){
+            var html = `<div class="loading-mask"><i class="fa fa-spinner fa-pulse fa-5x"></i></div>`
+            theWindow.prepend(html)
+        }else{
+            theWindow.find('.loading-mask').remove()
+        }
+
+    }
     function addVideoBeforeAndAfter(videos) {
         videos.sort((a, b) => {
             if (a.mid === b.mid) {
@@ -175,6 +185,7 @@ $(document).ready(function(){
     function createTimeline(videos){
         var timeChanging = false
         var timeChangingTimeout = null
+        var timeChangingTimeoutSecond = null
         var dateNow = new Date()
         var startTimeForLoad = new Date(dateNow.getTime() - 1000 * 60 * 60 * 24)
         destroyTimeline()
@@ -209,11 +220,17 @@ $(document).ready(function(){
         })
         timeStripVis.on('rangechanged', function(properties){
             clearTimeout(timeChangingTimeout)
+            clearTimeout(timeChangingTimeoutSecond)
             timeChangingTimeout = setTimeout(function(){
                 var clickTime = properties.time;
                 timeChanging = false
                 getAndDrawVideosToTimeline(clickTime)
             },300)
+            timeChangingTimeoutSecond = setTimeout(function(){
+                var clickTime = properties.time;
+                timeChanging = false
+                getAndDrawVideosToTimeline(clickTime)
+            },1500)
         })
         setTimeout(function(){
             timeStripEl.find('.vis-timeline').resize()
@@ -249,8 +266,10 @@ $(document).ready(function(){
         }
     }
     async function getAndDrawVideosToTimeline(theTime,redrawVideos){
+        setLoadingMask(true)
         await getVideosByTimeStripRange()
         selectAndDrawVideosToCanvas(theTime,redrawVideos)
+        setLoadingMask(false)
     }
     function getVideoContainerInCanvas(video){
         return timeStripVideoCanvas.find(`[data-mid="${video.mid}"][data-ke="${video.ke}"]`)
@@ -478,7 +497,7 @@ $(document).ready(function(){
         if(timeStripAutoGridSizer){
             timeStripAutoGridSizer = false
             autoGridSizerButtons.removeClass('btn-success')
-            dashboardOptions('timeStripAutoGridSizer','0')
+            dashboardOptions('timeStripAutoGridSizer','2')
         }else{
             timeStripAutoGridSizer = true
             autoGridSizerButtons.addClass('btn-success')
@@ -487,6 +506,7 @@ $(document).ready(function(){
         }
     }
     function timeStripAutoGridResize(){
+        if(!timeStripAutoGridSizer)return;
         var numberOfBlocks = getLoadedVideosOnCanvas().length
         if(numberOfBlocks <= 1){
             adjustTimelineGridSize(`md-12`)
@@ -546,12 +566,13 @@ $(document).ready(function(){
         // destroyTimeline()
         timeStripPlay(true)
     })
+    var currentOptions = dashboardOptions()
     if(isChromiumBased){
         [ 7, 10 ].forEach((speed) => {
             timeStripControls.find(`[timeline-action="speed"][speed="${speed}"]`).remove()
         });
     }
-    if(dashboardOptions().timeStripAutoGridSizer === '1'){
+    if(!currentOptions.timeStripAutoGridSizer || currentOptions.timeStripAutoGridSizer === '1'){
         timeStripAutoGridSizerToggle()
     }
 })
