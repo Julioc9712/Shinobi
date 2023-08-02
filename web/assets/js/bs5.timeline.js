@@ -272,10 +272,6 @@ $(document).ready(function(){
     function setTimestripDate(newStart, newEnd) {
         return timeStripVis.setWindow(newStart, newEnd);
     }
-    function reloadTimeline(){
-        var theTime = new Date()
-        getAndDrawVideosToTimeline(theTime,true)
-    }
     function selectAndDrawVideosToCanvas(theTime,redrawVideos){
         var selectedVideosForTime = selectVideosForCanvas(theTime,loadedVideosOnTimeStrip)
         loadedVideosOnCanvas = selectedVideosForTime;
@@ -505,11 +501,12 @@ $(document).ready(function(){
         gridSizeButtons.removeClass('btn-success')
         timeStripControls.find(`[timeline-action="gridSize"][size="${newCol}"]`).addClass('btn-success')
     }
-    function refreshTimeline(){
+    async function refreshTimeline(){
+        timeStripPlay(true)
         timeStripListOfQueries = []
         loadedVideosOnTimeStrip = []
         createTimeline()
-        reloadTimeline()
+        await resetTimeline(getTickDate())
     }
     function timeStripAutoGridSizerToggle(){
         if(timeStripAutoGridSizer){
@@ -629,18 +626,15 @@ $(document).ready(function(){
     timeStripObjectSearchInput.change(function(){
         refreshTimeline()
     })
-    addOnTabOpen('timeline', function () {
+    addOnTabOpen('timeline', async function () {
         createTimeline()
-        reloadTimeline()
+        await resetTimeline(getTickDate())
         drawFoundCamerasSubMenu()
     })
     addOnTabReopen('timeline', function () {
-        // createTimeline()
-        // reloadTimeline()
         drawFoundCamerasSubMenu()
     })
     addOnTabAway('timeline', function () {
-        // destroyTimeline()
         timeStripPlay(true)
     })
     loadDateRangePicker(dateSelector,{
