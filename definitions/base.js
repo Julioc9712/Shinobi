@@ -7756,6 +7756,7 @@ module.exports = function(s,config,lang){
                           icon: 'barcode',
                           label: `${lang['Timeline']}`,
                           pageOpen: 'timeline',
+                          addUl: true,
                       },
                       {
                           icon: 'film',

@@ -27,6 +27,7 @@
    "Accuracy Mode": "Accuracy Mode",
    "Client ID": "Client ID",
    "Tags": "Tags",
+   "addTagText": "Add Tags to your monitors to get more choices here.",
    "tagsCannotAddText": "Cannot add Tag",
    "tagsTriggerCannotAddText": "Trigger tags must match an existing tag that was added to a Monitor previously or is pending to be added to this monitor that is currently being edited.",
    "tagsFieldText": "Automatically group Monitors based on a common identifier.",

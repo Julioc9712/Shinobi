@@ -7,6 +7,7 @@ $(document).ready(function(){
     var timeStripPreBuffers = $('#timeline-pre-buffers');
     var timeStripObjectSearchInput = $('#timeline-video-object-search');
     var dateSelector = $('#timeline-date-selector');
+    var sideMenuList = $(`#side-menu-link-timeline ul`)
     var playToggles = timeStripControls.find('[timeline-action="playpause"]')
     var speedButtons = timeStripControls.find('[timeline-action="speed"]')
     var gridSizeButtons = timeStripControls.find('[timeline-action="gridSize"]')
@@ -27,6 +28,7 @@ $(document).ready(function(){
     var timeStripItemColors = {}
     var timeStripAutoGridSizer = false
     var timeStripListOfQueries = []
+    var timeStripSelectedMonitors = []
     var loadedVideosOnTimeStrip = []
     var loadedVideosOnCanvas = {}
     var loadedVideoElsOnCanvas = {}
@@ -83,28 +85,40 @@ $(document).ready(function(){
         }
         return gaps;
     }
-    async function getVideosInGaps(gaps){
+    async function getVideosInGaps(gaps,monitorIds){
         var searchQuery = timeStripObjectSearchInput.val()
         var videos = []
-        for (let i = 0; i < gaps.length; i++) {
-            var range = gaps[i]
-            videos.push(...(await getVideos({
-                startDate: range[0],
-                endDate: range[1],
-                searchQuery,
-                // archived: false,
-                // customVideoSet: wantCloudVideo ? 'cloudVideos' : null,
-            },null,true)).videos);
+        async function loopOnGaps(monitorId){
+            for (let i = 0; i < gaps.length; i++) {
+                var range = gaps[i]
+                videos.push(...(await getVideos({
+                    monitorId,
+                    startDate: range[0],
+                    endDate: range[1],
+                    searchQuery,
+                    // archived: false,
+                    // customVideoSet: wantCloudVideo ? 'cloudVideos' : null,
+                },null,true)).videos);
+            }
+        }
+        if(monitorIds && monitorIds.length > 0){
+            for (let ii = 0; ii < monitorIds.length; ii++) {
+                var monitorId = monitorIds[ii]
+                await loopOnGaps(monitorId)
+            }
+        }else{
+            await loopOnGaps('')
         }
         return videos;
     }
     async function getVideosByTimeStripRange(addOrOverWrite){
+        // timeStripSelectedMonitors = selected monitors
         var stripDate = getTimestripDate()
         var startDate = stripDate.start
         var endDate = stripDate.end
         var gaps = findGapsInSearchRanges(timeStripListOfQueries, [startDate,endDate])
         timeStripListOfQueries.push(...gaps)
-        var videos = await getVideosInGaps(gaps);
+        var videos = await getVideosInGaps(gaps,timeStripSelectedMonitors);
         videos = addVideoBeforeAndAfter(videos);
         loadedVideosOnTimeStrip.push(...videos)
         resetTimelineItems(loadedVideosOnTimeStrip)
@@ -530,6 +544,52 @@ $(document).ready(function(){
         picker.setStartDate(startDate);
         picker.setEndDate(endDate);
     }
+    function drawFoundCamerasSubMenu(){
+        var tags = getListOfTagsFromMonitors()
+        var allFound = [
+            {
+                attributes: `timeline-menu-action="selectMonitorGroup" tag=""`,
+                class: `cursor-pointer`,
+                color: 'green',
+                label: lang['All Monitors'],
+            }
+        ]
+        $.each(tags,function(tag,monitors){
+            allFound.push({
+                attributes: `timeline-menu-action="selectMonitorGroup" tag="${tag}"`,
+                class: `cursor-pointer`,
+                color: 'blue',
+                label: tag,
+            })
+        })
+        if(allFound.length === 1){
+            allFound.push({
+                attributes: ``,
+                class: ``,
+                color: ' d-none',
+                label: `<small class="mt-1">${lang.addTagText}</small>`,
+            })
+        }
+        var html = buildSubMenuItems(allFound)
+        sideMenuList.html(html)
+    }
+    sideMenuList.on('click','[timeline-menu-action]',function(){
+        var el = $(this)
+        var type = el.attr('timeline-menu-action')
+        switch(type){
+            case'selectMonitorGroup':
+                var tag = el.attr('tag')
+                if(!tag){
+                    timeStripSelectedMonitors = []
+                }else{
+                    var tags = getListOfTagsFromMonitors()
+                    var monitorIds = tags[tag]
+                    timeStripSelectedMonitors = [...monitorIds];
+                }
+                refreshTimeline()
+            break;
+        }
+    })
     timelineActionButtons.click(function(){
         var el = $(this)
         var type = el.attr('timeline-action')
@@ -574,10 +634,12 @@ $(document).ready(function(){
     addOnTabOpen('timeline', function () {
         createTimeline()
         reloadTimeline()
+        drawFoundCamerasSubMenu()
     })
     addOnTabReopen('timeline', function () {
         // createTimeline()
         // reloadTimeline()
+        drawFoundCamerasSubMenu()
     })
     addOnTabAway('timeline', function () {
         // destroyTimeline()
