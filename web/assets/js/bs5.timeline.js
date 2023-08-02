@@ -20,7 +20,7 @@ $(document).ready(function(){
     var timeStripVisTick = null;
     var timeStripVisItems = null;
     var timeStripCurrentStart = null;
-    var timeStripCurrentEnd = new Date();
+    var timeStripCurrentEnd = null;
     var timeStripVisTickMovementInterval = null;
     var timeStripHollowClickQueue = {}
     var timeStripTickPosition = new Date()
@@ -39,8 +39,10 @@ $(document).ready(function(){
     var timeChanging = false
     function setLoadingMask(turnOn){
         if(turnOn){
-            var html = `<div class="loading-mask"><i class="fa fa-spinner fa-pulse fa-5x"></i></div>`
-            theWindow.prepend(html)
+            if(theWindow.find('.loading-mask').length === 0){
+                var html = `<div class="loading-mask"><i class="fa fa-spinner fa-pulse fa-5x"></i></div>`
+                theWindow.prepend(html)
+            }
         }else{
             theWindow.find('.loading-mask').remove()
         }
@@ -214,8 +216,8 @@ $(document).ready(function(){
         timeStripVis = new vis.Timeline(timeStripEl[0], items, groups, {
             showCurrentTime: false,
             stack: false,
-            start: startTimeForLoad,
-            end: dateNow,
+            start: timeStripCurrentStart || startTimeForLoad,
+            end: timeStripCurrentEnd || dateNow,
         });
         // make tick
         timeStripVisTick = timeStripVis.addCustomTime(dateNow, `${lang.Time}`);
@@ -238,8 +240,9 @@ $(document).ready(function(){
         timeStripVis.on('rangechanged', function(properties){
             clearTimeout(timeChangingTimeout)
             clearTimeout(timeChangingTimeoutSecond)
+            timeStripCurrentStart = properties.start;
+            timeStripCurrentEnd = properties.end;
             timeChangingTimeout = setTimeout(function(){
-                var clickTime = properties.time;
                 resetDateRangePicker()
                 timeChanging = false
             },300)
