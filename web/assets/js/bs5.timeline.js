@@ -6,6 +6,7 @@ $(document).ready(function(){
     var timeStripInfo = $('#timeline-info');
     var timeStripPreBuffers = $('#timeline-pre-buffers');
     var timeStripObjectSearchInput = $('#timeline-video-object-search');
+    var dateSelector = $('#timeline-date-selector');
     var playToggles = timeStripControls.find('[timeline-action="playpause"]')
     var speedButtons = timeStripControls.find('[timeline-action="speed"]')
     var gridSizeButtons = timeStripControls.find('[timeline-action="gridSize"]')
@@ -33,6 +34,7 @@ $(document).ready(function(){
     var isPlaying = false
     var earliestStart = null
     var latestEnd = null
+    var timeChanging = false
     function setLoadingMask(turnOn){
         if(turnOn){
             var html = `<div class="loading-mask"><i class="fa fa-spinner fa-pulse fa-5x"></i></div>`
@@ -185,7 +187,6 @@ $(document).ready(function(){
         setHollowClickQueue()
     }
     function createTimeline(videos){
-        var timeChanging = false
         var timeChangingTimeout = null
         var timeChangingTimeoutSecond = null
         var dateNow = new Date()
@@ -225,12 +226,12 @@ $(document).ready(function(){
             clearTimeout(timeChangingTimeoutSecond)
             timeChangingTimeout = setTimeout(function(){
                 var clickTime = properties.time;
+                resetDateRangePicker()
                 timeChanging = false
                 getAndDrawVideosToTimeline(clickTime)
             },300)
             timeChangingTimeoutSecond = setTimeout(function(){
                 var clickTime = properties.time;
-                timeChanging = false
                 getAndDrawVideosToTimeline(clickTime)
             },1500)
         })
@@ -255,6 +256,9 @@ $(document).ready(function(){
             start,
             end
         };
+    }
+    function setTimestripDate(newStart, newEnd) {
+        return timeStripVis.setWindow(newStart, newEnd);
     }
     function reloadTimeline(){
         var theTime = new Date()
@@ -518,6 +522,14 @@ $(document).ready(function(){
             adjustTimelineGridSize(`md-4`)
         }
     }
+    function resetDateRangePicker(){
+        var stripDate = getTimestripDate()
+        var startDate = stripDate.start
+        var endDate = stripDate.end
+        var picker = dateSelector.data('daterangepicker')
+        picker.setStartDate(startDate);
+        picker.setEndDate(endDate);
+    }
     timelineActionButtons.click(function(){
         var el = $(this)
         var type = el.attr('timeline-action')
@@ -570,6 +582,20 @@ $(document).ready(function(){
     addOnTabAway('timeline', function () {
         // destroyTimeline()
         timeStripPlay(true)
+    })
+    loadDateRangePicker(dateSelector,{
+        timePicker: true,
+        timePicker24Hour: true,
+        timePickerSeconds: true,
+        timePickerIncrement: 30,
+        autoApply: true,
+        buttonClasses: 'hidden',
+        drops: 'up',
+        onChange: function(start, end, label) {
+            if(!timeChanging){
+                setTimestripDate(start, end)
+            }
+        }
     })
     var currentOptions = dashboardOptions()
     if(isChromiumBased){
