@@ -502,11 +502,13 @@ $(document).ready(function(){
         timeStripControls.find(`[timeline-action="gridSize"][size="${newCol}"]`).addClass('btn-success')
     }
     async function refreshTimeline(){
+        var currentlyPlaying = !!isPlaying;
         timeStripPlay(true)
         timeStripListOfQueries = []
         loadedVideosOnTimeStrip = []
         createTimeline()
         await resetTimeline(getTickDate())
+        if(currentlyPlaying)timeStripPlay();
     }
     function timeStripAutoGridSizerToggle(){
         if(timeStripAutoGridSizer){
