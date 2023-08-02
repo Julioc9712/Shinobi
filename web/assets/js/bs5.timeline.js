@@ -204,7 +204,6 @@ $(document).ready(function(){
     }
     function createTimeline(videos){
         var timeChangingTimeout = null
-        var timeChangingTimeoutSecond = null
         var dateNow = new Date()
         var startTimeForLoad = new Date(dateNow.getTime() - 1000 * 60 * 60 * 24)
         destroyTimeline()
@@ -239,17 +238,14 @@ $(document).ready(function(){
         })
         timeStripVis.on('rangechanged', function(properties){
             clearTimeout(timeChangingTimeout)
-            clearTimeout(timeChangingTimeoutSecond)
             timeStripCurrentStart = properties.start;
             timeStripCurrentEnd = properties.end;
             timeChangingTimeout = setTimeout(function(){
+                var clickTime = properties.time;
                 resetDateRangePicker()
                 timeChanging = false
-            },300)
-            timeChangingTimeoutSecond = setTimeout(function(){
-                var clickTime = properties.time;
                 getAndDrawVideosToTimeline(clickTime)
-            },1500)
+            },300)
         })
         setTimeout(function(){
             timeStripEl.find('.vis-timeline').resize()
