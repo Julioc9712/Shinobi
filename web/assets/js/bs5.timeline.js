@@ -628,6 +628,10 @@ $(document).ready(function(){
     timeStripObjectSearchInput.change(function(){
         refreshTimeline()
     })
+    timeStripVideoCanvas.on('dblclick','.timeline-video',function(){
+        var monitorId = $(this).attr('data-mid')
+        openVideosTableView(monitorId)
+    })
     addOnTabOpen('timeline', async function () {
         createTimeline()
         await resetTimeline(getTickDate())
