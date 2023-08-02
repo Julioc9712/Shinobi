@@ -7753,6 +7753,11 @@ module.exports = function(s,config,lang){
                           pageOpen: 'monitorsList',
                       },
                       {
+                          icon: 'barcode',
+                          label: `${lang['Timeline']}`,
+                          pageOpen: 'timeline',
+                      },
+                      {
                           icon: 'film',
                           label: `${lang['Videos']}`,
                           pageOpen: 'videosTableView',
@@ -7794,11 +7799,6 @@ module.exports = function(s,config,lang){
                           icon: 'map-marker',
                           label: `${lang['Monitor Map']}`,
                           pageOpen: 'monitorMap',
-                      },
-                      {
-                          icon: 'barcode',
-                          label: `${lang['Timeline']}`,
-                          pageOpen: 'timeline',
                       },
                       {
                           icon: 'file-o',
