@@ -242,7 +242,6 @@ $(document).ready(function(){
                 var clickTime = properties.time;
                 resetDateRangePicker()
                 timeChanging = false
-                getAndDrawVideosToTimeline(clickTime)
             },300)
             timeChangingTimeoutSecond = setTimeout(function(){
                 var clickTime = properties.time;
