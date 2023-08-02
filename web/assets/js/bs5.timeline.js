@@ -20,6 +20,7 @@ $(document).ready(function(){
     var timeStripHollowClickQueue = {}
     var timeStripTickPosition = new Date()
     var timeStripPreBuffersEls = {}
+    var timeStripItemColors = {}
     var timeStripListOfQueries = []
     var loadedVideosOnTimeStrip = []
     var loadedVideosOnCanvas = {}
@@ -112,7 +113,9 @@ $(document).ready(function(){
         var html = ''
         var preBufferHtml = ''
         $.each(loadedMonitors,function(monitorId,monitor){
-            html += `<div class="timeline-video col-${timelineGridSizing} p-0 m-0 no-video" data-mid="${monitorId}" data-ke="${monitor.ke}"></div>`
+            var itemColor = stringToColor(monitorId)
+            timeStripItemColors[monitorId] = itemColor
+            html += `<div class="timeline-video col-${timelineGridSizing} p-0 m-0 no-video" data-mid="${monitorId}" data-ke="${monitor.ke}" style="background-color:${itemColor}"></div>`
             preBufferHtml += `<div class="timeline-video-buffer" data-mid="${monitorId}" data-ke="${monitor.ke}"></div>`
         })
         timeStripVideoCanvas.html(html)
@@ -132,10 +135,12 @@ $(document).ready(function(){
     function formatVideosForTimeline(videos){
         var i = 0;
         var formattedVideos = (videos || []).map((item) => {
+            var blockColor = timeStripItemColors[item.mid];
             ++i;
             return {
                 id: i,
-                content: item.objectTags || '',
+                content: ``,
+                style: `background-color: ${blockColor};border-color: ${blockColor}`,
                 start: item.time,
                 end: item.end,
                 group: 1
@@ -426,9 +431,7 @@ $(document).ready(function(){
         }
     }
     function downloadAllPlayingVideos(){
-        getAllActiveVideosInSlots().each(function(n,video){
-            downloadPlayingVideo(video)
-        })
+        zipVideosAndDownloadWithConfirm(Object.values(loadedVideosOnCanvas).filter(item => !!item))
     }
     async function jumpTimeline(amountInMs,direction){
         timeStripPlay(true)

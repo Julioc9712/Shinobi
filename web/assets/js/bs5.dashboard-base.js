@@ -87,6 +87,30 @@ function timeAgo(date) {
     }
     return parseInt(secondsPast/3600) + ' hours ago';
 }
+function stringToColor(str) {
+    let blueColors = [
+        '#0000FF', // Blue
+        '#00008B', // Dark Blue
+        '#0000CD', // Medium Blue
+        '#000080', // Navy
+        '#1E90FF', // Dodger Blue
+        '#4169E1', // Royal Blue
+        '#4682B4', // Steel Blue
+        '#5F9EA0', // Cadet Blue
+        '#6495ED', // Cornflower Blue
+        '#6A5ACD', // Slate Blue
+        '#7B68EE', // Medium Slate Blue
+        '#87CEEB', // Sky Blue
+        '#87CEFA', // Light Sky Blue
+        '#8A2BE2', // Blue Violet
+        '#ADD8E6'  // Light Blue
+    ];
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return blueColors[Math.abs(hash) % blueColors.length];
+}
 function stringContains(find,string,toLowerCase){
     var newString = string + ''
     if(toLowerCase)newString = newString.toLowerCase()
