@@ -87,6 +87,10 @@ function timeAgo(date) {
     }
     return parseInt(secondsPast/3600) + ' hours ago';
 }
+function getDayOfWeek(date) {
+  const days = [lang.Sunday, lang.Monday, lang.Tuesday, lang.Wednesday, lang.Thursday, lang.Friday, lang.Saturday];
+  return days[date.getDay()];
+}
 function stringToColor(str) {
     let blueColors = [
         '#0000FF', // Blue

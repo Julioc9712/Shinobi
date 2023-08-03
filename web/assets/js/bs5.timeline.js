@@ -303,7 +303,7 @@ $(document).ready(function(){
         return timeStripVis.setCustomTime(newDate, timeStripVisTick);
     }
     function setTimeLabel(newDate){
-        return currentTimeLabel.text(`${timeAgo(newDate)}, ${formattedTime(newDate)}`)
+        return currentTimeLabel.text(`${timeAgo(newDate)}, ${getDayOfWeek(newDate)}, ${formattedTime(newDate)}`)
     }
     function getTickDate() {
         return timeStripTickPosition;
