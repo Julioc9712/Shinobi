@@ -43,6 +43,7 @@ $(document).ready(function(){
     var earliestStart = null
     var latestEnd = null
     var timeChanging = false
+    var dateRangeChanging = false
     function setLoadingMask(turnOn){
         if(turnOn){
             if(theWindow.find('.loading-mask').length === 0){
@@ -121,15 +122,24 @@ $(document).ready(function(){
     }
     async function getVideosByTimeStripRange(addOrOverWrite){
         // timeStripSelectedMonitors = selected monitors
+        var currentVideosLength = parseInt(loadedVideosOnTimeStrip.length)
         var stripDate = getTimestripDate()
         var startDate = stripDate.start
         var endDate = stripDate.end
         var gaps = findGapsInSearchRanges(timeStripListOfQueries, [startDate,endDate])
-        timeStripListOfQueries.push(...gaps)
-        var videos = await getVideosInGaps(gaps,timeStripSelectedMonitors);
-        videos = addVideoBeforeAndAfter(videos);
-        loadedVideosOnTimeStrip.push(...videos)
-        resetTimelineItems(loadedVideosOnTimeStrip)
+        // console.error([startDate,endDate])
+        // console.log('range : ',JSON.stringify([startDate,endDate]))
+        // console.log('timeRanges : ',JSON.stringify(timeStripListOfQueries))
+        // console.log('gaps : ',JSON.stringify(gaps))
+        if(gaps.length > 0){
+            setLoadingMask(true)
+            timeStripListOfQueries.push(...gaps)
+            var videos = await getVideosInGaps(gaps,timeStripSelectedMonitors)
+            videos = addVideoBeforeAndAfter(videos)
+            loadedVideosOnTimeStrip.push(...videos)
+            if(currentVideosLength !== loadedVideosOnTimeStrip.length)resetTimelineItems(loadedVideosOnTimeStrip);
+            setLoadingMask(false)
+        }
         return loadedVideosOnTimeStrip
     }
     function selectVideosForCanvas(time, videos){
@@ -167,7 +177,7 @@ $(document).ready(function(){
         try{
             timeStripVis.destroy()
         }catch(err){
-            console.log(err)
+            // console.log(err)
         }
     }
     function formatVideosForTimeline(videos){
@@ -186,8 +196,8 @@ $(document).ready(function(){
         });
         return formattedVideos
     }
-    function createTimelineItems(videos){
-        var items = new vis.DataSet(formatVideosForTimeline(videos));
+    function createTimelineItems(){
+        var items = new vis.DataSet([]);
         var groups = new vis.DataSet([
           {id: 1, content: ''}
         ]);
@@ -209,15 +219,16 @@ $(document).ready(function(){
         setTimeOfCanvasVideos(clickTime)
         setHollowClickQueue()
     }
-    function createTimeline(videos){
+    function createTimeline(){
         var timeChangingTimeout = null
         var dateNow = new Date()
-        var startTimeForLoad = new Date(dateNow.getTime() - 1000 * 60 * 60 * 24)
+        var hour = 1000 * 60 * 60
+        var startTimeForLoad = new Date(dateNow.getTime() - (hour * 24 + hour))
         destroyTimeline()
         var {
             items,
             groups,
-        } = createTimelineItems(videos)
+        } = createTimelineItems()
         // make chart
         timeStripVis = new vis.Timeline(timeStripEl[0], items, groups, {
             showCurrentTime: false,
@@ -250,11 +261,14 @@ $(document).ready(function(){
             timeStripAutoScrollPositionStart = getTimeBetween(timeStripCurrentStart,timeStripCurrentEnd,10);
             timeStripAutoScrollPositionEnd = getTimeBetween(timeStripCurrentStart,timeStripCurrentEnd,90);
             timeStripAutoScrollAmount = getTimelineScrollAmount(timeStripCurrentStart,timeStripCurrentEnd);
+            if(dateRangeChanging)return;
             timeChangingTimeout = setTimeout(function(){
                 var clickTime = properties.time;
                 resetDateRangePicker()
-                timeChanging = false
-                getAndDrawVideosToTimeline(clickTime)
+                setTimeout(() => {
+                    timeChanging = false
+                    getAndDrawVideosToTimeline(clickTime)
+                },500)
             },300)
         })
         setTimeout(function(){
@@ -296,7 +310,7 @@ $(document).ready(function(){
             if(newDate >= timeStripAutoScrollPositionEnd){
                 scrollTimeline(timeStripAutoScrollAmount)
             }else if(newDate >= new Date()){
-                timeStripPlay(false)
+                timeStripPlay(true)
             }
         }
         timeStripTickPosition = new Date(newDate)
@@ -328,10 +342,8 @@ $(document).ready(function(){
         }
     }
     async function getAndDrawVideosToTimeline(theTime,redrawVideos){
-        setLoadingMask(true)
         await getVideosByTimeStripRange()
         selectAndDrawVideosToCanvas(theTime,redrawVideos)
-        setLoadingMask(false)
     }
     function getVideoContainerInCanvas(video){
         return timeStripVideoCanvas.find(`[data-mid="${video.mid}"][data-ke="${video.ke}"]`)
@@ -727,7 +739,15 @@ $(document).ready(function(){
         drops: 'up',
         onChange: function(start, end, label) {
             if(!timeChanging){
+                setLoadingMask(true)
+                dateRangeChanging = true
                 setTimestripDate(start, end)
+                var newTickPosition = getTimeBetween(start,end,50);
+                setTickDate(newTickPosition)
+                setTimeout(() => {
+                    dateRangeChanging = false
+                    refreshTimeline()
+                },2000)
             }
         }
     })
