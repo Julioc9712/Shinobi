@@ -31,7 +31,8 @@ $(document).ready(function(){
     var timeStripListOfQueries = []
     var timeStripSelectedMonitors = []
     var timeStripAutoScrollTimeout = null;
-    var timeStripAutoScrollPosition = null;
+    var timeStripAutoScrollPositionStart = null;
+    var timeStripAutoScrollPositionEnd = null;
     var timeStripAutoScrollAmount = null;
     var loadedVideosOnTimeStrip = []
     var loadedVideosOnCanvas = {}
@@ -246,7 +247,8 @@ $(document).ready(function(){
             clearTimeout(timeChangingTimeout)
             timeStripCurrentStart = properties.start;
             timeStripCurrentEnd = properties.end;
-            timeStripAutoScrollPosition = getTimeBetween(timeStripCurrentStart,timeStripCurrentEnd,90);
+            timeStripAutoScrollPositionStart = getTimeBetween(timeStripCurrentStart,timeStripCurrentEnd,10);
+            timeStripAutoScrollPositionEnd = getTimeBetween(timeStripCurrentStart,timeStripCurrentEnd,90);
             timeStripAutoScrollAmount = getTimelineScrollAmount(timeStripCurrentStart,timeStripCurrentEnd);
             timeChangingTimeout = setTimeout(function(){
                 var clickTime = properties.time;
@@ -266,6 +268,7 @@ $(document).ready(function(){
         var minute = 60
         var hour = 60 * 60
         var day = 60 * 60 * 24
+        // returns hours
         if(difference <= 60){
             return 0.1
         }else if(difference > minute && difference <= hour){
@@ -276,7 +279,7 @@ $(document).ready(function(){
             return 10
         }
     }
-    function scrollTimelineRight(addHours){
+    function scrollTimeline(addHours){
         if(timeStripAutoScrollTimeout)return;
         timeStripAutoScrollTimeout = setTimeout(() => {
             delete(timeStripAutoScrollTimeout)
@@ -286,13 +289,12 @@ $(document).ready(function(){
         var timeToAdd = addHours * 1000 * 60 * 60
         var start = new Date(stripTime.start.getTime() + timeToAdd)
         var end = new Date(stripTime.end.getTime() + timeToAdd)
-        console.log(start,end)
         setTimestripDate(start,end)
     }
     function setTickDate(newDate){
         if(isPlaying){
-            if(newDate >= timeStripAutoScrollPosition){
-                scrollTimelineRight(timeStripAutoScrollAmount)
+            if(newDate >= timeStripAutoScrollPositionEnd){
+                scrollTimeline(timeStripAutoScrollAmount)
             }else if(newDate >= new Date()){
                 timeStripPlay(false)
             }
@@ -551,6 +553,11 @@ $(document).ready(function(){
         }
         newTime = new Date(newTime)
         await resetTimeline(newTime)
+        if(tickTime <= timeStripAutoScrollPositionStart){
+            scrollTimeline(-timeStripAutoScrollAmount)
+        }else if(tickTime >= timeStripAutoScrollPositionEnd){
+            scrollTimeline(timeStripAutoScrollAmount)
+        }
     }
     function adjustTimelineSpeed(newSpeed){
         var currentlyPlaying = !!isPlaying;
