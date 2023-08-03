@@ -22,6 +22,7 @@ $(document).ready(function(){
     var timeStripCurrentStart = null;
     var timeStripCurrentEnd = null;
     var timeStripVisTickMovementInterval = null;
+    var timeStripVisTickMovementIntervalSecond = null;
     var timeStripHollowClickQueue = {}
     var timeStripTickPosition = new Date()
     var timeStripPreBuffersEls = {}
@@ -33,6 +34,7 @@ $(document).ready(function(){
     var loadedVideosOnCanvas = {}
     var loadedVideoElsOnCanvas = {}
     var loadedVideoElsOnCanvasNextVideoTimeout = {}
+    var loadedVideoEndingTimeouts = {}
     var isPlaying = false
     var earliestStart = null
     var latestEnd = null
@@ -199,6 +201,7 @@ $(document).ready(function(){
     async function resetTimeline(clickTime){
         await getAndDrawVideosToTimeline(clickTime,true)
         setTickDate(clickTime)
+        setTimeLabel(clickTime)
         setTimeOfCanvasVideos(clickTime)
         setHollowClickQueue()
     }
@@ -252,10 +255,11 @@ $(document).ready(function(){
         },2000)
     }
     function setTickDate(newDate){
-        // console.log(newDate)
         timeStripTickPosition = new Date(newDate)
-        currentTimeLabel.text(`${timeAgo(newDate)}, ${formattedTime(newDate)}`)
         return timeStripVis.setCustomTime(newDate, timeStripVisTick);
+    }
+    function setTimeLabel(newDate){
+        return currentTimeLabel.text(`${timeAgo(newDate)}, ${formattedTime(newDate)}`)
     }
     function getTickDate() {
         return timeStripTickPosition;
@@ -340,6 +344,24 @@ $(document).ready(function(){
         var monitorId = video.mid
         var videoEl = loadedVideoElsOnCanvas[monitorId]
         var videoAfter = video.videoAfter
+        var endingTimeout = null;
+        var alreadyDone = false;
+        function currentVideoIsOver(){
+            if(alreadyDone)return;
+            alreadyDone = true;
+            clearVideoInCanvas(video)
+            if(videoAfter){
+                var waitTimeTimeTillNext = getWaitTimeUntilNextVideo(video.end,videoAfter.time)
+                // console.log('End of Video',video)
+                // console.log('Video After',videoAfter)
+                // console.log('Starting in ',waitTimeTimeTillNext / 1000, 'seconds')
+                loadedVideoElsOnCanvasNextVideoTimeout[monitorId] = setTimeout(() => {
+                    setVideoInCanvas(videoAfter)
+                },waitTimeTimeTillNext)
+            // }else{
+                // console.log('End of Timeline for Monitor',loadedMonitors[monitorId].name)
+            }
+        }
         videoEl.onerror = function(err){
             err.preventDefault()
             console.error(`video error`)
@@ -347,20 +369,18 @@ $(document).ready(function(){
         }
         videoEl.ontimeupdate = function(){
             if(videoEl.currentTime >= videoEl.duration){
-                clearVideoInCanvas(video)
-                if(videoAfter){
-                    var waitTimeTimeTillNext = getWaitTimeUntilNextVideo(video.end,videoAfter.time)
-                    // console.log('End of Video',video)
-                    // console.log('Video After',videoAfter)
-                    // console.log('Starting in ',waitTimeTimeTillNext / 1000, 'seconds')
-                    loadedVideoElsOnCanvasNextVideoTimeout[monitorId] = setTimeout(() => {
-                        setVideoInCanvas(videoAfter)
-                    },waitTimeTimeTillNext)
-                // }else{
-                    // console.log('End of Timeline for Monitor',loadedMonitors[monitorId].name)
-                }
+                clearTimeout(loadedVideoEndingTimeouts[monitorId])
+                currentVideoIsOver()
+            }else if(isPlaying){
+                var theTime = getTickDate()
+                var waitTimeTimeTillNext = getWaitTimeUntilNextVideo(theTime,video.end)
+                clearTimeout(loadedVideoEndingTimeouts[monitorId])
+                loadedVideoEndingTimeouts[monitorId] = setTimeout(() => {
+                    currentVideoIsOver()
+                },waitTimeTimeTillNext)
             }
         }
+
         // pre-buffer it
         timeStripPreBuffersEls[monitorId].html(videoAfter ? `<video preload="auto" muted src="${videoAfter.href}"></video>` : '')
     }
@@ -442,19 +462,24 @@ $(document).ready(function(){
             var currentDate = getTickDate().getTime();
             var msSpeed = 50
             var addition = 0
+            var newTime
             runHollowClickQueues()
             playAllVideos()
             timeStripVisTickMovementInterval = setInterval(function() {
                 addition += (msSpeed * timelineSpeed);
-                var newTime = new Date(currentDate + addition)
+                newTime = new Date(currentDate + addition)
                 setTickDate(newTime);
                 // setTimeOfCanvasVideos(newTime)
             }, msSpeed)
+            timeStripVisTickMovementIntervalSecond = setInterval(function() {
+                setTimeLabel(newTime);
+            }, 1000)
             setPlayToggleUI(`pause-circle-o`)
         }else{
             isPlaying = false
             pauseAllVideos()
             clearInterval(timeStripVisTickMovementInterval)
+            clearInterval(timeStripVisTickMovementIntervalSecond)
             $.each(loadedVideoElsOnCanvasNextVideoTimeout,function(n,timeout){
                 clearTimeout(timeout)
             })
