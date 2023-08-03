@@ -111,6 +111,13 @@ function stringToColor(str) {
     }
     return blueColors[Math.abs(hash) % blueColors.length];
 }
+function getTimeBetween(start, end, percent) {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const difference = endDate - startDate;
+    const time = new Date(startDate.getTime() + difference * percent / 100);
+    return time;
+}
 function stringContains(find,string,toLowerCase){
     var newString = string + ''
     if(toLowerCase)newString = newString.toLowerCase()

@@ -30,6 +30,9 @@ $(document).ready(function(){
     var timeStripAutoGridSizer = false
     var timeStripListOfQueries = []
     var timeStripSelectedMonitors = []
+    var timeStripAutoScrollTimeout = null;
+    var timeStripAutoScrollPosition = null;
+    var timeStripAutoScrollAmount = null;
     var loadedVideosOnTimeStrip = []
     var loadedVideosOnCanvas = {}
     var loadedVideoElsOnCanvas = {}
@@ -243,6 +246,8 @@ $(document).ready(function(){
             clearTimeout(timeChangingTimeout)
             timeStripCurrentStart = properties.start;
             timeStripCurrentEnd = properties.end;
+            timeStripAutoScrollPosition = getTimeBetween(timeStripCurrentStart,timeStripCurrentEnd,90);
+            timeStripAutoScrollAmount = getTimelineScrollAmount(timeStripCurrentStart,timeStripCurrentEnd);
             timeChangingTimeout = setTimeout(function(){
                 var clickTime = properties.time;
                 resetDateRangePicker()
@@ -254,7 +259,44 @@ $(document).ready(function(){
             timeStripEl.find('.vis-timeline').resize()
         },2000)
     }
+    function getTimelineScrollAmount(start,end){
+        var startTime = start.getTime()
+        var endTime = end.getTime()
+        var difference = (endTime - startTime) / 1000;
+        var minute = 60
+        var hour = 60 * 60
+        var day = 60 * 60 * 24
+        if(difference <= 60){
+            return 0.1
+        }else if(difference > minute && difference <= hour){
+            return 0.3
+        }else if(difference > hour && difference < day){
+            return 0.6
+        }else if(difference >= day){
+            return 10
+        }
+    }
+    function scrollTimelineRight(addHours){
+        if(timeStripAutoScrollTimeout)return;
+        timeStripAutoScrollTimeout = setTimeout(() => {
+            delete(timeStripAutoScrollTimeout)
+            timeStripAutoScrollTimeout = null
+        },2000)
+        var stripTime = getTimestripDate()
+        var timeToAdd = addHours * 1000 * 60 * 60
+        var start = new Date(stripTime.start.getTime() + timeToAdd)
+        var end = new Date(stripTime.end.getTime() + timeToAdd)
+        console.log(start,end)
+        setTimestripDate(start,end)
+    }
     function setTickDate(newDate){
+        if(isPlaying){
+            if(newDate >= timeStripAutoScrollPosition){
+                scrollTimelineRight(timeStripAutoScrollAmount)
+            }else if(newDate >= new Date()){
+                timeStripPlay(false)
+            }
+        }
         timeStripTickPosition = new Date(newDate)
         return timeStripVis.setCustomTime(newDate, timeStripVisTick);
     }
