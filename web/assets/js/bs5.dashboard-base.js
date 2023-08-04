@@ -78,14 +78,16 @@ function base64ArrayBuffer(arrayBuffer) {
 function timeAgo(date) {
     const now = new Date();
     const secondsPast = (now.getTime() - date.getTime()) / 1000;
-
     if(secondsPast < 60) {
         return parseInt(secondsPast) + ' seconds ago';
     }
     if(secondsPast < 3600) {
-        return parseInt(secondsPast/60) + ' minutes ago';
+        return parseInt(secondsPast / 60) + ' minutes ago';
     }
-    return parseInt(secondsPast/3600) + ' hours ago';
+    if(secondsPast < 86400) {
+        return parseInt(secondsPast / 3600) + ' hours ago';
+    }
+    return parseInt(secondsPast / 86400) + ' days ago';
 }
 function getDayOfWeek(date) {
   const days = [lang.Sunday, lang.Monday, lang.Tuesday, lang.Wednesday, lang.Thursday, lang.Friday, lang.Saturday];

@@ -361,6 +361,7 @@ $(document).ready(function(){
         var monitorId = oldVideo.mid
         loadedVideosOnCanvas[monitorId] = null
         loadedVideoElsOnCanvas[monitorId] = null
+        clearTimeout(loadedVideoEndingTimeouts[monitorId])
         var container = getVideoContainerInCanvas(oldVideo).addClass('no-video')
         var videoEl = container.find('video')
         videoEl.attr('src','')
@@ -537,6 +538,9 @@ $(document).ready(function(){
             clearInterval(timeStripVisTickMovementInterval)
             clearInterval(timeStripVisTickMovementIntervalSecond)
             $.each(loadedVideoElsOnCanvasNextVideoTimeout,function(n,timeout){
+                clearTimeout(timeout)
+            })
+            $.each(loadedVideoEndingTimeouts,function(n,timeout){
                 clearTimeout(timeout)
             })
             setPlayToggleUI(`play-circle-o`)
@@ -737,6 +741,7 @@ $(document).ready(function(){
         autoApply: true,
         buttonClasses: 'hidden',
         drops: 'up',
+        maxDate: new Date(),
         onChange: function(start, end, label) {
             if(!timeChanging){
                 setLoadingMask(true)
