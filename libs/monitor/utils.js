@@ -10,11 +10,8 @@ const SoundDetection = require('shinobi-sound-detection')
 const streamViewerCountTimeouts = {}
 module.exports = (s,config,lang) => {
     const {
-        probeMonitor,
-        getStreamInfoFromProbe,
         applyPartialToConfiguration,
-        createWarningsForConfiguration,
-        buildMonitorConfigPartialFromWarnings,
+        getWarningChangesForMonitor,
         createPipeArray,
         splitForFFMPEG,
         sanitizedFfmpegCommand,
@@ -1353,6 +1350,7 @@ module.exports = (s,config,lang) => {
                     //     doFatalErrorCatch(e,d)
                     // },15000)
                 break;
+                case checkLog(d,'Could not find codec parameters'):
                 case checkLog(d,'No route to host'):
                     activeMonitor.timeoutToRestart = setTimeout(async () => {
                         doFatalErrorCatch(e,d)
@@ -1662,17 +1660,18 @@ module.exports = (s,config,lang) => {
             return;
         }
         if(config.probeMonitorOnStart === true){
-            const probeResponse = await probeMonitor(monitorConfig,2000,true)
-            const probeStreams = getStreamInfoFromProbe(probeResponse.result)
-            activeMonitor.probeResult = probeStreams
-            const warnings = createWarningsForConfiguration(monitorConfig,probeStreams)
-            activeMonitor.warnings = warnings
+            const {
+                configPartial,
+                warnings,
+                probeResponse,
+                probeStreams,
+            } = await getWarningChangesForMonitor(monitorConfig)
             if(warnings.length > 0){
-                const configPartial = buildMonitorConfigPartialFromWarnings(warnings)
                 applyPartialToConfiguration(e,configPartial)
                 applyPartialToConfiguration(activeMonitor,configPartial)
                 applyPartialToConfiguration(s.group[groupKey].rawMonitorConfigurations[monitorId],configPartial)
             }
+            activeMonitor.warnings = warnings
         }
         activeMonitor.isStarted = true
         if(e.details && e.details.dir && e.details.dir !== ''){
@@ -1694,6 +1693,7 @@ module.exports = (s,config,lang) => {
         }
         try{
             await launchMonitorProcesses(e)
+            resetStreamCheck(e)
         }catch(err){
             console.error(err)
         }
@@ -1748,9 +1748,13 @@ module.exports = (s,config,lang) => {
     }
     function isGroupBelowMaxMonitorCount(groupKey){
         const theGroup = s.group[groupKey];
-        const initData = theGroup.init;
-        const maxCamerasAllowed = parseInt(initData.max_camera) || false;
-        return (!maxCamerasAllowed || Object.keys(theGroup.activeMonitors).length <= parseInt(maxCamerasAllowed))
+        try{
+            const initData = theGroup.init;
+            const maxCamerasAllowed = parseInt(initData.max_camera) || false;
+            return (!maxCamerasAllowed || Object.keys(theGroup.activeMonitors).length <= parseInt(maxCamerasAllowed))
+        }catch(err){
+            return true
+        }
     }
     function getStreamDirectory(options){
         const streamDir = s.dir.streams + options.ke + '/' + options.mid + '/'
