@@ -178,6 +178,17 @@ module.exports = function(s,config){
             {name: 'end', length: 10, type: 'string'},
             {name: 'enabled', type: 'integer', length: 1, defaultTo: 1},
         ]);
+        await createTable('Chains',[
+            isMySQL ? {name: 'utf8', type: 'charset'} : null,
+            isMySQL ? {name: 'utf8_general_ci', type: 'collate'} : null,
+            {name: 'ke', length: 50, type: 'string'},
+            {name: 'uid', length: 50, type: 'string'},
+            {name: 'ignitor', length: 100, type: 'string'},
+            {name: 'conditions', type: 'text'},
+            {name: 'next', type: 'text'},
+            {name: 'created', type: 'timestamp', defaultTo: currentTimestamp()},
+            {name: 'enabled', type: 'integer', length: 1, defaultTo: 1},
+        ]);
         // additional requirements for older installs
         await require('./migrate/2022-08-22.js')(s,config)
         await require('./migrate/2022-12-18.js')(s,config)
