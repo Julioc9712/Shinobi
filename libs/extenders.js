@@ -1,4 +1,5 @@
 module.exports = function(s,config){
+    s.allExtensions = []
     s.cloudDiskUseStartupExtensions = {}
     s.cloudDiskUseOnGetVideoDataExtensions = {}
     function createExtension(nameOfExtension,nameOfExtensionContainer,objective){
@@ -14,6 +15,7 @@ module.exports = function(s,config){
                 s[nameOfExtensionContainer].push(callback)
             }
         }
+        s.allExtensions.push(nameOfExtension)
     }
     ////// USER //////
     createExtension(`onSocketAuthentication`)

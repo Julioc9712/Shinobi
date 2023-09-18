@@ -1,5 +1,5 @@
 module.exports = function(s,config){
-    let loadedChains = {}
+    let loadedChains = s.loadedChains
     async function loadChains(){
         const selectResponse = await s.knexQueryPromise({
             action: "select",
@@ -18,6 +18,9 @@ module.exports = function(s,config){
         if(!loadedChains[extenderThatStartsThis])loadedChains[extenderThatStartsThis] = {}
         if(!loadedChains[extenderThatStartsThis][groupKey])loadedChains[extenderThatStartsThis][groupKey] = {}
         loadedChains[extenderThatStartsThis][groupKey] = item
+    }
+    function saveChain(item){
+
     }
     function evaluateCondition(condition,toCheck){
         var param = toCheck[condition.p1]
@@ -45,9 +48,7 @@ module.exports = function(s,config){
         }
         return false
     }
-    function checkChainItemConditions(conditions,{
-        matrices,
-    }){
+    function checkChainItemConditions(conditions,data){
         if(conditions.length === 0)return true;
         const conditionChain = {}
         const validationString = []
@@ -117,30 +118,46 @@ module.exports = function(s,config){
         const hasPassed = eval(validationString.join(' '));
         return hasPassed;
     }
-    async function executeChainItem(item,options){
+    async function executeChainItem(groupKey,item,data){
         let conditionsPassed = [];
-        const conditions = item.conditions
-        const hasPassed = checkChainItemConditions(conditions,options)
+        const conditions = item.conditions || [];
+        const hasPassed = checkChainItemConditions(conditions,data)
         if(hasPassed){
-            if(item.onPassed)item.onPassed();
+            if(item.action){
+                const currentAction = item.action
+                const runAction = s.loadedChainActions[currentAction]
+                if(runAction)await runAction(groupKey,item,data);
+            }
             const nextItems = item.next;
             for (let i = 0; i < nextItem.length; i++) {
                 const nextItem = nextItems[i]
-                const nextOptions = nextItem.getOptions ? nextItem.getOptions() : options
-                executeChainItem(nextItem,nextOptions)
+                executeChainItem(groupKey,nextItem,data);
             }
-        }else if(item.onNotPassed){
-            item.onNotPassed();
         }
         return hasPassed;
     }
-    function saveChain(item){
-
-    }
     function addChainControllerToExtender(extender){
-
+        // extender = extenderThatStartsThis
+        s[extender]((...data) => {
+            const theChain = loadedChains[extender]
+            if(theChain){
+                for (const groupKey in theChain) {
+                    const items = theChain[groupKey]
+                    for (let i = 0; i < items.length; i++) {
+                        const item = items[i];
+                        executeChainItem(groupKey,item,data);
+                    }
+                }
+            }
+        })
     }
-    function addChainControllerToExtenders(){
-        const toChain = ['onEventTrigger']
+    return {
+        loadChains,
+        loadChain,
+        saveChain,
+        evaluateCondition,
+        checkChainItemConditions,
+        executeChainItem,
+        addChainControllerToExtender,
     }
 }

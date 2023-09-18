@@ -13,16 +13,40 @@ module.exports = {
             allMonitors: false,
             monitorIds: [],
             monitorTags: [],
+            next: [
+                {
+                    action: 'createLog',
+                    monitorId: '$USER', //actual monitor id or $USER for user level log
+                    title: "Text Log on Recording After Event",
+                    text: "Recording has Started"
+                },
+            ]
         },
         {
             action: 'notifyDiscord',
+            text: '${OBJECT_TAGS} detected in ${MONITOR_NAME}',
+            timeoutUntilAllowAgain: 1000 * 60 * 10, // 10 minutes
             sendSnapshot: true,
             sendVideo: true,
+            sendForTriggeredMonitorOnly: true,
+            monitorIds: [],
+            monitorTags: [],
+            next: [
+                {
+                    action: 'createLog',
+                    monitorId: '$USER', //actual monitor id or $USER for user level log
+                    title: "Discord Note",
+                    text: 'Person detected in Back-1'
+                },
+            ]
         },
         {
             action: 'notifyTelegram',
             sendSnapshot: true,
             sendVideo: true,
+            allMonitors: false,
+            monitorIds: [],
+            monitorTags: [],
         },
         {
             action: 'scanAndNewCameras',
