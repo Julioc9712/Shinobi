@@ -64,6 +64,7 @@ module.exports = function(s,config){
     createExtension(`onEventBasedRecordingComplete`)
     createExtension(`onEventBasedRecordingStart`)
     createExtension(`onBeforeInsertCompletedVideo`)
+    createExtension(`onCloudVideoUploaded`)
     /////// TIMELAPSE ////////
     createExtension(`onInsertTimelapseFrame`)
 }
