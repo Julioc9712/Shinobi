@@ -1,5 +1,8 @@
 module.exports = function(s,config){
-    let loadedChains = s.loadedChains
+    const {
+        getMonitorIdFromData,
+    } = require('./utils.js')(s,config)
+    var loadedChains = s.loadedChains
     async function loadChains(){
         const selectResponse = await s.knexQueryPromise({
             action: "select",
@@ -10,17 +13,43 @@ module.exports = function(s,config){
         foundChains.forEach(loadChain);
     }
     function loadChain(item){
-        // "item" should always be the first item in a chain
+        const name = item.name
         const groupKey = item.ke
         const extenderThatStartsThis = item.ignitor
         item.conditions = JSON.parse(item.conditions)
         item.next = JSON.parse(item.next)
         if(!loadedChains[extenderThatStartsThis])loadedChains[extenderThatStartsThis] = {}
         if(!loadedChains[extenderThatStartsThis][groupKey])loadedChains[extenderThatStartsThis][groupKey] = {}
-        loadedChains[extenderThatStartsThis][groupKey] = item
+        loadedChains[extenderThatStartsThis][groupKey][name] = item
+    }
+    function unloadChain(item){
+        const name = item.name
+        const groupKey = item.ke
+        const extenderThatStartsThis = item.ignitor
+        delete(loadedChains[extenderThatStartsThis][groupKey][name])
     }
     function saveChain(item){
-
+        await loadChain(item)
+        return s.knexQueryPromise({
+            action: "insert",
+            table: "Chains",
+            insert: Object.assign({},item,{
+                conditions: JSON.stringify(item.conditions),
+                next: JSON.stringify(item.next),
+            })
+        })
+    }
+    function deleteChain(item){
+        await unloadChain(item)
+        return s.knexQueryPromise({
+            action: "delete",
+            table: "Chains",
+            where: {
+                ke: item.ke,
+                name: item.name,
+                ignitor: item.ignitor,
+            }
+        })
     }
     function evaluateCondition(condition,toCheck){
         var param = toCheck[condition.p1]
@@ -68,7 +97,7 @@ module.exports = function(s,config){
             }
             if(hasOpenBracket)++numberOfOpenAndCloseBrackets;
             if(hasCloseBracket)++numberOfOpenAndCloseBrackets;
-            if(matrices)conditionChain[place].matrixCount = matrices.length
+            // if(matrices)conditionChain[place].matrixCount = matrices.length
             switch(condition.p1){
                 case'tag':
                 case'x':
@@ -102,9 +131,14 @@ module.exports = function(s,config){
                         }
                     }
                 break;
-                default:
-                    conditionChain[place].ok = evaluateCondition(condition,d.details)
+                case'mid':
+                    var requiredMonitorId = getMonitorIdFromData(data);
+                    var monitorId = condition.p3;
+                    conditionChain[place].ok = monitorId === requiredMonitorId;
                 break;
+                // default:
+                //     conditionChain[place].ok = evaluateCondition(condition,d.details)
+                // break;
             }
         }
         const allowBrackets = numberOfOpenAndCloseBrackets === 0 || isEven(numberOfOpenAndCloseBrackets);
@@ -143,8 +177,8 @@ module.exports = function(s,config){
             if(theChain){
                 for (const groupKey in theChain) {
                     const items = theChain[groupKey]
-                    for (let i = 0; i < items.length; i++) {
-                        const item = items[i];
+                    for (const name in items) {
+                        const item = items[name];
                         executeChainItem(groupKey,item,data);
                     }
                 }
@@ -154,10 +188,13 @@ module.exports = function(s,config){
     return {
         loadChains,
         loadChain,
+        unloadChain,
         saveChain,
+        deleteChain,
         evaluateCondition,
         checkChainItemConditions,
         executeChainItem,
         addChainControllerToExtender,
+        getMonitorIdFromData,
     }
 }

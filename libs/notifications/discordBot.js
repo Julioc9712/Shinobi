@@ -5,6 +5,13 @@ module.exports = function(s,config,lang,getSnapshot){
         getObjectTagNotifyText,
         getEventBasedRecordingUponCompletion,
     } = require('../events/utils.js')(s,config,lang)
+    const {
+        addExtenderAction,
+        doMonitorActionForItem,
+    } = require('./utils.js')(s,config)
+    const {
+        getRecentSnapshot,
+    } = require('../chains/utils.js')(s,config)
     //discord bot
     if(config.discordBot === true){
         try{
@@ -224,6 +231,93 @@ module.exports = function(s,config,lang,getSnapshot){
                     },[],monitorConfig.ke)
                 }
             }
+            const loadedChainAction = async (groupKey,item,data) => {
+                const currentTime = new Date()
+                const timeoutUntilAllowAgain = item.timeoutUntilAllowAgain
+                function replaceParamsInString(monitorConfig){
+                    const name = monitorConfig.name
+                    const objectTags = data[0] && data[0].details ? data[0].details.matrices.map(item => item.tag) : []
+                    const newString = item.text
+                        .replace(/${MONITOR_NAME}/g, name)
+                        .replace(/${OBJECT_TAGS}/g, objectTags.join(', '))
+                    return newString;
+                }
+                const notifyText = replaceParamsInString(monitorConfig,data)
+                async function sendText(){
+                    sendMessage({
+                        author: {
+                            name: "",
+                            icon_url: config.iconURL
+                        },
+                        title: notifyText,
+                        description: notifyText+' '+currentTime,
+                        fields: [],
+                        timestamp: currentTime,
+                        footer: {
+                            icon_url: config.iconURL,
+                            text: "Shinobi Systems"
+                        }
+                    },[], groupKey)
+                }
+                async function sendSnapshot(monitorId){
+                    const monitorConfig = s.group[groupKey].rawMonitorConfigurations[monitorId]
+                    const monitorName = monitorConfig.name
+                    const snapshotBuffer = await getRecentSnapshot(monitorConfig)
+                    // const notifyText = getObjectTagNotifyText(data[0])
+                    sendMessage({
+                        author: {
+                            name: monitorName,
+                            icon_url: config.iconURL
+                        },
+                        title: notifyText,
+                        description: notifyText+' '+currentTime,
+                        fields: [],
+                        timestamp: currentTime,
+                        footer: {
+                            icon_url: config.iconURL,
+                            text: "Shinobi Systems"
+                        }
+                    },[
+                        {
+                            attachment: snapshotBuffer,
+                            name: notifyText + '.jpg'
+                        }
+                    ], groupKey)
+                }
+                async function sendVideo(monitorId){
+                    const monitorConfig = s.group[groupKey].rawMonitorConfigurations[monitorId]
+                    const monitorName = monitorConfig.name
+                    const video = await getRecentRecording(monitorConfig)
+                    // const notifyText = getObjectTagNotifyText(data[0])
+                    if(videoPath){
+                        sendMessage({
+                            author: {
+                              name: monitorName,
+                              icon_url: config.iconURL
+                            },
+                            title: `${notifyText}`,
+                            description: notifyText+' '+currentTime,
+                            fields: [],
+                            timestamp: currentTime,
+                            footer: {
+                                icon_url: config.iconURL,
+                                text: "Shinobi Systems"
+                            }
+                        },[
+                            {
+                                attachment: videoPath,
+                                name: notifyText + '.mp4'
+                            }
+                        ],d.ke)
+                    }
+                }
+                async function sendMedia(monitorId){
+                    if(item.sendSnapshot)await sendSnapshot(monitorId);
+                    if(item.sendVideo)await sendVideo(monitorId);
+                }
+                await sendText()
+                doMonitorActionForItem(groupKey,item,data,sendMedia)
+            }
             s.loadGroupAppExtender(loadDiscordBotForUser)
             s.unloadGroupAppExtender(unloadDiscordBotForUser)
             s.onTwoFactorAuthCodeNotification(onTwoFactorAuthCodeNotificationForDiscord)
@@ -231,6 +325,7 @@ module.exports = function(s,config,lang,getSnapshot){
             s.onEventTriggerBeforeFilter(onEventTriggerBeforeFilterForDiscord)
             s.onDetectorNoTriggerTimeout(onDetectorNoTriggerTimeoutForDiscord)
             s.onMonitorUnexpectedExit(onMonitorUnexpectedExitForDiscord)
+
             s.definitions["Monitor Settings"].blocks["Notifications"].info[0].info.push(
                 {
                    "name": "detail=notify_discord",
@@ -389,6 +484,9 @@ module.exports = function(s,config,lang,getSnapshot){
                     }
                  ]
             })
+            s.loadedChainActions['notifyDiscord'] = (groupKey,item,data) => {
+
+            }
         }catch(err){
             console.log(err)
             console.log('Could not start Discord bot, please run "npm install discord.js" inside the Shinobi folder.')

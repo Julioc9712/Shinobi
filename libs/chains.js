@@ -1,5 +1,6 @@
 module.exports = function(s,config,lang,app,io){
     s.loadedChains = {}
+    s.recentSnapshots = {}
     s.loadedChainActions = {}
     const {
         loadChains,

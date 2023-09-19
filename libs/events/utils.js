@@ -834,13 +834,16 @@ module.exports = (s,config,lang) => {
         return `${icon} ${tag}`;
     }
     function getObjectTagsFromMatrices(d){
-        if(d.details.reason === 'motion'){
+        const eventDetails = d.details
+        if(!eventDetails){
+            return []
+        }else if(eventDetails.reason === 'motion'){
             return [getTagWithIcon(lang.Motion)]
-        }else if(d.details.matrices){
-            const matrices = d.details.matrices
+        }else if(eventDetails.matrices){
+            const matrices = eventDetails.matrices
             return [...new Set(matrices.map(matrix => getTagWithIcon(matrix.tag)))];
         }
-        return [getTagWithIcon(d.details.reason)]
+        return [getTagWithIcon(eventDetails.reason)]
     }
     function getObjectTagNotifyText(d){
         const monitorId = d.mid || d.id
@@ -870,5 +873,6 @@ module.exports = (s,config,lang) => {
         triggerEvent: triggerEvent,
         addEventDetailsToString: addEventDetailsToString,
         getEventBasedRecordingUponCompletion: getEventBasedRecordingUponCompletion,
+        findMonitorsAssociatedToTags,
     }
 }

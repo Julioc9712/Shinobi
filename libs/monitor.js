@@ -302,13 +302,14 @@ module.exports = function(s,config,lang){
     }
     s.mergeDetectorBufferChunks = function(monitor,callback){
         return new Promise((resolve,reject) => {
-            var pathDir = s.dir.streams+monitor.ke+'/'+monitor.id+'/'
+            const monitorId = monitor.mid || monitor.id;
+            var pathDir = s.dir.streams+monitor.ke+'/'+monitorId+'/'
             var mergedFile = s.formattedTime()+'.mp4'
             var mergedFilepath = pathDir+mergedFile
             fs.readdir(pathDir,function(err,streamDirItems){
                 var items = []
                 var copiedItems = []
-                var videoLength = s.group[monitor.ke].rawMonitorConfigurations[monitor.id].details.detector_send_video_length
+                var videoLength = s.group[monitor.ke].rawMonitorConfigurations[monitorId].details.detector_send_video_length
                 if(!videoLength || videoLength === '')videoLength = '10'
                 if(videoLength.length === 1)videoLength = '0' + videoLength
                 var createMerged = function(copiedItems){
