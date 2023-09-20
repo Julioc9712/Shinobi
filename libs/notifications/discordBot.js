@@ -231,9 +231,17 @@ module.exports = function(s,config,lang,getSnapshot){
                     },[],monitorConfig.ke)
                 }
             }
+            const timeoutsUntilAllowAgain = {}
             const loadedChainAction = async (groupKey,item,data) => {
                 const currentTime = new Date()
+                const actionId = `${groupKey}${item.name}${item.ignitor}`
                 const timeoutUntilAllowAgain = item.timeoutUntilAllowAgain
+                if(timeoutUntilAllowAgain){
+                    if(timeoutsUntilAllowAgain[actionId])return;
+                    timeoutsUntilAllowAgain[actionId] = setTimeout(() => {
+                        delete(timeoutsUntilAllowAgain[actionId])
+                    },timeoutUntilAllowAgain);
+                }
                 function replaceParamsInString(monitorConfig){
                     const name = monitorConfig.name
                     const objectTags = data[0] && data[0].details ? data[0].details.matrices.map(item => item.tag) : []
