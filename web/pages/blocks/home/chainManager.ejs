@@ -1,0 +1,20 @@
+<main class="container page-tab pt-3" id="tab-chainManager">
+    <form class="dark row">
+        <%
+          var drawBlock
+          var buildOptions
+        %>
+        <%
+          include fieldBuilders.ejs
+        %>
+        <% Object.keys(define['Chain Manager'].blocks).forEach(function(blockKey){
+              var theBlock = define['Chain Manager'].blocks[blockKey]
+              drawBlock(theBlock)
+          }) %>
+          <div class="col-md-12">
+          <%
+            include stickySubmitBar.ejs
+          %>
+          </div>
+    </form>
+</main>

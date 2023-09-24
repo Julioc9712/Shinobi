@@ -7834,6 +7834,12 @@ module.exports = function(s,config,lang){
                           eval: `!$user.details.sub`,
                       },
                       {
+                          icon: 'link',
+                          label: `${lang['Chain Manager']}`,
+                          pageOpen: 'chainManager',
+                          eval: `!$user.details.sub`,
+                      },
+                      {
                           icon: 'filter',
                           label: `${lang['Event Filters']}`,
                           pageOpen: 'eventFilters',
@@ -9206,5 +9212,6 @@ module.exports = function(s,config,lang){
              },
           }
         },
+      "Chain Manager": require('./chainManger.js')(s,config,lang,Theme,mainBackgroundColor,textWhiteOnBgDark)
   })
 }

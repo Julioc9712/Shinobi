@@ -20,6 +20,8 @@
    "playUntilVideoEnd": "Play until video end",
    "Unmute": "Unmute",
    "byUser": "by user",
+   "Chains": "Chains",
+   "Chain Manager": "Chain Manager",
    "accountDeleted": "Account Deleted",
    "accountDeletedText": "Account has been deleted.",
    "accountActionFailed": "Account Action Failed",

@@ -182,7 +182,7 @@ module.exports = function(s,config){
             isMySQL ? {name: 'utf8', type: 'charset'} : null,
             isMySQL ? {name: 'utf8_general_ci', type: 'collate'} : null,
             {name: 'ke', length: 50, type: 'string'},
-            {name: 'uid', length: 50, type: 'string'},
+            {name: 'name', length: 100, type: 'string'},
             {name: 'ignitor', length: 100, type: 'string'},
             {name: 'conditions', type: 'text'},
             {name: 'next', type: 'text'},

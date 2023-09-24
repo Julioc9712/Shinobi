@@ -83,6 +83,7 @@ module.exports = function(s,config,lang,io){
             'home/studio',
             'home/monitorMap',
             'home/timeline',
+            'home/chainManager',
             'confirm',
             'home/help',
         ]
