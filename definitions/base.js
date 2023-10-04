@@ -8863,6 +8863,6 @@ module.exports = function(s,config,lang){
              },
           }
         },
-      "Chain Manager": require('./chainManger.js')(s,config,lang,Theme,mainBackgroundColor,textWhiteOnBgDark)
+      "Chain Manager": require('./chainManager.js')(s,config,lang,Theme,mainBackgroundColor,textWhiteOnBgDark)
   })
 }

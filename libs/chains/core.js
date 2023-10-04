@@ -46,9 +46,9 @@ module.exports = function(s,config){
         const extenderThatStartsThis = item.ignitor
         delete(loadedChains[extenderThatStartsThis][groupKey][name])
     }
-    function saveChain(item){
+    async function saveChain(item){
         await loadChain(item)
-        return s.knexQueryPromise({
+        return await s.knexQueryPromise({
             action: "insert",
             table: "Chains",
             insert: Object.assign({},item,{
@@ -57,9 +57,9 @@ module.exports = function(s,config){
             })
         })
     }
-    function deleteChain(item){
+    async function deleteChain(item){
         await unloadChain(item)
-        return s.knexQueryPromise({
+        return await s.knexQueryPromise({
             action: "delete",
             table: "Chains",
             where: {

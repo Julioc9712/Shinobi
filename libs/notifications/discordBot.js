@@ -8,8 +8,6 @@ module.exports = function(s,config,lang,getSnapshot){
     const {
         addExtenderAction,
         doMonitorActionForItem,
-    } = require('./utils.js')(s,config)
-    const {
         getRecentSnapshot,
     } = require('../chains/utils.js')(s,config)
     //discord bot

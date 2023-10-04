@@ -1,7 +1,7 @@
 module.exports = (s,config,lang,app,io) => {
     const {
         getChains,
-    } = require('./chains/core.js')(s,config)
+    } = require('./core.js')(s,config)
     /**
     * API : Get Logs
      */
