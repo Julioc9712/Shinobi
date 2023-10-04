@@ -3,6 +3,24 @@ module.exports = function(s,config){
         getMonitorIdFromData,
     } = require('./utils.js')(s,config)
     var loadedChains = s.loadedChains
+    async function getChains(groupKey,name){
+        const selectResponse = await s.knexQueryPromise({
+            action: "select",
+            columns: "*",
+            table: "Chains",
+            where: name ? {
+                ke: groupKey,
+                name: name,
+            } : {
+                ke: groupKey,
+            }
+        });
+        selectResponse.rows.forEach(function(v,n){
+            v.next = JSON.parse(v.next)
+            v.conditions = JSON.parse(v.conditions)
+        })
+        return selectResponse.rows
+    }
     async function loadChains(){
         const selectResponse = await s.knexQueryPromise({
             action: "select",
@@ -186,6 +204,7 @@ module.exports = function(s,config){
         })
     }
     return {
+        getChains,
         loadChains,
         loadChain,
         unloadChain,
