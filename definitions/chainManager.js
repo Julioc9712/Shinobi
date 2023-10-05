@@ -10,9 +10,35 @@ module.exports = function(s,config,lang,Theme,mainBackgroundColor,textWhiteOnBgD
                 "box-wrapper-class": "d-flex flex-row",
                 "info": [
                     {
-                        "fieldType": "div",
-                        "class": "col-2",
-                        "id": "chainManager-list",
+                       "class": "col-2 flex-direction-column",
+                       isFormGroupGroup: true,
+                       "noHeader": true,
+                       "info": [
+                           {
+                               "name": "name",
+                               "field": lang["Name"],
+                           },
+                           {
+                               "name": "ignitor",
+                               "field": lang['Ignitor'],
+                               "fieldType": "select"
+                           },
+                           {
+                              "fieldType": "btn-group",
+                              "class": "mb-3",
+                              "btns": [
+                                  {
+                                      "fieldType": "btn",
+                                      "class": `btn-primary add-new`,
+                                      "btnContent": `<i class="fa fa-plus"></i> ${lang['Add New']}`,
+                                  }
+                              ],
+                           },
+                           {
+                              "fieldType": "div",
+                              "id": "chainManager-list",
+                           },
+                        ]
                     },
                     {
                         "fieldType": "div",

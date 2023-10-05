@@ -6,8 +6,7 @@ $(document).ready(function(){
     function getChains(){
         return new Promise((resolve) => {
             $.getJSON(getApiPrefix('chains'),function(data){
-                loadChains(data)
-                resolve(data)
+                resolve(data.chains)
             })
         })
     }
@@ -22,8 +21,9 @@ $(document).ready(function(){
         html += `</li>`
         return html
     }
-    function loadChains(chains){
+    async function loadChains(){
         var html = ''
+        var chains = await getChains()
         chains.forEach(function(chain){
             loadedChains[chain.name] = chain
             html += buildChainTree(chain)
@@ -44,6 +44,13 @@ $(document).ready(function(){
     function drawChainOntoCanvas(chain){
         var html = buildChainLevelForCanvas(chain)
         editCanvas.html(html)
+    }
+    function addNewIgnitor(form){
+        form.next = '[]'
+        form.conditions = '[]'
+        $.post(getApiPrefix('chains'),form,function(data){
+            console.log(data)
+        })
     }
     $('body')
     .on('click','.open-chain-on-canvas',function(){

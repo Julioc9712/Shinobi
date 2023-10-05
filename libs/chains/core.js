@@ -57,6 +57,23 @@ module.exports = function(s,config){
             })
         })
     }
+    async function updateChain(item){
+        await unloadChain(item)
+        await loadChain(item)
+        return await s.knexQueryPromise({
+            action: "update",
+            table: "Chains",
+            update: {
+                conditions: JSON.stringify(item.conditions),
+                next: JSON.stringify(item.next),
+            },
+            where: {
+                ke: item.ke,
+                name: item.name,
+                ignitor: item.ignitor,
+            }
+        })
+    }
     async function deleteChain(item){
         await unloadChain(item)
         return await s.knexQueryPromise({
