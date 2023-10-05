@@ -10,7 +10,7 @@ echo "Shinobi - Do you want to Install Node.js?"
 echo "(y)es or (N)o"
 read -r nodejsinstall
 if [ "$nodejsinstall" = "y" ]; then
-    curl -o node-installer.pkg https://nodejs.org/dist/v16.15.0/node-v16.15.0.pkg
+    curl -o node-installer.pkg https://nodejs.org/dist/v20.7.0/node-v20.7.0.pkg
     sudo installer -pkg node-installer.pkg -target /
     rm node-installer.pkg
     sudo ln -s /usr/local/bin/node /usr/bin/nodejs
