@@ -13,6 +13,7 @@ module.exports = function(s,config,lang,Theme,mainBackgroundColor,textWhiteOnBgD
                        "class": "col-2 flex-direction-column",
                        isFormGroupGroup: true,
                        "noHeader": true,
+                       "isForm": true,
                        "info": [
                            {
                                "name": "name",
