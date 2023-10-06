@@ -2,6 +2,7 @@ $(document).ready(function(){
     var theWindow = $('#tab-chainManager')
     var editCanvas = $('#chainManager-canvas')
     var chainList = $('#chainManager-list')
+    var addNewForm = $('#chainManager-addNew')
     var loadedChains = {}
     function getChains(){
         return new Promise((resolve) => {
@@ -21,14 +22,18 @@ $(document).ready(function(){
         html += `</li>`
         return html
     }
+    function loadAndBuildChain(chain){
+        loadedChains[chain.name] = chain
+        var html = buildChainTree(chain)
+        chainList.append(html)
+    }
     async function loadChains(){
         var html = ''
         var chains = await getChains()
-        chains.forEach(function(chain){
-            loadedChains[chain.name] = chain
-            html += buildChainTree(chain)
+        chainList.empty()
+        chains.forEach((chain) => {
+            html += loadAndBuildChain(chain)
         })
-        chainList.html(html)
     }
     function buildChainLevelForCanvas(chain, level = 1){
         var html = `<span class="label">${chain.action ? chain.action : `${chain.name} <small>${chain.ignitor}` }</small></span>`
@@ -45,11 +50,13 @@ $(document).ready(function(){
         var html = buildChainLevelForCanvas(chain)
         editCanvas.html(html)
     }
-    function addNewIgnitor(form){
-        form.next = '[]'
-        form.conditions = '[]'
-        $.post(getApiPrefix('chains'),form,function(data){
-            console.log(data)
+    function submitChain(form){
+        return new Promise((resolve) => {
+            form.next = JSON.stringify(form.next) || '[]'
+            form.conditions = JSON.stringify(form.conditions) || '[]'
+            $.post(getApiPrefix('chains'),form,function(data){
+                resolve(data)
+            })
         })
     }
     $('body')
@@ -57,6 +64,18 @@ $(document).ready(function(){
         var chainName = $(this).attr('data-chain')
         var chain = loadedChains[chainName]
         drawChainOntoCanvas(chain)
+    });
+    addNewForm.submit(function(e){
+        e.preventDefault()
+        var chain = addNewForm.serializeObject()
+        chain.next = []
+        chain.conditions = []
+        submitChain(chain).then((response) => {
+            if(response.ok){
+                loadAndBuildChain(chain)
+            }
+        })
+        return false;
     });
     addOnTabOpen('chainManager', function () {
         loadChains()

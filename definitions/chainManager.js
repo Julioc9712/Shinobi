@@ -10,6 +10,7 @@ module.exports = function(s,config,lang,Theme,mainBackgroundColor,textWhiteOnBgD
                 "box-wrapper-class": "d-flex flex-row",
                 "info": [
                     {
+                       "id": "chainManager-addNew",
                        "class": "col-2 flex-direction-column",
                        isFormGroupGroup: true,
                        "noHeader": true,

@@ -5,7 +5,7 @@ module.exports = (s,config,lang,app,io) => {
         deleteChain,
     } = require('./core.js')(s,config)
     /**
-    * API : Save Chain (Add New)
+    * API : Save/Update Chain (Add New / Edit)
      */
     app.post([
         config.webPaths.apiPrefix+':auth/chains/:ke'
@@ -28,52 +28,29 @@ module.exports = (s,config,lang,app,io) => {
                 return
             }
             const form = req.body
+            const chainName = form.name
             form.ke = groupKey
-            form.name = form.name || s.gid(5)
-            form.next = s.parseJSON(form.next)
-            form.conditions = s.parseJSON(form.conditions)
-            saveChain(form).then((response) => {
-                s.closeJsonResponse(res,{
-                    ok: true,
-                    chains: response,
+            const alreadyExists = !!(await getChains(groupKey,chainName))[0]
+            if(alreadyExists){
+                form.next = s.parseJSON(form.next)
+                form.conditions = s.parseJSON(form.conditions)
+                updateChain(form).then((response) => {
+                    s.closeJsonResponse(res,{
+                        ok: true,
+                        isOld: true
+                    })
                 })
-            })
-        },res,req)
-    })
-    /**
-    * API : Update Chain
-     */
-    app.post([
-        config.webPaths.apiPrefix+':auth/chains/:ke'
-    ], function (req,res){
-        res.setHeader('Content-Type', 'application/json');
-        s.auth(req.params,function(user){
-            const groupKey = req.params.ke
-            const chainName = req.params.name
-            const {
-                isRestricted,
-                isRestrictedApiKey,
-                apiKeyPermissions,
-                userPermissions,
-            } = s.checkPermission(user)
-            if(
-                userPermissions.edit_chains_disallowed ||
-                isRestrictedApiKey && apiKeyPermissions.edit_chains_disallowed
-            ){
-                s.closeJsonResponse(res,{ok: false, msg: lang['Not Authorized'], chains: []});
-                return
+            }else{
+                form.name = form.name || s.gid(5)
+                form.next = s.parseJSON(form.next)
+                form.conditions = s.parseJSON(form.conditions)
+                saveChain(form).then((response) => {
+                    s.closeJsonResponse(res,{
+                        ok: true,
+                        isNew: true
+                    })
+                })
             }
-            const form = req.body
-            form.ke = groupKey
-            form.name = form.name || s.gid(5)
-            form.next = s.parseJSON(form.next)
-            form.conditions = s.parseJSON(form.conditions)
-            updateChain(form).then((response) => {
-                s.closeJsonResponse(res,{
-                    ok: true,
-                    chains: response,
-                })
-            })
         },res,req)
     })
     /**
