@@ -70,6 +70,7 @@ $(document).ready(function(){
         var chain = addNewForm.serializeObject()
         chain.next = []
         chain.conditions = []
+        chain.enabled = 1
         submitChain(chain).then((response) => {
             if(response.ok){
                 loadAndBuildChain(chain)

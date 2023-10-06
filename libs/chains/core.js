@@ -31,14 +31,16 @@ module.exports = function(s,config){
         foundChains.forEach(loadChain);
     }
     function loadChain(item){
-        const name = item.name
-        const groupKey = item.ke
-        const extenderThatStartsThis = item.ignitor
-        item.conditions = JSON.parse(item.conditions)
-        item.next = JSON.parse(item.next)
-        if(!loadedChains[extenderThatStartsThis])loadedChains[extenderThatStartsThis] = {}
-        if(!loadedChains[extenderThatStartsThis][groupKey])loadedChains[extenderThatStartsThis][groupKey] = {}
-        loadedChains[extenderThatStartsThis][groupKey][name] = item
+        if(item.enabled === 1){
+            const name = item.name
+            const groupKey = item.ke
+            const extenderThatStartsThis = item.ignitor
+            item.conditions = JSON.parse(item.conditions)
+            item.next = JSON.parse(item.next)
+            if(!loadedChains[extenderThatStartsThis])loadedChains[extenderThatStartsThis] = {}
+            if(!loadedChains[extenderThatStartsThis][groupKey])loadedChains[extenderThatStartsThis][groupKey] = {}
+            loadedChains[extenderThatStartsThis][groupKey][name] = item
+        }
     }
     function unloadChain(item){
         const name = item.name
@@ -52,6 +54,7 @@ module.exports = function(s,config){
             action: "insert",
             table: "Chains",
             insert: Object.assign({},item,{
+                enabled: item.enabled == '1' ? 1 : 0
                 conditions: JSON.stringify(item.conditions),
                 next: JSON.stringify(item.next),
             })
