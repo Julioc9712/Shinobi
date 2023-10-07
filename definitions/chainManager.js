@@ -23,7 +23,13 @@ module.exports = function(s,config,lang,Theme,mainBackgroundColor,textWhiteOnBgD
                            {
                                "name": "ignitor",
                                "field": lang['Ignitor'],
-                               "fieldType": "select"
+                               "fieldType": "select",
+                               "possible": s.allExtensions.map((item) => {
+                                   return {
+                                      "name": item,
+                                      "value": item
+                                   }
+                               })
                            },
                            {
                               "fieldType": "btn-group",
@@ -32,6 +38,7 @@ module.exports = function(s,config,lang,Theme,mainBackgroundColor,textWhiteOnBgD
                                   {
                                       "fieldType": "btn",
                                       "class": `btn-primary add-new`,
+                                      forForm: true,
                                       "btnContent": `<i class="fa fa-plus"></i> ${lang['Add New']}`,
                                   }
                               ],

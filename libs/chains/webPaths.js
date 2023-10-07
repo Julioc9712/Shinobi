@@ -11,9 +11,8 @@ module.exports = (s,config,lang,app,io) => {
         config.webPaths.apiPrefix+':auth/chains/:ke'
     ], function (req,res){
         res.setHeader('Content-Type', 'application/json');
-        s.auth(req.params,function(user){
+        s.auth(req.params,async function(user){
             const groupKey = req.params.ke
-            const chainName = req.params.name
             const {
                 isRestricted,
                 isRestrictedApiKey,

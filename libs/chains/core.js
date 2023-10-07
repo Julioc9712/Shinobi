@@ -54,7 +54,7 @@ module.exports = function(s,config){
             action: "insert",
             table: "Chains",
             insert: Object.assign({},item,{
-                enabled: item.enabled == '1' ? 1 : 0
+                enabled: item.enabled == '1' ? 1 : 0,
                 conditions: JSON.stringify(item.conditions),
                 next: JSON.stringify(item.next),
             })
