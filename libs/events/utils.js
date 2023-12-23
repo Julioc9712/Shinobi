@@ -27,6 +27,7 @@ module.exports = (s,config,lang) => {
     } = require('../video/utils.js')(s,config,lang)
     const {
         getTracked,
+        clearTracker,
         setLastTracked,
         trackObjectWithTimeout,
         getAllMatricesThatMoved,
@@ -778,6 +779,12 @@ module.exports = (s,config,lang) => {
             setLastTracked(trackerId, trackedObjects)
             if(objectsThatMoved.length === 0)return;
             eventDetails.matrices = objectsThatMoved
+        }else if(thisHasMatrices && monitorDetails.detector_track === '1'){
+            const trackerId = `${groupKey}${monitorId}`
+            trackObjectWithTimeout(trackerId,eventDetails.matrices)
+            const trackedObjects = getTracked(trackerId)
+            setLastTracked(trackerId, trackedObjects)
+            eventDetails.matrices = trackedObjects
         }
         //
         d.doObjectDetection = (

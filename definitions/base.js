@@ -3160,6 +3160,22 @@ module.exports = function(s,config,lang){
                             ]
                          },
                          {
+                            "name": "detail=detector_track",
+                            "field": lang["Track Objects"],
+                            "default": "0",
+                            "fieldType": "select",
+                            "possible": [
+                               {
+                                  "name": lang.No,
+                                  "value": "0"
+                               },
+                               {
+                                  "name": lang.Yes,
+                                  "value": "1"
+                               }
+                            ]
+                         },
+                         {
                              hidden: true,
                             "name": "detail=detector_object_move_percent",
                             "field": lang['Minimum Movement'],

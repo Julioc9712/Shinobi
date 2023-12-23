@@ -50,12 +50,16 @@ module.exports = (s,config,lang) => {
         theTracker.tracker.updateTrackedItemsWithNewFrame(mappedMatrices, theTracker.frameCount);
         ++theTracker.frameCount
     }
+    function clearTracker(trackerId){
+        objectTrackers[trackerId].tracker.reset()
+        delete(objectTrackers[trackerId])
+        delete(objectTrackerTimeouts[trackerId])
+        clearTimeout(objectTrackerTimeouts[trackerId]);
+    }
     function trackObjectWithTimeout(trackerId,matrices){
         clearTimeout(objectTrackerTimeouts[trackerId]);
         objectTrackerTimeouts[trackerId] = setTimeout(() => {
-            objectTrackers[trackerId].tracker.reset()
-            delete(objectTrackers[trackerId])
-            delete(objectTrackerTimeouts[trackerId])
+            clearTracker(trackerId)
         },1000 * 60);
         trackObject(trackerId,matrices);
     }
@@ -149,6 +153,7 @@ module.exports = (s,config,lang) => {
     return {
         trackObjectWithTimeout,
         resetObjectTracker,
+        clearTracker,
         trackObject,
         getTracked,
         setLastTracked,
