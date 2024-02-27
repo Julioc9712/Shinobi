@@ -67,4 +67,6 @@ module.exports = function(s,config){
     createExtension(`onCloudVideoUploaded`)
     /////// TIMELAPSE ////////
     createExtension(`onInsertTimelapseFrame`)
+    /////// PLUGINS ////////
+    createExtension(`onPluginChanged`)
 }

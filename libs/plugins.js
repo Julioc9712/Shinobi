@@ -64,6 +64,10 @@ module.exports = function(s,config,lang,app,io){
             connectionType: d.connectionType
         }
         s.resetDetectorPluginArray()
+        for (var i = 0; i < s.onPluginChangedExtensions.length; i++) {
+            const extender = s.onPluginChangedExtensions[i]
+            extender(d,filter)
+        }
     }
     s.removeDetectorPlugin = function(name){
         if(config.oldPluginConnectionMethod === true && s.ocv && s.ocv.plug === name){

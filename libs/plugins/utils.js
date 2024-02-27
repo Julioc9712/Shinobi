@@ -41,7 +41,30 @@ module.exports = (s,config,lang) => {
         //     s.tx(data,'CPU')
         // })
     }
+    function initMonitorOnPlugins(groupKey,monitorId){
+        s.ocvTx({
+            f : 'init_monitor',
+            monitorConfig : s.group[groupKey].rawMonitorConfigurations[monitorId],
+            groupKey,
+            monitorId,
+            time : s.formattedTime(),
+        });
+    }
+    function initMonitorsOnPlugins(groupKey){
+        const monitors = s.group[groupKey].rawMonitorConfigurations;
+        Object.keys(monitors).forEach((monitorId) => {
+            initMonitorOnPlugins(groupKey, monitorId)
+        })
+    }
+    function initAllMonitorsOnPlugins(){
+        Object.keys(s.group).forEach((groupKey) => {
+            initMonitorsOnPlugins(groupKey)
+        })
+    }
     return {
+        initMonitorOnPlugin,
+        initMonitorsOnPlugins,
+        initAllMonitorsOnPlugins,
         activateClientPlugin: activateClientPlugin,
         initializeClientPlugin: initializeClientPlugin,
         deactivateClientPlugin: deactivateClientPlugin,
