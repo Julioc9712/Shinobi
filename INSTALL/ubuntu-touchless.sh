@@ -78,16 +78,18 @@ else
 fi
 echo "============="
 echo "Shinobi - Installing MariaDB"
-echo "MariaDB will be installed with no password."
-sqlpass=""
+echo "MariaDB will be installed with "$sqlpass" as the password for "$sqluser"."
+sqluser="root"
+sqlpass="swejon"
 echo "mariadb-server mariadb-server/root_password password $sqlpass" | debconf-set-selections
 echo "mariadb-server mariadb-server/root_password_again password $sqlpass" | debconf-set-selections
 sudo apt install mariadb-server -y
 sudo service mysql start
+sudo mysql_secure_installation
 echo "============="
 echo "Shinobi - Installing Database..."
-sqluser="root"
-sudo mysql -e "source sql/user.sql" || true
+sudo mysql -u "$sqluser" -p"$sqlpass" -e "source sql/user.sql" || true
+echo "Shinobi database setup completed."
 echo "============="
 echo "Shinobi - Install NPM Libraries"
 sudo npm install --unsafe-perm

@@ -16,7 +16,7 @@
   "db": {
     "host": "127.0.0.1",
     "user": "majesticflame",
-    "password": "",
+    "password": "tupaclives",
     "database": "ccio",
     "port":3306
   },
