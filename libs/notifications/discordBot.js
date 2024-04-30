@@ -13,6 +13,10 @@ module.exports = function(s,config,lang,getSnapshot){
     //discord bot
     if(config.discordBot === true){
         try{
+            const messageFooter = {
+                icon_url: config.iconURL,
+                text: config.notifyFooterText || "Shinobi Systems"
+            };
             const sendMessage = function(data,files,groupKey){
                 if(!data)data = {};
                 var bot = s.group[groupKey].discordBot
@@ -26,10 +30,7 @@ module.exports = function(s,config,lang,getSnapshot){
                     description: "",
                     fields: [],
                     timestamp: new Date(),
-                    footer: {
-                      icon_url: config.iconURL,
-                      text: "Shinobi Systems"
-                    }
+                    footer: messageFooter
                 },data)
                 const discordChannel = bot.channels.cache.get(s.group[groupKey].init.discordbot_channel)
                 if(discordChannel && discordChannel.send){
@@ -39,8 +40,7 @@ module.exports = function(s,config,lang,getSnapshot){
                     }).catch(err => {
                         if(err){
                             s.userLog({ke:groupKey,mid:'$USER'},{type:lang.DiscordErrorText,msg:err})
-                            s.group[groupKey].discordBot = null
-                            s.loadGroupApps({ke:groupKey})
+                            restartDiscordBot(groupKey, 1)
                         }
                     })
                 }else{
@@ -50,7 +50,7 @@ module.exports = function(s,config,lang,getSnapshot){
                     },{
                         type: lang.DiscordErrorText,
                         msg: 'Check the Channel ID'
-                    })
+                    });
                 }
             }
             const onEventTriggerBeforeFilterForDiscord = function(d,filter){
@@ -85,10 +85,7 @@ module.exports = function(s,config,lang,getSnapshot){
                             description: notifyText+' '+d.currentTimestamp,
                             fields: [],
                             timestamp: d.currentTime,
-                            footer: {
-                              icon_url: config.iconURL,
-                              text: "Shinobi Systems"
-                            }
+                            footer: messageFooter
                         },[
                             {
                                 attachment: d.screenshotBuffer,
@@ -121,10 +118,7 @@ module.exports = function(s,config,lang,getSnapshot){
                                 description: notifyText,
                                 fields: [],
                                 timestamp: d.currentTime,
-                                footer: {
-                                    icon_url: config.iconURL,
-                                    text: "Shinobi Systems"
-                                }
+                                footer: messageFooter
                             },[
                                 {
                                     attachment: videoPath,
@@ -147,12 +141,18 @@ module.exports = function(s,config,lang,getSnapshot){
                         description: '**'+s.factorAuth[r.ke][r.uid].key+'** '+r.lang.FactorAuthText1,
                         fields: [],
                         timestamp: new Date(),
-                        footer: {
-                          icon_url: config.iconURL,
-                          text: "Shinobi Systems"
-                        }
+                        footer: messageFooter
                     },[],r.ke)
                 }
+            }
+            let restartAttemptLockTimer = null
+            const restartDiscordBot = function(groupKey, timer = 60000 * 5){
+                s.debugLog(`Discord Bot Restarting : ${groupKey}`)
+                s.group[groupKey].discordBot = null;
+                clearTimeout(restartAttemptLockTimer);
+                restartAttemptLockTimer = setTimeout(function(){
+                    s.loadGroupApps({ke: groupKey});
+                }, timer);
             }
             const loadDiscordBotForUser = function(user){
                 const userDetails = s.parseJSON(user.details);
@@ -162,19 +162,35 @@ module.exports = function(s,config,lang,getSnapshot){
                    userDetails.discordbot === '1' &&
                    userDetails.discordbot_token !== ''
                   ){
+                    const groupKey = user.ke;
+                    const theGroup = s.group[groupKey];
                     s.debugLog(`!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`)
                     s.debugLog(`Discord Connecting ${userDetails.discordbot_token}`)
-                    s.group[user.ke].discordBot = new Discord.Client()
-                    s.group[user.ke].discordBot.on('ready', () => {
+                    const discordBot = new Discord.Client();
+                    discordBot.on('ready', () => {
+                        const botTag = discordBot.user.tag;
+                        s.debugLog(`Discord Bot Ready : ${groupKey} : ${botTag}`)
                         s.userLog({
-                            ke: user.ke,
+                            ke: groupKey,
                             mid: '$USER'
                         },{
                             type: lang.DiscordLoggedIn,
-                            msg: s.group[user.ke].discordBot.user.tag
+                            msg: botTag
                         })
-                    })
-                    s.group[user.ke].discordBot.login(userDetails.discordbot_token)
+                    });
+                    discordBot.on('error', (error) => {
+                        s.debugLog(`Discord Error : ${groupKey} : ${error}`)
+                        s.userLog({
+                            ke: groupKey,
+                            mid: '$USER'
+                        },{
+                            type: lang.DiscordErrorText,
+                            msg: error
+                        });
+                        restartDiscordBot(groupKey)
+                    });
+                    discordBot.login(userDetails.discordbot_token);
+                    theGroup.discordBot = discordBot;
                 }
             }
             const unloadDiscordBotForUser = function(user){
@@ -200,10 +216,7 @@ module.exports = function(s,config,lang,getSnapshot){
                         description: html,
                         fields: [],
                         timestamp: currentTime,
-                        footer: {
-                          icon_url: config.iconURL,
-                          text: "Shinobi Systems"
-                        }
+                        footer: messageFooter
                     },[],e.ke)
                 }
             }
@@ -222,10 +235,7 @@ module.exports = function(s,config,lang,getSnapshot){
                         description: description,
                         fields: [],
                         timestamp: currentTime,
-                        footer: {
-                          icon_url: config.iconURL,
-                          text: "Shinobi Systems"
-                        }
+                        footer: messageFooter
                     },[],monitorConfig.ke)
                 }
             }

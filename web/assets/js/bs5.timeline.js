@@ -30,7 +30,7 @@ $(document).ready(function(){
     var timeStripItemColors = {}
     var timeStripAutoGridSizer = false
     var timeStripListOfQueries = []
-    var timeStripSelectedMonitors = []
+    var timeStripSelectedMonitors = dashboardOptions().timeStripSelectedMonitors || []
     var timeStripAutoScrollTimeout = null;
     var timeStripAutoScrollPositionStart = null;
     var timeStripAutoScrollPositionEnd = null;
@@ -42,12 +42,14 @@ $(document).ready(function(){
     var loadedVideoElsOnCanvasNextVideoTimeout = {}
     var loadedVideoEndingTimeouts = {}
     var playUntilVideoEnd = false
-    var dontShowDetectionOnTimeline = false
+    var dontShowDetectionOnTimeline = true
     var isPlaying = false
     var earliestStart = null
     var latestEnd = null
     var timeChanging = false
     var dateRangeChanging = false
+    var lastDateChecked = new Date(0)
+    var monitorSelectionElements = []
     function setLoadingMask(turnOn){
         if(turnOn){
             if(theWindow.find('.loading-mask').length === 0){
@@ -127,25 +129,30 @@ $(document).ready(function(){
         return videos;
     }
     async function getVideosByTimeStripRange(addOrOverWrite){
-        // timeStripSelectedMonitors = selected monitors
         var currentVideosLength = parseInt(loadedVideosOnTimeStrip.length)
         var stripDate = getTimestripDate()
         var startDate = stripDate.start
         var endDate = stripDate.end
-        var gaps = findGapsInSearchRanges(timeStripListOfQueries, [startDate,endDate])
-        // console.error([startDate,endDate])
-        // console.log('range : ',JSON.stringify([startDate,endDate]))
-        // console.log('timeRanges : ',JSON.stringify(timeStripListOfQueries))
-        // console.log('gaps : ',JSON.stringify(gaps))
-        if(gaps.length > 0){
-            setLoadingMask(true)
-            timeStripListOfQueries.push(...gaps)
-            var videos = await getVideosInGaps(gaps,timeStripSelectedMonitors)
-            videos = addVideoBeforeAndAfter(videos)
-            loadedVideosOnTimeStrip.push(...videos)
-            if(currentVideosLength !== loadedVideosOnTimeStrip.length)addTimelineItems(loadedVideosOnTimeStrip);
-            setLoadingMask(false)
+        var dateNow = new Date()
+        var isOverCacheTime = dateNow.getTime() - lastDateChecked.getTime() >= 20 * 60 * 1000;
+        if(isOverCacheTime){
+            timeStripListOfQueries = []
+            loadedVideosOnTimeStrip = []
         }
+        if(timeStripSelectedMonitors.length > 0){
+            var gaps = findGapsInSearchRanges(timeStripListOfQueries, [startDate,endDate])
+            if(gaps.length > 0){
+                setLoadingMask(true)
+                timeStripListOfQueries.push(...gaps)
+                var videos = await getVideosInGaps(gaps,timeStripSelectedMonitors)
+                videos = addVideoBeforeAndAfter(videos)
+                loadedVideosOnTimeStrip.push(...videos)
+                if(currentVideosLength !== loadedVideosOnTimeStrip.length)addTimelineItems(loadedVideosOnTimeStrip);
+                setLoadingMask(false)
+            }
+            lastDateChecked = new Date();
+        }
+        lastDateChecked = new Date();
         return loadedVideosOnTimeStrip
     }
     function selectVideosForCanvas(time, videos){
@@ -236,10 +243,15 @@ $(document).ready(function(){
     }
     async function resetTimeline(clickTime){
         await getAndDrawVideosToTimeline(clickTime,true)
-        setTickDate(clickTime)
-        setTimeLabel(clickTime)
-        setTimeOfCanvasVideos(clickTime)
-        setHollowClickQueue()
+        if(timeStripSelectedMonitors.length > 0){
+            setTickDate(clickTime)
+            setTimeLabel(clickTime)
+            setTimeOfCanvasVideos(clickTime)
+            setHollowClickQueue()
+        }else{
+            setViewForNoMonitorsSelected()
+        }
+        setSideMenuMonitorVisualSelection()
     }
     function timeStripActionWithPausePlay(restartPlaySpeed){
         return new Promise((resolve,reject) => {
@@ -769,11 +781,12 @@ $(document).ready(function(){
     }
     function drawFoundCamerasSubMenu(){
         var tags = getListOfTagsFromMonitors()
+        var monitorsOrdered = Object.values(loadedMonitors).sort((a, b) => a.name.localeCompare(b.name));
         var allFound = [
             {
                 attributes: `timeline-menu-action="selectMonitorGroup" tag=""`,
                 class: `cursor-pointer`,
-                color: 'green',
+                color: 'forestgreen',
                 label: lang['All Monitors'],
             }
         ]
@@ -792,9 +805,33 @@ $(document).ready(function(){
                 color: ' d-none',
                 label: `<small class="mt-1">${lang.addTagText}</small>`,
             })
+        }else if(allFound.length !== 0){
+            allFound.push({
+                divider: true
+            })
         }
+        $.each(monitorsOrdered,function(monitorKey,monitor){
+            var monitorId = monitor.mid
+            var label = monitor.name
+            allFound.push({
+                attributes: `timeline-menu-action="selectMonitor" data-mid="${monitorId}"`,
+                class: `cursor-pointer timeline-selectMonitor`,
+                color: 'grey',
+                label,
+            })
+        })
         var html = buildSubMenuItems(allFound)
         sideMenuList.html(html)
+        monitorSelectionElements = sideMenuList.find('.timeline-selectMonitor')
+    }
+    async function setSideMenuMonitorVisualSelection(){
+        var getForAllMonitors = timeStripSelectedMonitors.length === 0;
+        monitorSelectionElements.find('.dot').removeClass('dot-green')
+        if(!getForAllMonitors){
+            timeStripSelectedMonitors.forEach((monitorId) => {
+                sideMenuList.find(`[data-mid="${monitorId}"] .dot`).addClass('dot-green')
+            })
+        }
     }
     function setColorReferences(){
         $.each(loadedMonitors,function(monitorId,monitor){
@@ -853,20 +890,71 @@ $(document).ready(function(){
         if(!video)return console.log('No More!')
         await jumpToVideo(video)
     }
+    function onSelectedMonitorChange(){
+        dashboardOptions('timeStripSelectedMonitors', timeStripSelectedMonitors)
+    }
+    function setViewForNoMonitorsSelected(){
+        destroyTimeline();
+        timeStripVideoCanvas.html(`<h3 class="my-3 text-center text-white vertical-center flex-column"><i class="fa fa-hand-pointer-o fa-3x m-3"></i><div>${lang['No Monitors Selected']}</div></h3>`)
+    }
+    function isAllMonitorsSelected(percent = 100){
+        var divisor = percent / 100;
+        var allMonitorIds = Object.values(loadedMonitors).map(item => item.mid);
+        return timeStripSelectedMonitors.length >= (allMonitorIds.length * divisor);
+    }
+    function deselectAllMonitors(){
+        timeStripSelectedMonitors = [];
+        onSelectedMonitorChange()
+        refreshTimeline()
+    }
+    function refreshTimelineOnAgree(){
+        var askToLoad = isAllMonitorsSelected(50)
+        if(askToLoad){
+            $.confirm.create({
+                title: lang.tooManyMonitorsSelected,
+                body: lang.performanceMayBeAffected,
+                clickOptions: {
+                    title: lang.getVideos,
+                    class: 'btn-success'
+                },
+                clickCallback: function(){
+                    refreshTimeline()
+                },
+                onCancel: function(){
+                    deselectAllMonitors()
+                }
+            })
+        }else{
+            refreshTimeline()
+        }
+    }
     sideMenuList.on('click','[timeline-menu-action]',function(){
         var el = $(this)
         var type = el.attr('timeline-menu-action')
         switch(type){
+            case'selectMonitor':
+                var monitorId = el.attr('data-mid')
+                var alreadySelected = timeStripSelectedMonitors.indexOf(monitorId) > -1;
+                if(alreadySelected){
+                    timeStripSelectedMonitors = timeStripSelectedMonitors.filter(fillId => monitorId !== fillId)
+                }else{
+                    timeStripSelectedMonitors.push(monitorId)
+                }
+                onSelectedMonitorChange()
+                refreshTimeline()
+            break;
             case'selectMonitorGroup':
                 var tag = el.attr('tag')
                 if(!tag){
-                    timeStripSelectedMonitors = []
+                    timeStripSelectedMonitors = Object.values(loadedMonitors).map(item => item.mid)
+                    refreshTimelineOnAgree()
                 }else{
                     var tags = getListOfTagsFromMonitors()
                     var monitorIds = tags[tag]
                     timeStripSelectedMonitors = [...monitorIds];
+                    onSelectedMonitorChange()
+                    refreshTimeline()
                 }
-                refreshTimeline()
             break;
         }
     })
@@ -931,8 +1019,8 @@ $(document).ready(function(){
     })
     addOnTabOpen('timeline', async function () {
         setColorReferences()
-        refreshTimeline()
         drawFoundCamerasSubMenu()
+        refreshTimelineOnAgree()
     })
     addOnTabReopen('timeline', function () {
         drawFoundCamerasSubMenu()

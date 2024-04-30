@@ -158,7 +158,7 @@ module.exports = function(s,config,lang){
             var outputOptions = []
             var streamDir = s.dir.streams + monitor.ke + '/' + monitor.mid + '/'
             var url = options.url
-            var secondsInward = options.secondsInward || '0'
+            var secondsInward = options.secondsInward || '5'
             if(secondsInward.length === 1 && !isNaN(secondsInward))secondsInward = '0' + secondsInward;
             var dynamicTimeout = (secondsInward * 1000) + 5000;
             if(options.flags)outputOptions.push(options.flags)
@@ -196,7 +196,7 @@ module.exports = function(s,config,lang){
                         var iconImageFile = streamDir + 'icon.jpg'
                         const snapRawFilters = monitor.details.cust_snap_raw
                         if(snapRawFilters)outputOptions.push(snapRawFilters);
-                        var ffmpegCmd = splitForFFMPEG(`-y -loglevel warning ${isDetectorStream ? '-live_start_index 2' : ''} -re ${inputOptions.join(' ')} -i "${url}" ${outputOptions.join(' ')} -f image2 -an -frames:v 1 "${temporaryImageFile}"`)
+                        var ffmpegCmd = splitForFFMPEG(`-y -loglevel warning ${isDetectorStream ? '-live_start_index 2' : ''} -re ${inputOptions.join(' ')} -timeout 4000000 -i "${url}" ${outputOptions.join(' ')} -f image2 -an -frames:v 1 "${temporaryImageFile}"`)
                         try{
                             await fs.promises.mkdir(streamDir, {recursive: true}, (err) => {s.debugLog(err)})
                         }catch(err){
@@ -666,8 +666,8 @@ module.exports = function(s,config,lang){
         e.functionMode = selectedMode
         if(!e.mode){e.mode = selectedMode}
         s.checkDetails(e)
-        checkObjectsInMonitorDetails(e)
         s.initiateMonitorObject({ke:e.ke,mid:monitorId})
+        checkObjectsInMonitorDetails(e)
         switch(e.functionMode){
             case'watch_on':
                 monitorAddViewer(e,cn)
@@ -688,7 +688,7 @@ module.exports = function(s,config,lang){
                 await monitorStart(e)
             break;
             default:
-                console.log(selectedMode)
+                console.log('No s.camera execute : ',selectedMode)
             break;
         }
         if(typeof cn === 'function'){cn()}

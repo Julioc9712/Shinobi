@@ -1,5 +1,6 @@
 var monitorGroupSelections = $('#monitor-group-selections')
 var onGetSnapshotByStreamExtensions = []
+var redAlertNotices = {};
 function onGetSnapshotByStream(callback){
     onGetSnapshotByStreamExtensions.push(callback)
 }
@@ -645,6 +646,61 @@ function launchImportMonitorWindow(callback){
         reader.readAsText(f);
     });
 }
+function readAlertNotice(title, text, type) {
+    var redAlertNotice = redAlertNotices[title];
+    if (redAlertNotice) {
+        redAlertNotice.update({
+            title: title,
+            text: text,
+            type: type,
+            hide: false,
+            delay: 30000
+        });
+    } else {
+        redAlertNotices[title] = new PNotify({
+            title: title,
+            text: text,
+            type: type,
+            hide: false,
+            delay: 30000
+        });
+        redAlertNotices[title].on('close', function() {
+            redAlertNotices[title] = null;
+        });
+    }
+}
+function redAlertNotify(options) {
+    var redAlertNotice = redAlertNotices[title];
+    var notifyOptions = {
+        title: options.title,
+        text: options.text,
+        type: options.type,
+        hide: options.hide === undefined ? false : options.hide,
+        delay: options.delay || 30000
+    };
+    if (redAlertNotice) {
+        redAlertNotice.update(notifyOptions);
+    } else {
+        redAlertNotices[title] = new PNotify(notifyOptions);
+        redAlertNotices[title].on('close', function() {
+            redAlertNotices[title] = null;
+        });
+    }
+}
+function buildPosePoints(bodyParts, x, y){
+    let theArray = []
+    for(const point of bodyParts){
+        theArray.push({
+            tag: point.name,
+            x: x + point.x - 5, // Assuming a 10x10 rectangle for the wrist
+            y: y + point.y - 5,
+            width: 10,
+            height: 10,
+            confidence: point.score,
+        })
+    }
+    return theArray;
+}
 function drawMatrices(event,options){
     var theContainer = options.theContainer
     var height = options.height
@@ -654,11 +710,54 @@ function drawMatrices(event,options){
     var objectTagGroup = event.details.reason === 'motion' ? 'motion' : event.details.name
     theContainer.find(`.stream-detected-object[name="${objectTagGroup}"]`).remove()
     var html = ''
-    $.each(event.details.matrices,function(n,matrix){
-        html += `<div class="stream-detected-object" name="${objectTagGroup}" style="height:${heightRatio * matrix.height}px;width:${widthRatio * matrix.width}px;top:${heightRatio * matrix.y}px;left:${widthRatio * matrix.x}px;">`
+    let moreMatrices = []
+    var monitorId = event.id;
+    function processMatrix(n,matrix){
+        html += `<div class="stream-detected-object" name="${objectTagGroup}" style="height:${heightRatio * matrix.height}px;width:${widthRatio * matrix.width}px;top:${heightRatio * matrix.y}px;left:${widthRatio * matrix.x}px;border-color: ${matrix.color};">`
         if(matrix.tag)html += `<span class="tag">${matrix.tag}${!isNaN(matrix.id) ? ` <small class="label label-default">${matrix.id}</small>`: ''}</span>`
+        if(matrix.notice)html += `<div class="matrix-info" style="color:yellow">${matrix.notice}</div>`;
+        if(matrix.missingNear && matrix.missingNear.length > 0){
+            html += `<div class="matrix-info yellow"><small>Missing Near</small><br>${matrix.missingRecently.map(item => `${item.tag} (${item.id}) by ${item.missedNear.tag} (${item.missedNear.id})`).join(', ')}</div>`;
+        }
+        if(matrix.missingRecentlyNearHands && matrix.missingRecentlyNearHands.length > 0){
+            html += `<div class="matrix-info yellow"><small>Missing Recently</small><br>${matrix.missingRecentlyNearHands.map(item => `${item.tag} (${item.id})`).join(', ')}</div>`;
+        }
+        if(matrix.pose){
+            var pose = matrix.pose;
+            html += `<div class="matrix-info text-left">`;
+            if(pose.isPersonFallen)html += `<div><small>Stance</small><br>${pose.isPersonFallen}</div>`;
+            if(pose.isPersonReaching){
+                html += `<div><small>Left Hand</small><br>${pose.isPersonReaching.left.pose}</div>`;
+                html += `<div><small>Right Hand</small><br>${pose.isPersonReaching.right.pose}</div>`;
+            }
+            // if(pose.isPersonTouchingWaistOrHips)html += `<div>Waist or Hips : ${pose.isPersonTouchingWaistOrHips}</div>`;
+            html += `</div>`;
+            // console.log(matrix.poseInference)
+        }
+        if(matrix.poseInference)moreMatrices.push(...buildPosePoints(matrix.poseInference.keypoints,matrix.x,matrix.y))
+        if(matrix.nearHands){
+            var leftHand = matrix.nearHands.leftWrist;
+            var rightHand = matrix.nearHands.rightWrist;
+            html += `<div class="matrix-info text-left">`
+                html += `<div><small>Left Interact</small><br>${leftHand.matrices.map(item => `${item.tag} (${item.id})`).join(', ')}</div>`;
+                html += `<div><small>Right Interact</small><br>${rightHand.matrices.map(item => `${item.tag} (${item.id})`).join(', ')}</div>`;
+            html += `</div>`
+        }
+        if(matrix.nearBy){
+            html += `<div class="matrix-info">`
+            matrix.nearBy.forEach((nearMatrix) => {
+                html += `<div class="mb-1">${nearMatrix.tag} <small class="label label-default">${nearMatrix.id}</small> (${nearMatrix.overlapPercent}%)</div>`
+            });
+            html += `</div>`
+        }
+        if(matrix.redAlert){
+            var monitor = loadedMonitors[monitorId]
+            readAlertNotice(`${monitor.name}`,`${matrix.tag} (${matrix.id})<br>${matrix.notice}`,'danger');
+        }
         html += '</div>'
-    })
+    }
+    $.each(event.details.matrices, processMatrix);
+    $.each(moreMatrices, processMatrix);
     theContainer.append(html)
 }
 function setMonitorCountOnUI(){
@@ -757,6 +856,21 @@ function buildDefaultMonitorMenuItems(){
     <li><a class="dropdown-item cursor-pointer" set-mode="start">${lang['Watch-Only']}</a></li>
     <li><a class="dropdown-item cursor-pointer" set-mode="record">${lang.Record}</a></li>`
 }
+function createMagnifyStreamMask(options){
+    if(!options.p && !options.parent){
+        var el = $(this),
+        parent = el.parents('[mid]')
+    }else{
+        parent = options.p || options.parent
+    }
+    var zoomHoverShade = parent.find('.zoomHoverShade')
+    if(zoomHoverShade.length === 0){
+        const html = `<div class="zoomHoverShade magnify-glass-live-grid-stream"></div>`
+        parent.append(html)
+        zoomHoverShade = parent.find('.zoomHoverShade')
+    }
+    return zoomHoverShade
+}
 function magnifyStream(options){
     if(!options.p && !options.parent){
         var el = $(this),
@@ -794,15 +908,10 @@ function magnifyStream(options){
         magnifiedElement = 'video'
     }
     if(!options.mon && !options.monitor){
-        var groupKey = parent.attr('ke')//group key
-        var monitorId = parent.attr('mid')//monitor id
-        var sessionKey = parent.attr('auth')//authkey
-        var monitor = $.ccio.mon[groupKey + monitorId + sessionKey]//monitor configuration
+        var monitorId = parent.attr('data-mid')//monitor id
+        var monitor = loadedMonitors[monitorId]
     }else{
         var monitor = options.mon || options.monitor
-        var groupKey = monitor.ke//group key
-        var monitorId = monitor.mid//monitor id
-        var sessionKey = monitor.auth//authkey
     }
     if(options.zoomAmount)zoomAmount = 3
     if(!zoomAmount)zoomAmount = 3
@@ -833,14 +942,14 @@ function magnifyStream(options){
         zoomGlass = parent.find(".zoomGlass")
         var zoomGlassShell = function(contents){return `<div ${options.attribute} class="zoomGlass">${contents}</div>`}
         if(!options.videoUrl){
-            $.ccio.snapshot(monitor,function(url,buffer,w,h){
+            getSnapshot(monitor,function(url,buffer,w,h){
                 parent.attr('realWidth',w)
                 parent.attr('realHeight',h)
                 if(zoomGlass.length === 0){
                     if(options.useCanvas === true){
                         parent.append(zoomGlassShell('<canvas class="blenderCanvas"></canvas>'))
                     }else{
-                        parent.append(zoomGlassShell('<iframe src="'+getApiPrefix('embed')+'/'+monitorId+'/fullscreen|jquery|relative"/><div class="hoverShade"></div>'))
+                        parent.append(zoomGlassShell('<iframe src="'+getApiPrefix('embed')+'/'+monitorId+'/fullscreen|jquery|relative"/>'))
                     }
                     zoomGlass = parent.find(".zoomGlass")
                 }

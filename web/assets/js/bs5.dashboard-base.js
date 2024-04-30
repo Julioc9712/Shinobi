@@ -235,8 +235,11 @@ function getLocation(d){
     }
     return url
 }
+function getApiHost(path,isAdmin){
+    return getLocation() + (window.adminApiPrefix && isAdmin ? `${window.adminApiPrefix}` : '');
+}
 function getApiPrefix(path,isAdmin){
-    var mainPart = getLocation() + (window.adminApiPrefix && isAdmin ? `${window.adminApiPrefix}` : '') + $user.auth_token
+    var mainPart = getApiHost(path,isAdmin) + $user.auth_token
     return path ? mainPart + '/' + path + '/' + $user.ke : mainPart
 }
 
@@ -728,7 +731,12 @@ function getAllSectionsFromDefinition(definitionsBase){
 function buildSubMenuItems(listOfItems){
     var html = ''
     $.each(listOfItems,function(n,item){
-        if(item)html += `<li><a class="${definitions.Theme.isDark ? 'text-white' : 'text-dark'} text-decoration-none ${item.class || ''}" ${item.attributes || ''}><span class="${item.hasParent ? 'ml-3' : ''} dot dot-${item.color || 'blue'} mr-2"></span>${item.label}</a></li>`
+        if(!item)return;
+        if(item.divider){
+            html += `<li><hr class="dropdown-divider"/></li>`
+        }else{
+            html += `<li><a class="${definitions.Theme.isDark ? 'text-white' : 'text-dark'} text-decoration-none ${item.class || ''}" ${item.attributes || ''}><span class="${item.hasParent ? 'ml-3' : ''} dot dot-${item.color || 'blue'} mr-2"></span>${item.label}</a></li>`
+        }
     })
     return html
 }

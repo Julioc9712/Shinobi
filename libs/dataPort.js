@@ -5,6 +5,7 @@ module.exports = function(s,config,lang,app,io){
     } = require('./events/utils.js')(s,config,lang)
     s.dataPortTokens = {}
     const theWebSocket = createWebSocketServer()
+    s.dataPortServer = theWebSocket;
     function setClientKillTimerIfNotAuthenticatedInTime(client){
         client.killTimer = setTimeout(function(){
             client.terminate()
@@ -39,6 +40,8 @@ module.exports = function(s,config,lang,app,io){
                     s.debugLog(data.data)
                 break;
                 default:
+                    console.log(`No Data Port Handler!`)
+                    console.log(`here's what we got :`)
                     console.log(data)
                 break;
             }

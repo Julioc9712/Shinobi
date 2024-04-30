@@ -264,9 +264,9 @@ function updateLiveGridElementHeightWidth(monitorId){
     var streamElement = liveGridElement.streamElement
     liveGridElement.width = streamElement.width()
     liveGridElement.height = streamElement.height()
-    console.log(liveGridElement.width,liveGridElement.height)
+    console.log('update drawArea',monitorId,liveGridElement.width,liveGridElement.height)
 }
-function updateAllLiveGridElementsHeightWidth(monitorId){
+function updateAllLiveGridElementsHeightWidth(){
     $.each(liveGridElements,function(monitorId){
         updateLiveGridElementHeightWidth(monitorId)
     })
@@ -676,12 +676,12 @@ function loadPreviouslyOpenedLiveGridBlocks(){
         })
         setTimeout(function(){
             sortListMonitors()
-            if(dashboardOptions().switches.jpegMode === 1){
-                mainSocket.f({
-                    f: 'monitor',
-                    ff: 'jpeg_on'
-                })
-            }
+            // if(dashboardOptions().switches.jpegMode === 1){
+            //     mainSocket.f({
+            //         f: 'monitor',
+            //         ff: 'jpeg_on'
+            //     })
+            // }
         },1000)
         drawMonitorGroupList()
     })
@@ -1004,6 +1004,7 @@ $(document).ready(function(e){
     $('body')
     .resize(function(){
         resetAllLiveGridDimensionsInMemory()
+        updateAllLiveGridElementsHeightWidth()
     })
     .on('click','.launch-live-grid-monitor',function(){
         var monitorId = $(this).parents('[data-mid]').attr('data-mid')
@@ -1034,7 +1035,8 @@ $(document).ready(function(e){
             f: 'monitor',
             ff: 'watch_on',
             id: monitorId
-        })
+        });
+        updateLiveGridElementHeightWidth(monitorId)
     })
     .on('click','.close-live-grid-monitor',function(){
         var monitorId = $(this).parents('[data-mid]').attr('data-mid')
@@ -1140,6 +1142,46 @@ $(document).ready(function(e){
             ]
         });
     })
+    .on('click','.magnify-glass-live-grid-stream',function(){
+        const monitorId = $(this).parents('[data-mid]').attr('data-mid')
+        const streamWindow = $('.monitor_item[data-mid="'+monitorId+'"]')
+        const monitor = loadedMonitors[monitorId]
+        if(monitor.magnifyStreamEnabled){
+            monitor.magnifyStreamEnabled = false
+            clearTimeout(monitor.magnifyMouseActionTimeout)
+            var zoomHoverShade = createMagnifyStreamMask({
+                p: streamWindow,
+            })
+            zoomHoverShade
+                .off('mousemove', monitor.magnifyMouseAction)
+                .off('touchmove', monitor.magnifyMouseAction);
+            streamWindow
+                .find('.zoomGlass,.zoomHoverShade').remove()
+        }else{
+            streamWindow.find('.mdl-overlay-menu-backdrop').addClass('hidden')
+            monitor.magnifyStreamEnabled = true
+            var zoomHoverShade = createMagnifyStreamMask({
+                p: streamWindow,
+            })
+            monitor.magnifyMouseAction = function(e){
+                clearTimeout(monitor.magnifyMouseActionTimeout)
+                monitor.magnifyMouseActionTimeout = setTimeout(function(){
+                    magnifyStream({
+                        p: streamWindow,
+                        zoomAmount: 1,
+                        auto: false,
+                        animate: false,
+                        pageX: e.pageX,
+                        pageY:  e.pageY,
+                        attribute: '.magnify-glass-live-grid-stream'
+                    })
+                },50)
+            }
+            zoomHoverShade
+                .on('mousemove', monitor.magnifyMouseAction)
+                .on('touchmove', monitor.magnifyMouseAction)
+        }
+    })
     $('.open-all-monitors').click(function(){
         openAllLiveGridPlayers()
     })
@@ -1155,11 +1197,15 @@ $(document).ready(function(e){
         },700)
     })
     .on('resizestop', function(){
-        resetAllLiveGridDimensionsInMemory()
+        setTimeout(() => {
+            resetAllLiveGridDimensionsInMemory()
+        },2000)
         saveLiveGridBlockPositions()
+        updateAllLiveGridElementsHeightWidth()
     });
     addOnTabReopen('liveGrid', function () {
         pauseAllLiveGridPlayers(true)
+        updateAllLiveGridElementsHeightWidth()
     })
     addOnTabAway('liveGrid', function () {
         pauseAllLiveGridPlayers(false)
@@ -1228,20 +1274,20 @@ $(document).ready(function(e){
                 }
                 showHideSubstreamActiveIcon(monitorId,!!subStreamChannel)
             break;
-            case'mode_jpeg_off':
-                window.jpegModeOn = false
-                $.each(loadedMonitors,function(n,v){
-                    stopJpegStream(v.mid)
-                    resetMonitorCanvas(v.mid)
-                    initiateLiveGridPlayer(v)
-                })
-                $('body').removeClass('jpegMode')
-            break;
-            case'mode_jpeg_on':
-                window.jpegModeOn = true
-                startAllJpegStreams()
-                $('body').addClass('jpegMode')
-            break;
+            // case'mode_jpeg_off':
+            //     window.jpegModeOn = false
+            //     $.each(loadedMonitors,function(n,v){
+            //         stopJpegStream(v.mid)
+            //         resetMonitorCanvas(v.mid)
+            //         initiateLiveGridPlayer(v)
+            //     })
+            //     $('body').removeClass('jpegMode')
+            // break;
+            // case'mode_jpeg_on':
+            //     window.jpegModeOn = true
+            //     startAllJpegStreams()
+            //     $('body').addClass('jpegMode')
+            // break;
             case'detector_trigger':
                 var monitorId = d.id
                 var liveGridElement = liveGridElements[monitorId]

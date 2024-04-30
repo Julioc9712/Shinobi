@@ -2911,7 +2911,7 @@ module.exports = function(s,config,lang){
                       "name": "detail=snap_seconds_inward",
                       "field": lang['Delay for Snapshot'],
                       "description": lang[lang["fieldTextSnapSecondsInward"]],
-                      "default": "0"
+                      "default": "5"
                    },
                    {
                        hidden: true,
@@ -6405,6 +6405,7 @@ module.exports = function(s,config,lang){
               "Saved Filters": {
                  "name": lang["Saved Filters"],
                  "color": "green",
+                 "blockquote": lang.eventFilterEnableNoticeText,
                  "info": [
                      {
                         "field": lang["Monitor"],
@@ -7618,8 +7619,7 @@ module.exports = function(s,config,lang){
               },
               "Zoom In": {
                  "label": lang['Zoom In'],
-                 "attr": `monitor="zoomStreamWithMouse"`,
-                 "class": "default",
+                 "class": "default magnify-glass-live-grid-stream",
                  "icon": "search-plus"
               },
               // "Calendar": {
@@ -8835,7 +8835,7 @@ module.exports = function(s,config,lang){
                               <div class="btn-group">
                                   <a class="btn btn-sm btn-primary" timeline-action="autoGridSizer" title="${lang.autoResizeGrid}"><i class="fa fa-expand"></i></a>
                                   <a class="btn btn-sm btn-primary" timeline-action="playUntilVideoEnd" title="${lang.playUntilVideoEnd}"><i class="fa fa-step-forward"></i></a>
-                                  <a class="btn btn-sm btn-primary" timeline-action="dontShowDetection" title="${lang['Hide Detection on Stream']}"><i class="fa fa-grav"></i></a>
+                                  <a class="btn btn-sm btn-primary btn-warning" timeline-action="dontShowDetection" title="${lang['Hide Detection on Stream']}"><i class="fa fa-grav"></i></a>
                               </div>
                               <div class="btn-group">
                                   <a class="btn btn-sm btn-success" timeline-action="downloadAll" title="${lang.Download}"><i class="fa fa-download"></i></a>

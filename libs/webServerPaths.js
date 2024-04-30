@@ -12,6 +12,7 @@ var cors = require('cors')
 var proxy = httpProxy.createProxyServer({})
 var ejs = require('ejs');
 var fileupload = require("express-fileupload");
+var fieldBuild = require('./fieldBuild');
 module.exports = function(s,config,lang,app,io){
     const {
         ptzControl,
@@ -44,6 +45,7 @@ module.exports = function(s,config,lang,app,io){
         passables.originalURL = s.getOriginalUrl(req)
         passables.baseUrl = req.protocol+'://'+req.hostname
         passables.config = s.getConfigWithBranding(req.hostname)
+        passables.fieldBuild = fieldBuild
         res.render(paths,passables,callback)
     }
     //child node proxy check
@@ -1284,12 +1286,12 @@ module.exports = function(s,config,lang,app,io){
                                 ]
                             })
                             s.group[r.ke].rawMonitorConfigurations[r.mid]=r;
-                            s.tx({f:'monitor_edit',mid:r.mid,ke:r.ke,mon:r},'GRP_'+r.ke);
-                            s.tx({f:'monitor_edit',mid:r.mid,ke:r.ke,mon:r},'STR_'+r.ke);
                             await s.camera('stop',s.cleanMonitorObject(r));
                             if(req.params.f!=='stop'){
-                                s.camera(req.params.f,s.cleanMonitorObject(r));
+                                await s.camera(req.params.f,s.cleanMonitorObject(r));
                             }
+                            s.tx({f:'monitor_edit',mid:r.mid,ke:r.ke,mon:r},'GRP_'+r.ke);
+                            s.tx({f:'monitor_edit',mid:r.mid,ke:r.ke,mon:r},'STR_'+r.ke);
                             response.msg = user.lang['Monitor mode changed']+' : '+req.params.f;
                         }else{
                             response.msg = user.lang['Reset Timer'];
@@ -1331,7 +1333,7 @@ module.exports = function(s,config,lang,app,io){
                                 r.fps=s.group[r.ke].activeMonitors[r.mid].currentState.fps;
                                 await s.camera('stop',s.cleanMonitorObject(r));
                                 if(s.group[r.ke].activeMonitors[r.mid].currentState.mode!=='stop'){
-                                    s.camera(s.group[r.ke].activeMonitors[r.mid].currentState.mode,s.cleanMonitorObject(r));
+                                    await s.camera(s.group[r.ke].activeMonitors[r.mid].currentState.mode,s.cleanMonitorObject(r));
                                 }
                                 s.group[r.ke].rawMonitorConfigurations[r.mid]=r;
                                 s.tx({f:'monitor_edit',mid:r.mid,ke:r.ke,mon:r},'GRP_'+r.ke);
