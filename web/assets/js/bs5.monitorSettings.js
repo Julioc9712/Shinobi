@@ -700,6 +700,14 @@ function importIntoMonitorEditor(options){
         theAction(monitorConfig)
     })
 }
+
+function getAvailablePlugins(){
+    return new Promise((resolve) => {
+        $.get(getApiPrefix()+'/plugins/'+monitorConfig.ke+'/',function(data){
+            resolve(data)
+        })
+    })
+}
 //parse "Automatic" field in "Input" Section
 monitorEditorWindow.on('change','.auto_host_fill input,.auto_host_fill select',function(e){
     var theSwitch = monitorEditorWindow.find('[detail="auto_host_enable"]').val()
@@ -1327,11 +1335,12 @@ editorForm.find('[name="type"]').change(function(e){
             sideMenuCollapsePoint.collapse('show')
         }
     }
-    function onTabMove(){
+    async function onTabMove(){
         var theSelected = `${monitorsList.val() || ''}`
         drawMonitorListToSelector(monitorsList.find('optgroup'),false,'host')
         monitorsList.val(theSelected)
         checkToOpenSideMenu()
+        monitorEditorWindow.find('[detail="detector_chosen"]').val(await getAvailablePlugins())
     }
     addOnTabAway('monitorSettings', function(){
         if(isSideBarMenuCollapsed()){

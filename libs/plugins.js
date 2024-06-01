@@ -164,6 +164,18 @@ module.exports = function(s,config,lang,app,io){
             })
         }
     }
+    function sendToSpecificDetector(data, chosenDetectorPlugins){
+        if(s.connectedPlugins[name]){
+            s.connectedPlugins[name].tx(data)
+        }else{
+            console.error('Plugin Not Connected',name, 'used by',data.id)
+        }
+    }
+    s.sendToSpecificDetectors = function(data, chosenDetectorPlugins){
+        chosenDetectorPlugins.forEach(function(name){
+            sendToSpecificDetector(data, name)
+        })
+    }
     s.sendDetectorInfoToClient = function(data,txFunction){
         s.detectorPluginArray.forEach(function(name){
             var detectorData = Object.assign(data,{

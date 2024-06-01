@@ -3143,6 +3143,14 @@ module.exports = function(s,config,lang){
                              ]
                          },
                          {
+                            "name": "detail=detector_chosen",
+                            "field": lang["Chosen Plugin"],
+                            "description": lang.fieldTextChosenPlugin,
+                            "attribute": `multiple`,
+                            "fieldType": "select",
+                            "possible": []
+                         },
+                         {
                             "name": "detail=detector_object_ignore_not_move",
                             "field": lang["Ignore Non-Moving"],
                             "default": "0",

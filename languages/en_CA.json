@@ -18,6 +18,8 @@
    "accountEditError": "Account Edit Error",
    "Monitor Map": "Monitor Map",
    "Geolocation": "Geolocation",
+   "Chosen Plugin": "Chosen Plugin",
+   "fieldTextChosenPlugin": "Detector Plugin to use. Select none to send to all. This field is inactive when Plugins are used in Cluster Mode.",
    "fieldTextGeolocation": "The map coordinates of this camera in the real world. This will plot a point for your camera on the Monitor Map.",
    "playUntilVideoEnd": "Play until video end",
    "Monitor Saved": "Monitor Saved",
